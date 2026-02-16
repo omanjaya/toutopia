@@ -49,15 +49,15 @@ const penalaranUmumQuestions: QuestionSeed[] = [
     year: 2024,
   },
   {
-    content: "Lima orang (P, Q, R, S, T) duduk melingkar. P duduk di sebelah kanan Q. R tidak duduk bersebelahan dengan S. T duduk di sebelah kiri P. Siapa yang duduk di sebelah kanan T?",
+    content: "Enam kotak disusun berjajar dan diberi nomor 1–6 dari kiri ke kanan. Kotak berisi bola merah (M), kuning (K), dan biru (B) masing-masing 2 buah. Diketahui:\n1. Kedua bola merah bersebelahan.\n2. Bola kuning ada di kotak nomor 1 dan 6.\n3. Bola biru tidak bersebelahan.\nKotak nomor 3 berisi bola berwarna...",
     options: [
-      { label: "A", content: "P", isCorrect: false },
-      { label: "B", content: "Q", isCorrect: false },
-      { label: "C", content: "R", isCorrect: false },
-      { label: "D", content: "S", isCorrect: true },
+      { label: "A", content: "Kuning", isCorrect: false },
+      { label: "B", content: "Biru", isCorrect: false },
+      { label: "C", content: "Merah", isCorrect: true },
+      { label: "D", content: "Kuning atau biru", isCorrect: false },
       { label: "E", content: "Tidak dapat ditentukan", isCorrect: false },
     ],
-    explanation: "Urutan melingkar: T-P-Q-...-... dengan T di kiri P berarti P di kanan T. Lalu P di kanan Q berarti Q-P. Jadi urutan: ...Q-P-T-...-... Karena R tidak bersebelahan S, dan posisi tersisa untuk R dan S, maka S di kanan T dan R di posisi lain.",
+    explanation: "Kotak 1 dan 6 = K. Tersisa posisi 2,3,4,5 untuk M,M,B,B. Kedua M harus bersebelahan, kedua B tidak boleh bersebelahan. Jika M di 2-3: B di 4,5 (bersebelahan, tidak valid). Jika M di 4-5: B di 2,3 (bersebelahan, tidak valid). Jadi M harus di 3-4, dan B di 2 dan 5. Urutan: K,B,M,M,B,K. Kotak 3 = Merah.",
     difficulty: QuestionDifficulty.MEDIUM,
     source: "Adaptasi dari soal UTBK-SNBT 2024 — CNN Indonesia",
     year: 2024,
@@ -91,7 +91,7 @@ const penalaranUmumQuestions: QuestionSeed[] = [
     year: 2024,
   },
   {
-    content: "Ani lebih tua dari Beni. Cici lebih muda dari Dedi. Dedi lebih tua dari Ani. Beni lebih tua dari Eka. Siapa yang paling muda?",
+    content: "Ani lebih tua dari Beni. Cici lebih muda dari Beni tetapi lebih tua dari Eka. Dedi lebih tua dari Ani. Siapa yang paling muda?",
     options: [
       { label: "A", content: "Ani", isCorrect: false },
       { label: "B", content: "Beni", isCorrect: false },
@@ -99,7 +99,7 @@ const penalaranUmumQuestions: QuestionSeed[] = [
       { label: "D", content: "Dedi", isCorrect: false },
       { label: "E", content: "Eka", isCorrect: true },
     ],
-    explanation: "Urutan dari tua ke muda: Dedi > Ani > Beni > Eka. Cici < Dedi tapi posisinya relatif terhadap lainnya tidak pasti. Namun Eka pasti paling muda karena Beni > Eka dan Beni di bawah Ani dan Dedi.",
+    explanation: "Dedi > Ani (Dedi lebih tua dari Ani). Ani > Beni (Ani lebih tua dari Beni). Beni > Cici (Cici lebih muda dari Beni). Cici > Eka (Cici lebih tua dari Eka). Urutan dari tua ke muda: Dedi > Ani > Beni > Cici > Eka. Jadi yang paling muda adalah Eka.",
     difficulty: QuestionDifficulty.EASY,
     source: "Adaptasi dari soal UTBK-SNBT 2023 — Detik.com",
     year: 2023,
@@ -893,7 +893,23 @@ async function main() {
   });
 
   if (existingPackage) {
-    // Delete existing sections and questions
+    // Delete existing attempts, answers, sections, and questions
+    const attempts = await prisma.examAttempt.findMany({
+      where: { packageId: existingPackage.id },
+      select: { id: true },
+    });
+    if (attempts.length > 0) {
+      const attemptIds = attempts.map((a) => a.id);
+      await prisma.leaderboardEntry.deleteMany({
+        where: { attemptId: { in: attemptIds } },
+      });
+      await prisma.examAnswer.deleteMany({
+        where: { attemptId: { in: attemptIds } },
+      });
+      await prisma.examAttempt.deleteMany({
+        where: { packageId: existingPackage.id },
+      });
+    }
     await prisma.examSectionQuestion.deleteMany({
       where: { section: { packageId: existingPackage.id } },
     });
@@ -903,7 +919,7 @@ async function main() {
     await prisma.examPackage.delete({
       where: { id: existingPackage.id },
     });
-    console.log("  Deleted existing package.");
+    console.log("  Deleted existing package and related data.");
   }
 
   const totalQuestions = Object.values(createdQuestionIds).reduce(

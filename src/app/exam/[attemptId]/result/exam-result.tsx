@@ -14,6 +14,8 @@ import {
   Clock,
   ChevronDown,
   ChevronUp,
+  BookOpen,
+  BarChart3,
 } from "lucide-react";
 import { Button } from "@/shared/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
@@ -77,6 +79,7 @@ export function ExamResult({ attemptId }: ExamResultProps) {
   const router = useRouter();
   const [data, setData] = useState<ResultData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<"summary" | "review">("summary");
   const [expandedSections, setExpandedSections] = useState<Set<string>>(
     new Set()
   );
@@ -164,6 +167,36 @@ export function ExamResult({ attemptId }: ExamResultProps) {
         </div>
       </div>
 
+      {/* Tab Navigation */}
+      <div className="flex gap-1 rounded-lg bg-muted p-1">
+        <button
+          onClick={() => setActiveTab("summary")}
+          className={cn(
+            "flex flex-1 items-center justify-center gap-2 rounded-md px-4 py-2 text-sm font-medium transition-colors",
+            activeTab === "summary"
+              ? "bg-background shadow-sm"
+              : "text-muted-foreground hover:text-foreground"
+          )}
+        >
+          <BarChart3 className="h-4 w-4" />
+          Ringkasan
+        </button>
+        <button
+          onClick={() => setActiveTab("review")}
+          className={cn(
+            "flex flex-1 items-center justify-center gap-2 rounded-md px-4 py-2 text-sm font-medium transition-colors",
+            activeTab === "review"
+              ? "bg-background shadow-sm"
+              : "text-muted-foreground hover:text-foreground"
+          )}
+        >
+          <BookOpen className="h-4 w-4" />
+          Pembahasan
+        </button>
+      </div>
+
+      {activeTab === "summary" && (
+      <>
       {/* Score Card */}
       <Card
         className={cn(
@@ -381,12 +414,155 @@ export function ExamResult({ attemptId }: ExamResultProps) {
           </CardContent>
         </Card>
       )}
+      </>
+      )}
+
+      {/* Pembahasan Tab */}
+      {activeTab === "review" && (
+        <div className="space-y-6">
+          {data.sections.map((section) => (
+            <Card key={section.id}>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="text-base">{section.title}</CardTitle>
+                    <p className="text-sm text-muted-foreground">
+                      {section.subjectName} — {section.correct}/{section.total} benar
+                    </p>
+                  </div>
+                  <Badge variant="outline">
+                    {section.total > 0
+                      ? Math.round((section.correct / section.total) * 100)
+                      : 0}%
+                  </Badge>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {section.questions.map((q, qIdx) => {
+                  const isAnswered =
+                    !!q.selectedOptionId ||
+                    q.selectedOptions.length > 0 ||
+                    q.numericAnswer !== null;
+
+                  return (
+                    <div
+                      key={q.id}
+                      className={cn(
+                        "rounded-lg border p-4 space-y-3",
+                        q.isCorrect === true
+                          ? "border-emerald-200 dark:border-emerald-900/50"
+                          : q.isCorrect === false
+                          ? "border-destructive/30"
+                          : "border-muted"
+                      )}
+                    >
+                      {/* Question header */}
+                      <div className="flex items-center gap-2">
+                        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-bold">
+                          {qIdx + 1}
+                        </span>
+                        {q.isCorrect === true ? (
+                          <Badge variant="outline" className="border-emerald-500 text-emerald-600">
+                            Benar
+                          </Badge>
+                        ) : q.isCorrect === false ? (
+                          <Badge variant="destructive">Salah</Badge>
+                        ) : (
+                          <Badge variant="secondary">Tidak Dijawab</Badge>
+                        )}
+                      </div>
+
+                      {/* Question content */}
+                      <MathRenderer
+                        content={q.content}
+                        className="prose prose-sm max-w-none dark:prose-invert"
+                      />
+                      {q.imageUrl && (
+                        <img
+                          src={q.imageUrl}
+                          alt="Gambar soal"
+                          className="max-h-48 rounded-lg"
+                        />
+                      )}
+
+                      {/* Options */}
+                      <div className="space-y-1.5">
+                        {q.options.map((opt) => {
+                          const isSelected =
+                            q.selectedOptionId === opt.id ||
+                            q.selectedOptions.includes(opt.id);
+
+                          return (
+                            <div
+                              key={opt.id}
+                              className={cn(
+                                "flex items-start gap-2 rounded-md px-3 py-2 text-sm",
+                                opt.isCorrect &&
+                                  "bg-emerald-50 dark:bg-emerald-950/20",
+                                isSelected &&
+                                  !opt.isCorrect &&
+                                  "bg-destructive/10"
+                              )}
+                            >
+                              <span
+                                className={cn(
+                                  "flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold",
+                                  opt.isCorrect
+                                    ? "bg-emerald-500 text-white"
+                                    : isSelected
+                                    ? "bg-destructive text-white"
+                                    : "bg-muted text-muted-foreground"
+                                )}
+                              >
+                                {opt.label}
+                              </span>
+                              <MathRenderer
+                                content={opt.content}
+                                className="flex-1 text-sm"
+                              />
+                              {opt.isCorrect && (
+                                <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
+                              )}
+                              {isSelected && !opt.isCorrect && (
+                                <XCircle className="mt-0.5 h-4 w-4 shrink-0 text-destructive" />
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+
+                      {/* Explanation */}
+                      {q.explanation && (
+                        <div className="rounded-lg border border-blue-200 bg-blue-50/50 p-4 dark:border-blue-900/50 dark:bg-blue-950/20">
+                          <p className="mb-1.5 text-xs font-semibold uppercase tracking-wider text-blue-600 dark:text-blue-400">
+                            Pembahasan
+                          </p>
+                          <MathRenderer
+                            content={q.explanation}
+                            className="prose prose-sm max-w-none text-sm dark:prose-invert"
+                          />
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
 
       {/* Actions */}
       <div className="flex justify-center gap-3 pb-8">
         <Button variant="outline" asChild>
           <Link href="/dashboard/tryout">Kembali ke Katalog</Link>
         </Button>
+        {activeTab === "summary" && (
+          <Button onClick={() => setActiveTab("review")}>
+            <BookOpen className="mr-2 h-4 w-4" />
+            Lihat Pembahasan
+          </Button>
+        )}
       </div>
     </div>
   );
