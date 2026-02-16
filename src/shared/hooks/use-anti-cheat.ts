@@ -76,6 +76,48 @@ export function useAntiCheat({
   useEffect(() => {
     if (!enabled) return;
 
+    // Store initial viewport size to detect split screen
+    const initialWidth = window.innerWidth;
+    const initialHeight = window.innerHeight;
+    let splitScreenWarned = false;
+
+    // Split screen / floating window detection
+    function checkSplitScreen() {
+      const screenW = window.screen.width;
+      const screenH = window.screen.height;
+      const viewW = window.innerWidth;
+      const viewH = window.innerHeight;
+
+      // Detect if viewport is significantly smaller than screen
+      // This catches: split screen (~50%), floating window, picture-in-picture
+      const widthRatio = viewW / screenW;
+      const heightRatio = viewH / screenH;
+
+      // Also detect if viewport shrunk significantly from when exam started
+      const shrunkFromInitial =
+        viewW < initialWidth * 0.8 || viewH < initialHeight * 0.8;
+
+      if (widthRatio < 0.7 || heightRatio < 0.6 || shrunkFromInitial) {
+        if (!splitScreenWarned) {
+          splitScreenWarned = true;
+          logViolation(
+            "SPLIT_SCREEN",
+            "Terdeteksi split screen atau floating window. Gunakan browser dalam mode layar penuh"
+          );
+        }
+      } else {
+        // Reset so it can trigger again if they re-enter split screen
+        splitScreenWarned = false;
+      }
+    }
+
+    function handleResize() {
+      checkSplitScreen();
+    }
+
+    // Check on initial load (user might already be in split screen)
+    checkSplitScreen();
+
     // Page Visibility API — detect tab switch
     function handleVisibilityChange() {
       if (document.hidden) {
@@ -148,6 +190,7 @@ export function useAntiCheat({
     document.addEventListener("contextmenu", handleContextMenu);
     document.addEventListener("keydown", handleKeyDown);
     window.addEventListener("blur", handleBlur);
+    window.addEventListener("resize", handleResize);
 
     return () => {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
@@ -156,6 +199,7 @@ export function useAntiCheat({
       document.removeEventListener("contextmenu", handleContextMenu);
       document.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("blur", handleBlur);
+      window.removeEventListener("resize", handleResize);
     };
   }, [enabled, logViolation]);
 
