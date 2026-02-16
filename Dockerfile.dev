@@ -1,0 +1,9 @@
+FROM node:20-alpine
+WORKDIR /app
+COPY package.json package-lock.json ./
+RUN npm ci
+COPY prisma ./prisma
+ENV DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy"
+RUN npx prisma generate --config prisma/prisma.config.ts
+EXPOSE 3000
+CMD ["npm", "run", "dev"]

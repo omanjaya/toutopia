@@ -11,6 +11,8 @@ import {
   ChevronRight,
   Send,
   AlertTriangle,
+  ShieldAlert,
+  X,
 } from "lucide-react";
 import { Button } from "@/shared/components/ui/button";
 import { Card, CardContent } from "@/shared/components/ui/card";
@@ -75,7 +77,12 @@ export function ExamSession({ attemptId }: ExamSessionProps) {
   const questionTimeRef = useRef(0);
 
   // Anti-cheat system
-  useAntiCheat({
+  const {
+    violationCount,
+    showWarning,
+    warningMessage,
+    dismissWarning,
+  } = useAntiCheat({
     attemptId,
     enabled: examData?.isAntiCheat ?? false,
     onMaxViolations: () => {
@@ -302,6 +309,12 @@ export function ExamSession({ attemptId }: ExamSessionProps) {
               </span>
             )}
           </div>
+          {violationCount > 0 && (
+            <div className="flex items-center gap-1 rounded-lg bg-destructive/10 px-3 py-1.5 text-sm font-medium text-destructive">
+              <ShieldAlert className="h-4 w-4" />
+              {violationCount} pelanggaran
+            </div>
+          )}
           <div
             className={cn(
               "flex items-center gap-1 rounded-lg px-3 py-1.5 font-mono text-lg font-bold",
@@ -483,6 +496,44 @@ export function ExamSession({ attemptId }: ExamSessionProps) {
           </div>
         </div>
       </div>
+
+      {/* Anti-Cheat Warning Overlay */}
+      {showWarning && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60">
+          <Card className="w-full max-w-md border-destructive">
+            <CardContent className="space-y-4 pt-6">
+              <div className="flex items-start justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-destructive/10">
+                    <ShieldAlert className="h-5 w-5 text-destructive" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-destructive">
+                    Peringatan Anti-Cheat
+                  </h3>
+                </div>
+                <button
+                  onClick={dismissWarning}
+                  className="rounded-md p-1 hover:bg-muted"
+                >
+                  <X className="h-4 w-4 text-muted-foreground" />
+                </button>
+              </div>
+              <p className="text-sm">{warningMessage}</p>
+              <p className="text-xs text-muted-foreground">
+                Tetap di tab ini selama ujian berlangsung. Berpindah tab, membuka
+                aplikasi lain, atau mencoba menyalin konten dianggap pelanggaran.
+              </p>
+              <Button
+                className="w-full"
+                variant="destructive"
+                onClick={dismissWarning}
+              >
+                Saya Mengerti
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       {/* Submit Confirmation Modal */}
       {showConfirmSubmit && (

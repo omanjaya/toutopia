@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useCallback } from "react";
+import { useEffect, useRef, useCallback, useState } from "react";
 import { ANTI_CHEAT } from "@/shared/lib/constants";
 
 interface UseAntiCheatOptions {
@@ -10,34 +10,68 @@ interface UseAntiCheatOptions {
   onMaxViolations?: () => void;
 }
 
+interface Violation {
+  type: string;
+  message: string;
+  timestamp: Date;
+}
+
 export function useAntiCheat({
   attemptId,
   enabled,
   maxViolations = ANTI_CHEAT.MAX_VIOLATIONS_DEFAULT,
   onMaxViolations,
 }: UseAntiCheatOptions) {
+  const [violations, setViolations] = useState<Violation[]>([]);
+  const [showWarning, setShowWarning] = useState(false);
+  const [warningMessage, setWarningMessage] = useState("");
   const violationCount = useRef(0);
 
   const logViolation = useCallback(
-    async (type: string, details?: string) => {
+    async (type: string, message: string) => {
       violationCount.current += 1;
+      const count = violationCount.current;
+      const remaining = maxViolations - count;
 
+      setViolations((prev) => [
+        ...prev,
+        { type, message, timestamp: new Date() },
+      ]);
+
+      // Show warning overlay
+      if (remaining > 0) {
+        setWarningMessage(
+          `Peringatan ${count}/${maxViolations}: ${message}. Sisa kesempatan: ${remaining}`
+        );
+      } else {
+        setWarningMessage(
+          `Pelanggaran maksimum tercapai (${count}/${maxViolations}). Ujian akan otomatis diselesaikan.`
+        );
+      }
+      setShowWarning(true);
+
+      // Log to server
       try {
         await fetch(`/api/exam/${attemptId}/violation`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ type, details }),
+          body: JSON.stringify({ type, details: message }),
         });
       } catch {
         // Silent fail
       }
 
-      if (violationCount.current >= maxViolations && onMaxViolations) {
-        onMaxViolations();
+      if (count >= maxViolations && onMaxViolations) {
+        // Small delay so user sees the final warning
+        setTimeout(() => onMaxViolations(), 2000);
       }
     },
     [attemptId, maxViolations, onMaxViolations]
   );
+
+  const dismissWarning = useCallback(() => {
+    setShowWarning(false);
+  }, []);
 
   useEffect(() => {
     if (!enabled) return;
@@ -45,101 +79,91 @@ export function useAntiCheat({
     // Page Visibility API — detect tab switch
     function handleVisibilityChange() {
       if (document.hidden) {
-        logViolation("TAB_SWITCH", "User switched tab or minimized window");
+        logViolation(
+          "TAB_SWITCH",
+          "Kamu berpindah tab atau meminimalkan jendela browser"
+        );
       }
     }
 
-    // Fullscreen exit detection
-    function handleFullscreenChange() {
-      if (!document.fullscreenElement) {
-        logViolation("FULLSCREEN_EXIT", "User exited fullscreen mode");
+    // Window blur — detect focus loss (alt+tab, click outside)
+    function handleBlur() {
+      // Only trigger if not already from visibility change
+      if (!document.hidden) {
+        logViolation(
+          "WINDOW_BLUR",
+          "Jendela browser kehilangan fokus"
+        );
       }
     }
 
     // Copy/paste prevention
     function handleCopy(e: ClipboardEvent) {
       e.preventDefault();
-      logViolation("COPY_ATTEMPT", "User attempted to copy content");
+      logViolation("COPY_ATTEMPT", "Kamu mencoba menyalin konten");
     }
 
     function handlePaste(e: ClipboardEvent) {
       e.preventDefault();
-      logViolation("PASTE_ATTEMPT", "User attempted to paste content");
+      logViolation("PASTE_ATTEMPT", "Kamu mencoba menempel konten");
     }
 
     // Right-click prevention
     function handleContextMenu(e: MouseEvent) {
       e.preventDefault();
-      logViolation("CONTEXT_MENU", "User attempted to open context menu");
+      logViolation("CONTEXT_MENU", "Kamu mencoba membuka menu konteks");
     }
 
-    // Dev tools detection (basic)
+    // Dev tools detection
     function handleKeyDown(e: KeyboardEvent) {
-      // F12
       if (e.key === "F12") {
         e.preventDefault();
-        logViolation("DEV_TOOLS", "User pressed F12");
+        logViolation("DEV_TOOLS", "Kamu mencoba membuka Developer Tools");
       }
-      // Ctrl+Shift+I / Cmd+Option+I
       if (
         (e.ctrlKey || e.metaKey) &&
         e.shiftKey &&
         (e.key === "I" || e.key === "i")
       ) {
         e.preventDefault();
-        logViolation("DEV_TOOLS", "User attempted to open dev tools");
+        logViolation("DEV_TOOLS", "Kamu mencoba membuka Developer Tools");
       }
-      // Ctrl+Shift+J / Cmd+Option+J (Console)
       if (
         (e.ctrlKey || e.metaKey) &&
         e.shiftKey &&
         (e.key === "J" || e.key === "j")
       ) {
         e.preventDefault();
-        logViolation("DEV_TOOLS", "User attempted to open console");
+        logViolation("DEV_TOOLS", "Kamu mencoba membuka Console");
       }
-      // Ctrl+U / Cmd+U (View Source)
       if ((e.ctrlKey || e.metaKey) && (e.key === "U" || e.key === "u")) {
         e.preventDefault();
-        logViolation("VIEW_SOURCE", "User attempted to view source");
+        logViolation("VIEW_SOURCE", "Kamu mencoba melihat source code");
       }
-    }
-
-    // Window blur detection
-    function handleBlur() {
-      logViolation("WINDOW_BLUR", "Window lost focus");
     }
 
     document.addEventListener("visibilitychange", handleVisibilityChange);
-    document.addEventListener("fullscreenchange", handleFullscreenChange);
     document.addEventListener("copy", handleCopy);
     document.addEventListener("paste", handlePaste);
     document.addEventListener("contextmenu", handleContextMenu);
     document.addEventListener("keydown", handleKeyDown);
     window.addEventListener("blur", handleBlur);
 
-    // Request fullscreen on start
-    document.documentElement.requestFullscreen?.().catch(() => {
-      // User might deny — that's OK
-    });
-
     return () => {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
-      document.removeEventListener("fullscreenchange", handleFullscreenChange);
       document.removeEventListener("copy", handleCopy);
       document.removeEventListener("paste", handlePaste);
       document.removeEventListener("contextmenu", handleContextMenu);
       document.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("blur", handleBlur);
-
-      // Exit fullscreen when leaving
-      if (document.fullscreenElement) {
-        document.exitFullscreen?.().catch(() => {});
-      }
     };
   }, [enabled, logViolation]);
 
   return {
+    violations,
     violationCount: violationCount.current,
+    showWarning,
+    warningMessage,
+    dismissWarning,
   };
 }

@@ -2,13 +2,13 @@ services:
   app:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev
     container_name: toutopia-app
     ports:
       - "3002:3000"
     env_file: .env
     environment:
-      NODE_ENV: production
+      NODE_ENV: development
       DATABASE_URL: postgresql://${POSTGRES_USER:-toutopia}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-toutopia}
       REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
       NEXTAUTH_URL: ${NEXTAUTH_URL:-http://localhost:3002}
@@ -16,6 +16,15 @@ services:
       NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-http://localhost:3002}
       AUTH_TRUST_HOST: "true"
       AUTH_URL: ${AUTH_URL:-http://localhost:3002}
+      WATCHPACK_POLLING: "true"
+    volumes:
+      - ./src:/app/src
+      - ./public:/app/public
+      - ./next.config.ts:/app/next.config.ts
+      - ./tsconfig.json:/app/tsconfig.json
+      - ./postcss.config.mjs:/app/postcss.config.mjs
+      - ./components.json:/app/components.json
+      - ./prisma:/app/prisma
     depends_on:
       postgres:
         condition: service_healthy
