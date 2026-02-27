@@ -20,12 +20,8 @@ import { DarkModeToggle } from "./dark-mode-toggle";
 import { AnnouncementBanner } from "./announcement-banner";
 import { OfflineIndicator } from "@/shared/components/shared/offline-indicator";
 
-const NotificationBell = dynamic(() => import("./notification-bell").then((m) => ({ default: m.NotificationBell })), {
-  ssr: false,
-});
-const SearchCommand = dynamic(() => import("./search-command").then((m) => ({ default: m.SearchCommand })), {
-  ssr: false,
-});
+const NotificationBell = dynamic(() => import("./notification-bell").then((m) => ({ default: m.NotificationBell })));
+const SearchCommand = dynamic(() => import("./search-command").then((m) => ({ default: m.SearchCommand })));
 import type { NavItem } from "@/config/navigation.config";
 import type { SessionUser } from "@/shared/types/user.types";
 import { usePathname } from "next/navigation";

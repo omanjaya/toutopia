@@ -17,8 +17,12 @@ import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
 import Link from "next/link";
 import {
+  ArrowUpDown,
   ChevronLeft,
   ChevronRight,
+  Download,
+  GraduationCap,
+  Plus,
   Search,
   Users,
   UserCheck,
@@ -54,6 +58,7 @@ interface Props {
     q?: string;
     role?: string;
     status?: string;
+    sort?: string;
     page?: string;
   }>;
 }
@@ -63,7 +68,17 @@ export default async function AdminUsersPage({ searchParams }: Props) {
   const q = params.q ?? "";
   const roleFilter = params.role ?? "";
   const statusFilter = params.status ?? "";
+  const sortFilter = params.sort ?? "newest";
   const page = Math.max(1, parseInt(params.page ?? "1", 10));
+
+  const orderByMap: Record<string, Prisma.UserOrderByWithRelationInput> = {
+    newest: { createdAt: "desc" },
+    oldest: { createdAt: "asc" },
+    "name-asc": { name: "asc" },
+    "name-desc": { name: "desc" },
+    "last-login": { lastLoginAt: "desc" },
+  };
+  const orderBy = orderByMap[sortFilter] ?? orderByMap.newest;
 
   const where: Prisma.UserWhereInput = {};
 
@@ -82,10 +97,10 @@ export default async function AdminUsersPage({ searchParams }: Props) {
     where.status = statusFilter as Prisma.UserWhereInput["status"];
   }
 
-  const [users, total, activeCount, suspendedCount, adminCount] = await Promise.all([
+  const [users, total, activeCount, suspendedCount, adminCount, teacherCount] = await Promise.all([
     prisma.user.findMany({
       where,
-      orderBy: { createdAt: "desc" },
+      orderBy,
       skip: (page - 1) * ITEMS_PER_PAGE,
       take: ITEMS_PER_PAGE,
       select: {
@@ -97,6 +112,9 @@ export default async function AdminUsersPage({ searchParams }: Props) {
         status: true,
         createdAt: true,
         lastLoginAt: true,
+        credits: {
+          select: { balance: true, freeCredits: true },
+        },
         packageAccesses: {
           where: { OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }] },
           select: { package: { select: { title: true, isFree: true } } },
@@ -108,6 +126,7 @@ export default async function AdminUsersPage({ searchParams }: Props) {
     prisma.user.count({ where: { status: "ACTIVE" } }),
     prisma.user.count({ where: { status: "SUSPENDED" } }),
     prisma.user.count({ where: { role: { in: ["ADMIN", "SUPER_ADMIN"] } } }),
+    prisma.user.count({ where: { role: "TEACHER" } }),
   ]);
 
   const totalAll = await prisma.user.count();
@@ -118,8 +137,18 @@ export default async function AdminUsersPage({ searchParams }: Props) {
     if (overrides.q ?? q) p.set("q", overrides.q ?? q);
     if (overrides.role ?? roleFilter) p.set("role", overrides.role ?? roleFilter);
     if (overrides.status ?? statusFilter) p.set("status", overrides.status ?? statusFilter);
+    const sortVal = overrides.sort ?? sortFilter;
+    if (sortVal && sortVal !== "newest") p.set("sort", sortVal);
     if (overrides.page) p.set("page", overrides.page);
     return `/admin/users?${p.toString()}`;
+  }
+
+  function buildExportUrl(): string {
+    const p = new URLSearchParams();
+    if (q) p.set("q", q);
+    if (roleFilter) p.set("role", roleFilter);
+    if (statusFilter) p.set("status", statusFilter);
+    return `/api/admin/users/export?${p.toString()}`;
   }
 
   const statCards = [
@@ -127,19 +156,28 @@ export default async function AdminUsersPage({ searchParams }: Props) {
     { title: "Aktif", value: activeCount, icon: UserCheck, color: "bg-emerald-500/10 text-emerald-600" },
     { title: "Suspended", value: suspendedCount, icon: UserX, color: "bg-amber-500/10 text-amber-600" },
     { title: "Admin", value: adminCount, icon: Shield, color: "bg-violet-500/10 text-violet-600" },
+    { title: "Teacher", value: teacherCount, icon: GraduationCap, color: "bg-sky-500/10 text-sky-600" },
   ];
 
   return (
     <div className="space-y-8">
-      <div>
-        <h2 className="text-2xl font-bold tracking-tight">Pengguna</h2>
-        <p className="text-muted-foreground">
-          Kelola semua pengguna terdaftar di platform
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold tracking-tight">Pengguna</h2>
+          <p className="text-muted-foreground">
+            Kelola semua pengguna terdaftar di platform
+          </p>
+        </div>
+        <Button asChild>
+          <Link href="/admin/users/new">
+            <Plus className="mr-2 h-4 w-4" />
+            Tambah Pengguna
+          </Link>
+        </Button>
       </div>
 
       {/* Stat Cards */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
         {statCards.map((stat) => (
           <Card key={stat.title}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -180,6 +218,7 @@ export default async function AdminUsersPage({ searchParams }: Props) {
             { value: "STUDENT", label: "Student" },
             { value: "TEACHER", label: "Teacher" },
             { value: "ADMIN", label: "Admin" },
+            { value: "SUPER_ADMIN", label: "Super Admin" },
           ].map((r) => (
             <Link
               key={r.value}
@@ -215,6 +254,36 @@ export default async function AdminUsersPage({ searchParams }: Props) {
             </Link>
           ))}
         </div>
+
+        <div className="flex gap-1 rounded-lg border p-1">
+          <ArrowUpDown className="my-auto ml-2 h-3.5 w-3.5 text-muted-foreground" />
+          {[
+            { value: "newest", label: "Terbaru" },
+            { value: "oldest", label: "Terlama" },
+            { value: "name-asc", label: "Nama A-Z" },
+            { value: "name-desc", label: "Nama Z-A" },
+            { value: "last-login", label: "Login Terakhir" },
+          ].map((s) => (
+            <Link
+              key={s.value}
+              href={buildUrl({ sort: s.value, page: "1" })}
+              className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+                sortFilter === s.value
+                  ? "bg-primary text-primary-foreground shadow-sm"
+                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
+              }`}
+            >
+              {s.label}
+            </Link>
+          ))}
+        </div>
+
+        <Button variant="outline" size="sm" asChild>
+          <Link href={buildExportUrl()}>
+            <Download className="mr-1.5 h-4 w-4" />
+            Export CSV
+          </Link>
+        </Button>
       </div>
 
       {/* Result count */}
@@ -232,6 +301,7 @@ export default async function AdminUsersPage({ searchParams }: Props) {
               <TableHead>Pengguna</TableHead>
               <TableHead>Role</TableHead>
               <TableHead>Status</TableHead>
+              <TableHead>Kredit</TableHead>
               <TableHead>Paket</TableHead>
               <TableHead>Terdaftar</TableHead>
               <TableHead>Login Terakhir</TableHead>
@@ -270,6 +340,16 @@ export default async function AdminUsersPage({ searchParams }: Props) {
                   </Badge>
                 </TableCell>
                 <TableCell>
+                  {(() => {
+                    const balance = user.credits?.balance ?? 0;
+                    return (
+                      <span className={`text-sm font-medium ${balance > 0 ? "text-emerald-600" : "text-muted-foreground"}`}>
+                        {balance.toLocaleString("id-ID")}
+                      </span>
+                    );
+                  })()}
+                </TableCell>
+                <TableCell>
                   {user.packageAccesses.length > 0 ? (
                     <div className="flex flex-wrap gap-1">
                       {user.packageAccesses.map((access) => (
@@ -300,7 +380,7 @@ export default async function AdminUsersPage({ searchParams }: Props) {
             ))}
             {users.length === 0 && (
               <TableRow>
-                <TableCell colSpan={6} className="h-32 text-center">
+                <TableCell colSpan={7} className="h-32 text-center">
                   <div className="flex flex-col items-center gap-2">
                     <Users className="h-8 w-8 text-muted-foreground/50" />
                     <p className="text-sm text-muted-foreground">

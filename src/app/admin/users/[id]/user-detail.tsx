@@ -17,6 +17,12 @@ import {
   Settings,
   Key,
   History,
+  Gift,
+  Phone,
+  Calendar,
+  ExternalLink,
+  Copy,
+  RotateCcw,
 } from "lucide-react";
 import { Button } from "@/shared/components/ui/button";
 import { Badge } from "@/shared/components/ui/badge";
@@ -62,6 +68,9 @@ export interface UserData {
   phone: string | null;
   role: string;
   status: string;
+  referralCode: string | null;
+  referredById: string | null;
+  referredBy: { name: string } | null;
   lastLoginAt: string | null;
   createdAt: string;
   credits: { balance: number; freeCredits: number } | null;
@@ -106,6 +115,8 @@ interface PackageOption {
 interface UserDetailProps {
   user: UserData;
   packages: PackageOption[];
+  attemptCount: number;
+  transactionCount: number;
 }
 
 const roleBadgeVariant: Record<string, "default" | "secondary" | "outline" | "destructive"> = {
@@ -144,7 +155,7 @@ const creditTypeBadge: Record<string, "default" | "secondary" | "outline" | "des
   USAGE: "destructive",
 };
 
-export function UserDetail({ user, packages }: UserDetailProps) {
+export function UserDetail({ user, packages, attemptCount, transactionCount }: UserDetailProps) {
   const router = useRouter();
 
   const [role, setRole] = useState(user.role);
@@ -162,6 +173,8 @@ export function UserDetail({ user, packages }: UserDetailProps) {
   const [grantingAccess, setGrantingAccess] = useState(false);
 
   const [revokingId, setRevokingId] = useState<string | null>(null);
+
+  const [resettingPassword, setResettingPassword] = useState(false);
 
   async function handleSaveRole() {
     if (role === user.role) return;
@@ -286,6 +299,37 @@ export function UserDetail({ user, packages }: UserDetailProps) {
     }
   }
 
+  async function handleResetPassword() {
+    if (!confirm("Yakin ingin mereset password user ini?")) return;
+    setResettingPassword(true);
+    try {
+      const res = await fetch(`/api/admin/users/${user.id}/reset-password`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+      const result = await res.json();
+      if (!res.ok) {
+        toast.error(result.error?.message ?? "Gagal mereset password");
+        return;
+      }
+      if (result.data?.temporaryPassword) {
+        toast.success(`Password baru: ${result.data.temporaryPassword}`, {
+          duration: 15000,
+        });
+      } else {
+        toast.success("Link reset password telah dikirim");
+      }
+    } finally {
+      setResettingPassword(false);
+    }
+  }
+
+  function handleCopyReferralCode() {
+    if (!user.referralCode) return;
+    navigator.clipboard.writeText(user.referralCode);
+    toast.success("Kode referral disalin");
+  }
+
   const balance = user.credits?.balance ?? 0;
 
   return (
@@ -315,8 +359,57 @@ export function UserDetail({ user, packages }: UserDetailProps) {
         </div>
       </div>
 
+      {/* User Info Card */}
+      <Card>
+        <CardContent className="pt-6">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="flex items-center gap-2">
+              <Phone className="h-4 w-4 text-muted-foreground" />
+              <span className="text-sm text-muted-foreground">Telepon:</span>
+              <span className="text-sm font-medium">{user.phone ?? "Tidak ada"}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Copy className="h-4 w-4 text-muted-foreground" />
+              <span className="text-sm text-muted-foreground">Kode Referral:</span>
+              <span className="text-sm font-medium">{user.referralCode ?? "-"}</span>
+              {user.referralCode && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-6 w-6"
+                  onClick={handleCopyReferralCode}
+                >
+                  <Copy className="h-3 w-3" />
+                </Button>
+              )}
+            </div>
+            <div className="flex items-center gap-2">
+              <Key className="h-4 w-4 text-muted-foreground" />
+              <span className="text-sm text-muted-foreground">Direferensikan oleh:</span>
+              <span className="text-sm font-medium">{user.referredBy?.name ?? "-"}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Calendar className="h-4 w-4 text-muted-foreground" />
+              <span className="text-sm text-muted-foreground">Terdaftar:</span>
+              <span className="text-sm font-medium">
+                {format(new Date(user.createdAt), "dd MMM yyyy HH:mm", { locale: localeId })}
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Calendar className="h-4 w-4 text-muted-foreground" />
+              <span className="text-sm text-muted-foreground">Login Terakhir:</span>
+              <span className="text-sm font-medium">
+                {user.lastLoginAt
+                  ? format(new Date(user.lastLoginAt), "dd MMM yyyy HH:mm", { locale: localeId })
+                  : "-"}
+              </span>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Summary Cards */}
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center gap-2">
@@ -332,7 +425,7 @@ export function UserDetail({ user, packages }: UserDetailProps) {
               <FileText className="h-4 w-4 text-muted-foreground" />
               <p className="text-sm text-muted-foreground">Total Ujian</p>
             </div>
-            <p className="mt-1 text-2xl font-bold">{user.attempts.length}</p>
+            <p className="mt-1 text-2xl font-bold">{attemptCount}</p>
           </CardContent>
         </Card>
         <Card>
@@ -341,7 +434,25 @@ export function UserDetail({ user, packages }: UserDetailProps) {
               <CreditCard className="h-4 w-4 text-muted-foreground" />
               <p className="text-sm text-muted-foreground">Total Transaksi</p>
             </div>
-            <p className="mt-1 text-2xl font-bold">{user.transactions.length}</p>
+            <p className="mt-1 text-2xl font-bold">{transactionCount}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-2">
+              <Gift className="h-4 w-4 text-muted-foreground" />
+              <p className="text-sm text-muted-foreground">Free Credits</p>
+            </div>
+            <p className="mt-1 text-2xl font-bold">{user.credits?.freeCredits ?? 0}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-2">
+              <Package className="h-4 w-4 text-muted-foreground" />
+              <p className="text-sm text-muted-foreground">Akses Paket</p>
+            </div>
+            <p className="mt-1 text-2xl font-bold">{user.packageAccesses.length}</p>
           </CardContent>
         </Card>
       </div>
@@ -521,6 +632,29 @@ export function UserDetail({ user, packages }: UserDetailProps) {
               </div>
             </CardContent>
           </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Reset Password</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="mb-3 text-sm text-muted-foreground">
+                Mereset password user akan menghasilkan password sementara atau mengirim link reset.
+              </p>
+              <Button
+                variant="destructive"
+                onClick={handleResetPassword}
+                disabled={resettingPassword}
+              >
+                {resettingPassword ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <RotateCcw className="mr-2 h-4 w-4" />
+                )}
+                Reset Password
+              </Button>
+            </CardContent>
+          </Card>
         </TabsContent>
 
         {/* Package Access Tab */}
@@ -673,7 +807,13 @@ export function UserDetail({ user, packages }: UserDetailProps) {
                     {user.attempts.map((attempt) => (
                       <TableRow key={attempt.id}>
                         <TableCell className="font-medium">
-                          {attempt.package.title}
+                          <Link
+                            href={`/exam/${attempt.id}/result`}
+                            className="inline-flex items-center gap-1 hover:underline"
+                          >
+                            {attempt.package.title}
+                            <ExternalLink className="h-3 w-3 text-muted-foreground" />
+                          </Link>
                         </TableCell>
                         <TableCell>
                           <Badge
