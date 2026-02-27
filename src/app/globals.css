@@ -204,6 +204,15 @@
     /* Standard eased transition */
   }
 
+  /* Hide scrollbar utility for horizontal scroll areas */
+  .scrollbar-none {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
+
   /* Modern Scrollbar (slimmer, like macOS) */
   ::-webkit-scrollbar {
     width: 8px;
@@ -327,4 +336,13 @@
 
 .dark .tiptap hr {
   border-top-color: oklch(0.3 0.01 240);
+}
+
+/* Safe area insets for notch phones */
+.safe-top {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
 }
