@@ -32,6 +32,14 @@ interface ProviderConfig {
 }
 
 const PROVIDERS: Record<string, ProviderConfig> = {
+  anthropic: {
+    baseUrl: "https://api.anthropic.com/v1",
+    defaultHeaders: (apiKey) => ({
+      "Content-Type": "application/json",
+      "x-api-key": apiKey,
+      "anthropic-version": "2023-06-01",
+    }),
+  },
   gemini: {
     baseUrl: "https://generativelanguage.googleapis.com/v1beta/openai",
     defaultHeaders: (apiKey) => ({
@@ -70,6 +78,11 @@ const PROVIDERS: Record<string, ProviderConfig> = {
 };
 
 export const PROVIDER_MODELS: Record<string, { id: string; name: string }[]> = {
+  anthropic: [
+    { id: "claude-haiku-4-5-20251001", name: "Claude Haiku 4.5 (Tercepat & Termurah)" },
+    { id: "claude-sonnet-4-5", name: "Claude Sonnet 4.5" },
+    { id: "claude-opus-4-5", name: "Claude Opus 4.5 (Terbaik)" },
+  ],
   gemini: [
     { id: "gemini-2.5-flash-lite", name: "Gemini 2.5 Flash Lite (Gratis)" },
     { id: "gemini-2.5-flash", name: "Gemini 2.5 Flash" },
@@ -99,6 +112,7 @@ export const PROVIDER_MODELS: Record<string, { id: string; name: string }[]> = {
 };
 
 export const PROVIDER_INFO: Record<string, { name: string; description: string }> = {
+  anthropic: { name: "Anthropic Claude", description: "Kualitas terbaik untuk soal kompleks. Haiku sangat murah ($0.08/1M token)." },
   gemini: { name: "Google Gemini", description: "Free tier 1000 req/hari. Bagus untuk Bahasa Indonesia." },
   groq: { name: "Groq", description: "Free tier, inference super cepat. Model open-source." },
   deepseek: { name: "DeepSeek", description: "Sangat murah (~$0.047/paket). Kualitas tinggi." },
@@ -167,11 +181,72 @@ function validateGeneratedQuestions(questions: unknown[]): GeneratedQuestion[] {
   return validated;
 }
 
+async function callAI(
+  provider: string,
+  apiKey: string,
+  model: string,
+  systemPrompt: string,
+  userPrompt: string,
+  maxTokens: number,
+  temperature: number
+): Promise<string> {
+  const config = PROVIDERS[provider];
+  if (!config) throw new Error(`Provider "${provider}" tidak dikenali`);
+
+  // Anthropic uses /v1/messages with a different request/response format
+  if (provider === "anthropic") {
+    const body = {
+      model,
+      system: systemPrompt,
+      messages: [{ role: "user" as const, content: userPrompt }],
+      temperature,
+      max_tokens: maxTokens,
+    };
+    const response = await fetch(`${config.baseUrl}/messages`, {
+      method: "POST",
+      headers: config.defaultHeaders(apiKey),
+      body: JSON.stringify(body),
+    });
+    if (!response.ok) {
+      const errorBody = await response.text();
+      throw new Error(`Anthropic API error (${response.status}): ${errorBody.slice(0, 500)}`);
+    }
+    const data = (await response.json()) as { content: { type: string; text: string }[] };
+    const text = data.content?.find((c) => c.type === "text")?.text;
+    if (!text) throw new Error("Anthropic tidak mengembalikan respons yang valid");
+    return text;
+  }
+
+  // OpenAI-compatible providers (Gemini, Groq, DeepSeek, Mistral, OpenAI)
+  const body = {
+    model,
+    messages: [
+      { role: "system" as const, content: systemPrompt },
+      { role: "user" as const, content: userPrompt },
+    ],
+    temperature,
+    max_tokens: maxTokens,
+  };
+  const response = await fetch(`${config.baseUrl}/chat/completions`, {
+    method: "POST",
+    headers: config.defaultHeaders(apiKey),
+    body: JSON.stringify(body),
+  });
+  if (!response.ok) {
+    const errorBody = await response.text();
+    throw new Error(`AI API error (${response.status}): ${errorBody.slice(0, 500)}`);
+  }
+  const data = (await response.json()) as Record<string, unknown>;
+  const choices = data.choices as { message?: { content?: string }; text?: string }[] | undefined;
+  const text = choices?.[0]?.message?.content ?? choices?.[0]?.text;
+  if (!text) throw new Error("AI tidak mengembalikan respons yang valid");
+  return text;
+}
+
 export async function generateQuestions(
   params: GenerateQuestionsParams
 ): Promise<GeneratedQuestion[]> {
-  const config = PROVIDERS[params.provider];
-  if (!config) {
+  if (!PROVIDERS[params.provider]) {
     throw new Error(`Provider "${params.provider}" tidak dikenali`);
   }
 
@@ -185,40 +260,19 @@ export async function generateQuestions(
     customInstruction: params.customInstruction,
   });
 
-  const body = {
-    model: params.model,
-    messages: [
-      {
-        role: "system" as const,
-        content:
-          "Kamu adalah pembuat soal ujian profesional. Output HANYA JSON array valid tanpa teks tambahan.",
-      },
-      { role: "user" as const, content: prompt },
-    ],
-    temperature: 0.7,
-    max_tokens: Math.max(params.count * 1500, 4096),
-  };
+  const rawContent = await callAI(
+    params.provider,
+    params.apiKey,
+    params.model,
+    "Kamu adalah pembuat soal ujian profesional. Output HANYA JSON array valid tanpa teks tambahan.",
+    prompt,
+    Math.max(params.count * 1500, 4096),
+    0.7
+  );
 
-  const response = await fetch(`${config.baseUrl}/chat/completions`, {
-    method: "POST",
-    headers: config.defaultHeaders(params.apiKey),
-    body: JSON.stringify(body),
-  });
-
-  if (!response.ok) {
-    const errorBody = await response.text();
-    throw new Error(
-      `AI API error (${response.status}): ${errorBody.slice(0, 500)}`
-    );
-  }
-
-  const data = (await response.json()) as Record<string, unknown>;
-
-  // Handle both OpenAI and Gemini response formats
-  const choices = data.choices as { message?: { content?: string }; text?: string }[] | undefined;
-  const content = choices?.[0]?.message?.content ?? choices?.[0]?.text;
+  const content = rawContent;
   if (!content) {
-    console.error("Unexpected AI response structure:", JSON.stringify(data).slice(0, 500));
+    console.error("Unexpected AI response structure");
     throw new Error("AI tidak mengembalikan respons yang valid");
   }
 
@@ -277,41 +331,15 @@ export async function validateGeneratedQuestionsWithAI(params: {
     }))
   );
 
-  const body = {
-    model: params.model,
-    messages: [
-      {
-        role: "system" as const,
-        content:
-          "Kamu adalah validator soal ujian profesional. Output HANYA JSON array valid tanpa teks tambahan.",
-      },
-      { role: "user" as const, content: prompt },
-    ],
-    temperature: 0.3,
-    max_tokens: params.questions.length * 500,
-  };
-
-  const response = await fetch(`${config.baseUrl}/chat/completions`, {
-    method: "POST",
-    headers: config.defaultHeaders(params.apiKey),
-    body: JSON.stringify(body),
-  });
-
-  if (!response.ok) {
-    const errorBody = await response.text();
-    throw new Error(
-      `Validator API error (${response.status}): ${errorBody.slice(0, 500)}`
-    );
-  }
-
-  const data = (await response.json()) as {
-    choices: { message: { content: string } }[];
-  };
-
-  const content = data.choices?.[0]?.message?.content;
-  if (!content) {
-    throw new Error("Validator AI tidak mengembalikan respons yang valid");
-  }
+  const content = await callAI(
+    params.provider,
+    params.apiKey,
+    params.model,
+    "Kamu adalah validator soal ujian profesional. Output HANYA JSON array valid tanpa teks tambahan.",
+    prompt,
+    Math.max(params.questions.length * 500, 1024),
+    0.3
+  );
 
   const jsonStr = extractJsonArray(content);
 
@@ -340,30 +368,12 @@ export async function testConnection(
   apiKey: string,
   model: string
 ): Promise<{ success: boolean; message: string }> {
-  const config = PROVIDERS[provider];
-  if (!config) {
+  if (!PROVIDERS[provider]) {
     return { success: false, message: `Provider "${provider}" tidak dikenali` };
   }
 
   try {
-    const response = await fetch(`${config.baseUrl}/chat/completions`, {
-      method: "POST",
-      headers: config.defaultHeaders(apiKey),
-      body: JSON.stringify({
-        model,
-        messages: [{ role: "user", content: "Jawab dengan satu kata: Halo" }],
-        max_tokens: 10,
-      }),
-    });
-
-    if (!response.ok) {
-      const errorBody = await response.text();
-      return {
-        success: false,
-        message: `API error (${response.status}): ${errorBody.slice(0, 200)}`,
-      };
-    }
-
+    await callAI(provider, apiKey, model, "You are a helpful assistant.", "Jawab dengan satu kata: Halo", 10, 0.1);
     return { success: true, message: "Koneksi berhasil!" };
   } catch (error) {
     return {
@@ -372,3 +382,4 @@ export async function testConnection(
     };
   }
 }
+
