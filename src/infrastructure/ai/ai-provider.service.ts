@@ -390,7 +390,7 @@ export async function testConnection(
   }
 
   try {
-    await callAI(provider, apiKey, model, "You are a helpful assistant.", "Jawab dengan satu kata: Halo", 10, 0.1);
+    await callAI(provider, apiKey, model, "You are a helpful assistant.", "Jawab dengan satu kata: Halo", 500, 0.1);
     return { success: true, message: "Koneksi berhasil!" };
   } catch (error) {
     return {
