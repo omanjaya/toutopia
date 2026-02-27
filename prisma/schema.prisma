@@ -15,6 +15,7 @@ enum UserRole {
   ADMIN
   TEACHER
   STUDENT
+  PARENT
 }
 
 enum UserStatus {
@@ -110,6 +111,45 @@ enum ArticleStatus {
   ARCHIVED
 }
 
+enum Theme {
+  DEFAULT
+  CUTE
+  OCEAN
+  SUNSET
+  FOREST
+  NEON
+  LAVENDER
+}
+
+enum EbookContentType {
+  PDF
+  HTML
+}
+
+enum SubscriptionPlan {
+  MONTHLY
+  QUARTERLY
+  YEARLY
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  EXPIRED
+  CANCELLED
+}
+
+enum LiveEventStatus {
+  SCHEDULED
+  LIVE
+  ENDED
+  CANCELLED
+}
+
+enum NotificationProvider {
+  PUSH
+  WHATSAPP
+}
+
 // ============================================================
 // USER & AUTH
 // ============================================================
@@ -124,29 +164,49 @@ model User {
   phone         String?    @unique
   role          UserRole   @default(STUDENT)
   status        UserStatus @default(ACTIVE)
+  referralCode  String?    @unique
+  referredById  String?
   lastLoginAt   DateTime?
   createdAt     DateTime   @default(now())
   updatedAt     DateTime   @updatedAt
 
-  accounts       Account[]
-  sessions       Session[]
-  profile        UserProfile?
-  teacherProfile TeacherProfile?
-  attempts       ExamAttempt[]
-  transactions   Transaction[]
-  credits        UserCredit?
-  creditHistory  CreditHistory[]
-  studyPlans     StudyPlan[]
-  notifications  Notification[]
-  pushSubs       PushSubscription[]
-  articles       Article[]
-  bookmarks      QuestionBookmark[]
-  auditLogs      AuditLog[]
-  leaderboard    LeaderboardEntry[]
+  referredBy      User?    @relation("Referrals", fields: [referredById], references: [id])
+  referrals       User[]   @relation("Referrals")
+  accounts        Account[]
+  sessions        Session[]
+  profile         UserProfile?
+  teacherProfile  TeacherProfile?
+  attempts        ExamAttempt[]
+  transactions    Transaction[]
+  credits         UserCredit?
+  creditHistory   CreditHistory[]
+  studyPlans      StudyPlan[]
+  notifications   Notification[]
+  pushSubs        PushSubscription[]
+  articles        Article[]
+  ebooks          Ebook[]
+  bookmarks       QuestionBookmark[]
+  auditLogs       AuditLog[]
+  leaderboard     LeaderboardEntry[]
+  packageAccesses UserPackageAccess[]
+  resetTokens     PasswordResetToken[]
+  badges          UserBadge[]
+  promoUsages     PromoUsage[]
+  discussions     Discussion[]
+  discussionVotes DiscussionVote[]
+  dailyChallenges DailyChallengeAttempt[]
+  subscriptions   Subscription[]
+  liveEventRegs   LiveEventRegistration[]
+  friendsAsUser   FriendComparison[]     @relation("FriendUser")
+  friendsAsFriend FriendComparison[]     @relation("FriendTarget")
+  offlineSyncs    OfflineSync[]
+  parentLinks     ParentChild[]          @relation("ChildUser")
+  childLinks      ParentChild[]          @relation("ParentUser")
+  waSubscription  WhatsappSubscription?
 
-  @@index([email])
   @@index([role])
   @@index([status])
+  @@index([referralCode])
   @@map("users")
 }
 
@@ -194,15 +254,24 @@ model VerificationToken {
 }
 
 model UserProfile {
-  id        String    @id @default(cuid())
-  userId    String    @unique
-  school    String?
-  city      String?
-  birthDate DateTime?
-  targetExam String?
-  bio       String?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  id                  String    @id @default(cuid())
+  userId              String    @unique
+  school              String?
+  city                String?
+  birthDate           DateTime?
+  targetExam          String?
+  bio                 String?
+  theme               Theme     @default(DEFAULT)
+  onboardingCompleted Boolean   @default(false)
+  currentStreak       Int       @default(0)
+  longestStreak       Int       @default(0)
+  lastActiveDate      DateTime?
+  notifyExamResult    Boolean   @default(true)
+  notifyPayment       Boolean   @default(true)
+  notifyPromo         Boolean   @default(true)
+  notifyPush          Boolean   @default(true)
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -249,6 +318,7 @@ model TeacherEarning {
   question       Question       @relation(fields: [questionId], references: [id])
 
   @@unique([teacherProfileId, questionId, period])
+  @@index([teacherProfileId])
   @@map("teacher_earnings")
 }
 
@@ -352,6 +422,7 @@ model Question {
   difficulty  QuestionDifficulty @default(MEDIUM)
   content     String
   explanation String?
+  videoUrl    String?
   source      String?
   year        Int?
   imageUrl    String?
@@ -370,6 +441,8 @@ model Question {
   answers         ExamAnswer[]
   bookmarks       QuestionBookmark[]
   teacherEarnings TeacherEarning[]
+  discussions     Discussion[]
+  dailyChallenges DailyChallenge[]
 
   @@index([topicId])
   @@index([status])
@@ -390,6 +463,7 @@ model QuestionOption {
   question Question     @relation(fields: [questionId], references: [id], onDelete: Cascade)
   answers  ExamAnswer[]
 
+  @@index([questionId])
   @@map("question_options")
 }
 
@@ -423,23 +497,29 @@ model ExamPackage {
   passingScore    Int?
   isFree          Boolean           @default(false)
   isAntiCheat     Boolean           @default(true)
+  isCatMode       Boolean           @default(false)
   status          ExamPackageStatus @default(DRAFT)
   startDate       DateTime?
   endDate         DateTime?
   maxAttempts     Int               @default(1)
+  bundleId        String?
   createdById     String
   createdAt       DateTime          @default(now())
   updatedAt       DateTime          @updatedAt
 
-  category     ExamCategory       @relation(fields: [categoryId], references: [id])
-  sections     ExamSection[]
-  attempts     ExamAttempt[]
-  transactions Transaction[]
-  leaderboard  LeaderboardEntry[]
+  category        ExamCategory       @relation(fields: [categoryId], references: [id])
+  bundle          SubscriptionBundle? @relation(fields: [bundleId], references: [id])
+  sections        ExamSection[]
+  attempts        ExamAttempt[]
+  transactions    Transaction[]
+  leaderboard     LeaderboardEntry[]
+  packageAccesses UserPackageAccess[]
+  liveEvents      LiveEvent[]
 
   @@index([categoryId])
   @@index([status])
   @@index([isFree])
+  @@index([bundleId])
   @@map("exam_packages")
 }
 
@@ -456,6 +536,7 @@ model ExamSection {
   subject   Subject               @relation(fields: [subjectId], references: [id])
   questions ExamSectionQuestion[]
 
+  @@index([packageId])
   @@map("exam_sections")
 }
 
@@ -492,6 +573,7 @@ model ExamAttempt {
   serverStartedAt DateTime      @default(now())
   serverDeadline  DateTime
   violations      Int           @default(0)
+  sectionTimers   Json?
   metadata        Json?
 
   user        User                @relation(fields: [userId], references: [id])
@@ -524,6 +606,7 @@ model ExamAnswer {
   option   QuestionOption? @relation(fields: [selectedOptionId], references: [id])
 
   @@unique([attemptId, questionId])
+  @@index([attemptId])
   @@map("exam_answers")
 }
 
@@ -536,6 +619,7 @@ model TabViolationEvent {
 
   attempt ExamAttempt @relation(fields: [attemptId], references: [id], onDelete: Cascade)
 
+  @@index([attemptId])
   @@map("tab_violation_events")
 }
 
@@ -587,6 +671,7 @@ model Transaction {
   @@index([userId])
   @@index([status])
   @@index([midtransId])
+  @@index([createdAt])
   @@map("transactions")
 }
 
@@ -614,6 +699,7 @@ model CreditHistory {
   user User @relation(fields: [userId], references: [id])
 
   @@index([userId])
+  @@index([createdAt])
   @@map("credit_history")
 }
 
@@ -722,8 +808,38 @@ model Article {
   author User @relation(fields: [authorId], references: [id])
 
   @@index([status, publishedAt])
-  @@index([slug])
   @@map("articles")
+}
+
+// ============================================================
+// EBOOKS
+// ============================================================
+
+model Ebook {
+  id            String           @id @default(cuid())
+  authorId      String
+  title         String
+  slug          String           @unique
+  description   String?
+  coverImage    String?
+  contentType   EbookContentType @default(HTML)
+  htmlContent   String?
+  pdfUrl        String?
+  fileSize      Int?
+  pageCount     Int?
+  category      String?
+  tags          String[]
+  status        ArticleStatus    @default(DRAFT)
+  viewCount     Int              @default(0)
+  downloadCount Int              @default(0)
+  publishedAt   DateTime?
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+
+  author User @relation(fields: [authorId], references: [id])
+
+  @@index([status, publishedAt])
+  @@map("ebooks")
 }
 
 // ============================================================
@@ -748,4 +864,388 @@ model AuditLog {
   @@index([entity, entityId])
   @@index([createdAt])
   @@map("audit_logs")
+}
+
+// ============================================================
+// USER PACKAGE ACCESS (Direct grant by admin)
+// ============================================================
+
+model UserPackageAccess {
+  id        String    @id @default(cuid())
+  userId    String
+  packageId String
+  grantedBy String
+  grantedAt DateTime  @default(now())
+  expiresAt DateTime?
+  reason    String?
+
+  user    User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  package ExamPackage @relation(fields: [packageId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, packageId])
+  @@index([userId])
+  @@index([packageId])
+  @@map("user_package_accesses")
+}
+
+model AiProviderConfig {
+  id        String   @id @default(cuid())
+  provider  String   @unique
+  apiKey    String
+  model     String
+  isActive  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("ai_provider_configs")
+}
+
+// ============================================================
+// ANNOUNCEMENTS
+// ============================================================
+
+model Announcement {
+  id        String    @id @default(cuid())
+  message   String
+  type      String    @default("info")
+  linkUrl   String?
+  linkText  String?
+  isActive  Boolean   @default(true)
+  startAt   DateTime  @default(now())
+  endAt     DateTime?
+  createdAt DateTime  @default(now())
+
+  @@map("announcements")
+}
+
+// ============================================================
+// PASSWORD RESET
+// ============================================================
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("password_reset_tokens")
+}
+
+// ============================================================
+// GAMIFICATION — Badges & XP
+// ============================================================
+
+model Badge {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  name        String
+  description String
+  icon        String
+  category    String
+  requirement Json
+  xpReward    Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  users UserBadge[]
+
+  @@map("badges")
+}
+
+model UserBadge {
+  id        String   @id @default(cuid())
+  userId    String
+  badgeId   String
+  earnedAt  DateTime @default(now())
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  badge Badge @relation(fields: [badgeId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, badgeId])
+  @@map("user_badges")
+}
+
+// ============================================================
+// PROMO CODES
+// ============================================================
+
+model PromoCode {
+  id            String    @id @default(cuid())
+  code          String    @unique
+  description   String?
+  discountType  String    @default("PERCENTAGE")
+  discountValue Int
+  minPurchase   Int       @default(0)
+  maxUses       Int?
+  usedCount     Int       @default(0)
+  validFrom     DateTime  @default(now())
+  validUntil    DateTime?
+  isActive      Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  usages PromoUsage[]
+
+  @@index([code])
+  @@map("promo_codes")
+}
+
+model PromoUsage {
+  id          String   @id @default(cuid())
+  promoCodeId String
+  userId      String
+  orderId     String?
+  discount    Int
+  usedAt      DateTime @default(now())
+
+  promoCode PromoCode @relation(fields: [promoCodeId], references: [id])
+  user      User      @relation(fields: [userId], references: [id])
+
+  @@unique([promoCodeId, userId])
+  @@map("promo_usages")
+}
+
+// ============================================================
+// FEATURE 5: Discussion Forum per Soal
+// ============================================================
+
+model Discussion {
+  id         String   @id @default(cuid())
+  questionId String
+  userId     String
+  parentId   String?
+  content    String
+  upvotes    Int      @default(0)
+  downvotes  Int      @default(0)
+  isEdited   Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  question Question         @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  user     User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parent   Discussion?      @relation("DiscussionReplies", fields: [parentId], references: [id])
+  replies  Discussion[]     @relation("DiscussionReplies")
+  votes    DiscussionVote[]
+
+  @@index([questionId])
+  @@index([userId])
+  @@index([parentId])
+  @@map("discussions")
+}
+
+model DiscussionVote {
+  id           String   @id @default(cuid())
+  discussionId String
+  userId       String
+  value        Int      // 1 = upvote, -1 = downvote
+  createdAt    DateTime @default(now())
+
+  discussion Discussion @relation(fields: [discussionId], references: [id], onDelete: Cascade)
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([discussionId, userId])
+  @@map("discussion_votes")
+}
+
+// ============================================================
+// FEATURE 8: Daily Challenge & Streak
+// ============================================================
+
+model DailyChallenge {
+  id         String   @id @default(cuid())
+  questionId String
+  date       DateTime @db.Date
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+
+  question Question               @relation(fields: [questionId], references: [id])
+  attempts DailyChallengeAttempt[]
+
+  @@unique([date])
+  @@index([date, isActive])
+  @@map("daily_challenges")
+}
+
+model DailyChallengeAttempt {
+  id               String   @id @default(cuid())
+  dailyChallengeId String
+  userId           String
+  selectedOptionId String?
+  numericAnswer    Float?
+  isCorrect        Boolean
+  timeSpentSeconds Int      @default(0)
+  createdAt        DateTime @default(now())
+
+  dailyChallenge DailyChallenge @relation(fields: [dailyChallengeId], references: [id])
+  user           User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([dailyChallengeId, userId])
+  @@index([userId])
+  @@map("daily_challenge_attempts")
+}
+
+// ============================================================
+// FEATURE 3: Subscription & Bundle
+// ============================================================
+
+model SubscriptionBundle {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  description String?
+  categoryId  String?
+  monthlyPrice  Int
+  quarterlyPrice Int?
+  yearlyPrice    Int?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  packages      ExamPackage[]
+  subscriptions Subscription[]
+
+  @@map("subscription_bundles")
+}
+
+model Subscription {
+  id          String             @id @default(cuid())
+  userId      String
+  bundleId    String
+  plan        SubscriptionPlan
+  status      SubscriptionStatus @default(ACTIVE)
+  startDate   DateTime           @default(now())
+  endDate     DateTime
+  autoRenew   Boolean            @default(false)
+  amount      Int
+  midtransId  String?            @unique
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+
+  user   User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bundle SubscriptionBundle @relation(fields: [bundleId], references: [id])
+
+  @@index([userId, status])
+  @@index([endDate])
+  @@map("subscriptions")
+}
+
+// ============================================================
+// FEATURE 6: Live Event (Tryout Bersama)
+// ============================================================
+
+model LiveEvent {
+  id            String          @id @default(cuid())
+  packageId     String
+  title         String
+  description   String?
+  scheduledAt   DateTime
+  endAt         DateTime?
+  status        LiveEventStatus @default(SCHEDULED)
+  maxParticipants Int?
+  createdById   String
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  package       ExamPackage            @relation(fields: [packageId], references: [id])
+  registrations LiveEventRegistration[]
+
+  @@index([scheduledAt])
+  @@index([status])
+  @@map("live_events")
+}
+
+model LiveEventRegistration {
+  id          String    @id @default(cuid())
+  eventId     String
+  userId      String
+  attemptId   String?
+  registeredAt DateTime @default(now())
+
+  event LiveEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([eventId, userId])
+  @@map("live_event_registrations")
+}
+
+// ============================================================
+// FEATURE 9: Friend Comparison
+// ============================================================
+
+model FriendComparison {
+  id          String   @id @default(cuid())
+  userId      String
+  friendId    String
+  packageId   String?
+  inviteCode  String   @unique @default(cuid())
+  isAccepted  Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  user   User @relation("FriendUser", fields: [userId], references: [id], onDelete: Cascade)
+  friend User @relation("FriendTarget", fields: [friendId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, friendId])
+  @@map("friend_comparisons")
+}
+
+// ============================================================
+// FEATURE 10: Offline Mode Sync
+// ============================================================
+
+model OfflineSync {
+  id         String   @id @default(cuid())
+  userId     String
+  attemptId  String?
+  data       Json
+  syncType   String   // "answer" | "attempt_complete"
+  isSynced   Boolean  @default(false)
+  syncedAt   DateTime?
+  createdAt  DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isSynced])
+  @@map("offline_syncs")
+}
+
+// ============================================================
+// FEATURE 11: WhatsApp Notification
+// ============================================================
+
+model WhatsappSubscription {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  phoneNumber String
+  isActive    Boolean  @default(true)
+  remindSchedule  Boolean @default(true)
+  remindResult    Boolean @default(true)
+  remindEvent     Boolean @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("whatsapp_subscriptions")
+}
+
+// ============================================================
+// FEATURE 12: Parent Dashboard
+// ============================================================
+
+model ParentChild {
+  id        String   @id @default(cuid())
+  parentId  String
+  childId   String
+  isPending Boolean  @default(true)
+  inviteCode String  @unique @default(cuid())
+  createdAt DateTime @default(now())
+
+  parent User @relation("ParentUser", fields: [parentId], references: [id], onDelete: Cascade)
+  child  User @relation("ChildUser", fields: [childId], references: [id], onDelete: Cascade)
+
+  @@unique([parentId, childId])
+  @@map("parent_children")
 }

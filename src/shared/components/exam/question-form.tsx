@@ -10,6 +10,7 @@ import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
 import { Textarea } from "@/shared/components/ui/textarea";
+import { ImageUpload } from "@/shared/components/shared/image-upload";
 import {
   Select,
   SelectContent,
@@ -19,7 +20,7 @@ import {
 } from "@/shared/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { Separator } from "@/shared/components/ui/separator";
-import { RichTextEditor } from "@/shared/components/shared/rich-text-editor";
+import { LazyRichTextEditor as RichTextEditor } from "@/shared/components/shared/lazy-rich-text-editor";
 import {
   createQuestionSchema,
   type CreateQuestionInput,
@@ -125,7 +126,7 @@ export function QuestionForm({
   );
 
   async function onSubmit(data: CreateQuestionInput) {
-    const method = isEdit ? "PUT" : "POST";
+    const method = isEdit ? "PATCH" : "POST";
     const response = await fetch(apiUrl, {
       method,
       headers: { "Content-Type": "application/json" },
@@ -338,6 +339,14 @@ export function QuestionForm({
             <Label>Sumber (opsional)</Label>
             <Input placeholder="Contoh: UTBK 2025" {...register("source")} />
           </div>
+
+          <div className="space-y-2">
+            <Label>Gambar Soal (opsional)</Label>
+            <ImageUpload
+              value={watch("imageUrl")}
+              onChange={(url) => setValue("imageUrl", url)}
+            />
+          </div>
         </CardContent>
       </Card>
 
@@ -389,6 +398,10 @@ export function QuestionForm({
                 <Input
                   placeholder={`Isi opsi ${String.fromCharCode(65 + index)}`}
                   {...register(`options.${index}.content`)}
+                />
+                <ImageUpload
+                  value={watch(`options.${index}.imageUrl`)}
+                  onChange={(url) => setValue(`options.${index}.imageUrl`, url)}
                 />
                 <input type="hidden" {...register(`options.${index}.label`)} />
                 <input

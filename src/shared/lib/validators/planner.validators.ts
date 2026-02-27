@@ -30,7 +30,14 @@ export const taskQuerySchema = z.object({
   endDate: z.string().optional(),
 });
 
+export const generatePlanSchema = z.object({
+  categoryId: z.string().min(1, "Kategori ujian harus dipilih"),
+  targetDate: z.string().min(1, "Tanggal ujian harus diisi"),
+  hoursPerDay: z.number().int().min(1).max(4).default(2),
+});
+
 export type CreatePlanInput = z.infer<typeof createPlanSchema>;
 export type UpdatePlanInput = z.infer<typeof updatePlanSchema>;
 export type CreateTaskInput = z.infer<typeof createTaskSchema>;
 export type UpdateTaskInput = z.infer<typeof updateTaskSchema>;
+export type GeneratePlanInput = z.infer<typeof generatePlanSchema>;

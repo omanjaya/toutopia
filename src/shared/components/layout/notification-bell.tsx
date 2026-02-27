@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { Bell, Check, Loader2 } from "lucide-react";
 import { Button } from "@/shared/components/ui/button";
 import {
@@ -36,33 +36,57 @@ export function NotificationBell() {
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
 
-  const fetchNotifications = useCallback(async () => {
-    setLoading(true);
-    try {
-      const res = await fetch("/api/notifications?limit=10");
-      const result = await res.json();
-      if (res.ok) {
-        setNotifications(result.data);
-        setUnreadCount(result.meta?.unreadCount ?? 0);
-      }
-    } catch {
-      // silent
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
   useEffect(() => {
+    const controller = new AbortController();
+
+    const fetchNotifications = async () => {
+      setLoading(true);
+      try {
+        const res = await fetch("/api/notifications?limit=10", {
+          signal: controller.signal,
+        });
+        const result = await res.json();
+        if (res.ok) {
+          setNotifications(result.data);
+          setUnreadCount(result.meta?.unreadCount ?? 0);
+        }
+      } catch (err) {
+        if (err instanceof Error && err.name === "AbortError") return;
+        // silent
+      } finally {
+        setLoading(false);
+      }
+    };
+
     fetchNotifications();
 
     // Poll every 30 seconds
     const interval = setInterval(fetchNotifications, 30000);
-    return () => clearInterval(interval);
-  }, [fetchNotifications]);
+    return () => {
+      controller.abort();
+      clearInterval(interval);
+    };
+  }, []);
 
   useEffect(() => {
-    if (open) fetchNotifications();
-  }, [open, fetchNotifications]);
+    if (!open) return;
+    const fetchOnOpen = async () => {
+      setLoading(true);
+      try {
+        const res = await fetch("/api/notifications?limit=10");
+        const result = await res.json();
+        if (res.ok) {
+          setNotifications(result.data);
+          setUnreadCount(result.meta?.unreadCount ?? 0);
+        }
+      } catch {
+        // silent
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchOnOpen();
+  }, [open]);
 
   async function markAsRead(id: string) {
     try {
@@ -78,7 +102,7 @@ export function NotificationBell() {
 
   async function markAllRead() {
     try {
-      await fetch("/api/notifications/all/read", { method: "PATCH" });
+      await fetch("/api/user/notifications/read-all", { method: "POST" });
       setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
       setUnreadCount(0);
     } catch {
@@ -103,13 +127,13 @@ export function NotificationBell() {
         <Button variant="ghost" size="icon" className="relative">
           <Bell className="h-5 w-5" />
           {unreadCount > 0 && (
-            <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold text-primary-foreground">
+            <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold text-primary-foreground ring-2 ring-background">
               {unreadCount > 99 ? "99+" : unreadCount}
             </span>
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-80 p-0" align="end">
+      <PopoverContent className="w-80 p-0 shadow-[0_4px_20px_rgba(0,0,0,0.08)] border-border/40" align="end">
         <div className="flex items-center justify-between border-b px-4 py-3">
           <h3 className="text-sm font-semibold">Notifikasi</h3>
           {unreadCount > 0 && (
@@ -143,7 +167,7 @@ export function NotificationBell() {
                     if (!notif.isRead) markAsRead(notif.id);
                   }}
                   className={cn(
-                    "flex w-full items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-muted",
+                    "flex w-full items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-black/[0.03]",
                     !notif.isRead && "bg-primary/5"
                   )}
                 >

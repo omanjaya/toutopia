@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+
+Disallow: /api/
+Disallow: /admin/
+Disallow: /dashboard/
+Disallow: /teacher/
+Disallow: /exam/
+Disallow: /profile/
+
+Sitemap: https://toutopia.id/sitemap.xml

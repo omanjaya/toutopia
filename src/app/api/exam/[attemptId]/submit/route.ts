@@ -4,6 +4,29 @@ import { requireAuth } from "@/shared/lib/auth-guard";
 import { successResponse, errorResponse } from "@/shared/lib/api-response";
 import { handleApiError } from "@/shared/lib/api-error";
 import { createNotification } from "@/shared/lib/notifications";
+import { sendEmailAsync } from "@/infrastructure/email/email.service";
+import { checkAndAwardBadges } from "@/infrastructure/badge-service";
+import { scoreResultEmailHtml } from "@/infrastructure/email/templates/score-result";
+
+function gradeAnswer(
+  question: { type: string; options: { id: string }[] },
+  answer: { selectedOptionId: string | null; selectedOptions: string[]; numericAnswer: number | null } | undefined
+): boolean | null {
+  if (!answer || (!answer.selectedOptionId && answer.selectedOptions.length === 0 && answer.numericAnswer === null)) {
+    return null; // unanswered
+  }
+
+  const correctOptionIds = question.options.map((o) => o.id);
+
+  if (question.type === "SINGLE_CHOICE" || question.type === "TRUE_FALSE") {
+    return answer.selectedOptionId ? correctOptionIds.includes(answer.selectedOptionId) : false;
+  } else if (question.type === "MULTIPLE_CHOICE") {
+    const selected = new Set(answer.selectedOptions);
+    const correct = new Set(correctOptionIds);
+    return selected.size === correct.size && [...selected].every((id) => correct.has(id));
+  }
+  return false;
+}
 
 export async function POST(
   _request: NextRequest,
@@ -24,8 +47,13 @@ export async function POST(
                 questions: {
                   include: {
                     question: {
-                      include: {
-                        options: { where: { isCorrect: true } },
+                      select: {
+                        id: true,
+                        type: true,
+                        createdById: true,
+                        correctRate: true,
+                        usageCount: true,
+                        options: { where: { isCorrect: true }, select: { id: true } },
                       },
                     },
                   },
@@ -58,84 +86,165 @@ export async function POST(
     let totalIncorrect = 0;
     let totalUnanswered = 0;
 
-    const answerUpdates: Promise<unknown>[] = [];
+    const gradedAnswers: { answerId: string; isCorrect: boolean }[] = [];
 
     for (const question of allQuestions) {
-      const answer = attempt.answers.find(
-        (a) => a.questionId === question.id
-      );
+      const answer = attempt.answers.find((a) => a.questionId === question.id);
+      const result = gradeAnswer(question, answer);
 
-      if (!answer || (!answer.selectedOptionId && answer.selectedOptions.length === 0 && answer.numericAnswer === null)) {
+      if (result === null) {
         totalUnanswered++;
         continue;
       }
 
-      let isCorrect = false;
-      const correctOptionIds = question.options.map((o) => o.id);
-
-      if (question.type === "SINGLE_CHOICE" || question.type === "TRUE_FALSE") {
-        isCorrect = answer.selectedOptionId
-          ? correctOptionIds.includes(answer.selectedOptionId)
-          : false;
-      } else if (question.type === "MULTIPLE_CHOICE") {
-        const selected = new Set(answer.selectedOptions);
-        const correct = new Set(correctOptionIds);
-        isCorrect =
-          selected.size === correct.size &&
-          [...selected].every((id) => correct.has(id));
-      }
-
-      if (isCorrect) {
+      if (result) {
         totalCorrect++;
       } else {
         totalIncorrect++;
       }
 
       if (answer) {
-        answerUpdates.push(
-          prisma.examAnswer.update({
-            where: { id: answer.id },
-            data: { isCorrect },
-          })
-        );
+        gradedAnswers.push({ answerId: answer.id, isCorrect: result });
       }
     }
-
-    await Promise.all(answerUpdates);
 
     const total = allQuestions.length;
     const score = total > 0 ? (totalCorrect / total) * 1000 : 0;
 
-    const updated = await prisma.examAttempt.update({
-      where: { id: attemptId },
-      data: {
-        status: "COMPLETED",
-        finishedAt: new Date(),
-        score,
-        totalCorrect,
-        totalIncorrect,
-        totalUnanswered,
-      },
+    // Atomic status transition + grading + leaderboard + teacher earnings in one transaction
+    const updated = await prisma.$transaction(async (tx) => {
+      // Atomically claim the attempt — prevents double submit
+      const claimed = await tx.examAttempt.updateMany({
+        where: { id: attemptId, status: "IN_PROGRESS" },
+        data: {
+          status: "COMPLETED",
+          finishedAt: new Date(),
+          score,
+          totalCorrect,
+          totalIncorrect,
+          totalUnanswered,
+        },
+      });
+
+      if (claimed.count === 0) {
+        throw new Error("ALREADY_SUBMITTED");
+      }
+
+      // Update graded answers
+      for (const { answerId, isCorrect } of gradedAnswers) {
+        await tx.examAnswer.update({
+          where: { id: answerId },
+          data: { isCorrect },
+        });
+      }
+
+      // Update leaderboard — only update if new score is HIGHER
+      const existing = await tx.leaderboardEntry.findUnique({
+        where: {
+          packageId_userId: {
+            packageId: attempt.packageId,
+            userId: user.id,
+          },
+        },
+        select: { score: true },
+      });
+
+      if (!existing) {
+        await tx.leaderboardEntry.create({
+          data: {
+            packageId: attempt.packageId,
+            userId: user.id,
+            attemptId,
+            score,
+          },
+        });
+      } else if (score > existing.score) {
+        await tx.leaderboardEntry.update({
+          where: {
+            packageId_userId: {
+              packageId: attempt.packageId,
+              userId: user.id,
+            },
+          },
+          data: { score, attemptId },
+        });
+      }
+
+      // Teacher earnings — Rp 100 per question per attempt
+      const period = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, "0")}`;
+      const teacherQuestionCreators = new Set<string>();
+
+      for (const question of allQuestions) {
+        if (question.createdById) {
+          teacherQuestionCreators.add(question.createdById);
+        }
+      }
+
+      if (teacherQuestionCreators.size > 0) {
+        const teacherProfiles = await tx.teacherProfile.findMany({
+          where: { userId: { in: [...teacherQuestionCreators] } },
+          select: { id: true, userId: true },
+        });
+
+        const profileMap = new Map(teacherProfiles.map((tp) => [tp.userId, tp.id]));
+
+        for (const question of allQuestions) {
+          const profileId = profileMap.get(question.createdById);
+          if (!profileId) continue;
+
+          await tx.teacherEarning.upsert({
+            where: {
+              teacherProfileId_questionId_period: {
+                teacherProfileId: profileId,
+                questionId: question.id,
+                period,
+              },
+            },
+            update: {
+              attemptCount: { increment: 1 },
+              amount: { increment: 100 },
+            },
+            create: {
+              teacherProfileId: profileId,
+              questionId: question.id,
+              period,
+              attemptCount: 1,
+              amount: 100,
+            },
+          });
+        }
+      }
+
+      return tx.examAttempt.findUniqueOrThrow({ where: { id: attemptId } });
     });
 
-    // Update leaderboard — keep best score per user per package
-    await prisma.leaderboardEntry.upsert({
-      where: {
-        packageId_userId: {
+    // Post-transaction side effects (non-critical, outside transaction)
+
+    // Calculate percentile rank
+    const [totalParticipants, lowerScoreCount] = await Promise.all([
+      prisma.examAttempt.count({
+        where: {
           packageId: attempt.packageId,
-          userId: user.id,
+          status: "COMPLETED",
         },
-      },
-      update: score > 0 ? {
-        score,
-        attemptId,
-      } : {},
-      create: {
-        packageId: attempt.packageId,
-        userId: user.id,
-        attemptId,
-        score,
-      },
+      }),
+      prisma.examAttempt.count({
+        where: {
+          packageId: attempt.packageId,
+          status: "COMPLETED",
+          score: { lt: score },
+        },
+      }),
+    ]);
+
+    const percentile =
+      totalParticipants > 1
+        ? (lowerScoreCount / (totalParticipants - 1)) * 100
+        : 100;
+
+    await prisma.examAttempt.update({
+      where: { id: attemptId },
+      data: { percentile },
     });
 
     // Send notification
@@ -147,6 +256,79 @@ export async function POST(
       data: { attemptId, score },
     });
 
+    // Send score email (fire-and-forget)
+    sendEmailAsync({
+      to: user.email,
+      subject: `Hasil Ujian: ${attempt.package.title}`,
+      html: scoreResultEmailHtml({
+        name: user.name ?? "Pengguna",
+        packageTitle: attempt.package.title,
+        score,
+        attemptId,
+      }),
+    });
+
+    // Update streak
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const profile = await prisma.userProfile.findUnique({
+      where: { userId: user.id },
+      select: { currentStreak: true, longestStreak: true, lastActiveDate: true },
+    });
+
+    if (profile) {
+      const lastActive = profile.lastActiveDate
+        ? new Date(profile.lastActiveDate)
+        : null;
+      if (lastActive) lastActive.setHours(0, 0, 0, 0);
+
+      const isToday = lastActive?.getTime() === today.getTime();
+
+      if (!isToday) {
+        const yesterday = new Date(today);
+        yesterday.setDate(yesterday.getDate() - 1);
+        const isYesterday = lastActive?.getTime() === yesterday.getTime();
+
+        const newStreak = isYesterday ? profile.currentStreak + 1 : 1;
+
+        await prisma.userProfile.update({
+          where: { userId: user.id },
+          data: {
+            currentStreak: newStreak,
+            longestStreak: Math.max(newStreak, profile.longestStreak),
+            lastActiveDate: today,
+          },
+        });
+      }
+    }
+
+    // Update Question.correctRate (incremental, non-critical)
+    const correctRateUpdates: Promise<unknown>[] = [];
+
+    for (const question of allQuestions) {
+      const answer = attempt.answers.find((a) => a.questionId === question.id);
+      const result = gradeAnswer(question, answer);
+      if (result === null) continue;
+
+      const oldCount = question.usageCount;
+      const oldRate = question.correctRate;
+      const newCount = oldCount + 1;
+      const newRate = (oldRate * oldCount + (result ? 1 : 0)) / newCount;
+
+      correctRateUpdates.push(
+        prisma.question.update({
+          where: { id: question.id },
+          data: { correctRate: newRate, usageCount: newCount },
+        })
+      );
+    }
+
+    await Promise.all(correctRateUpdates);
+
+    // Check for new badges (fire and forget)
+    checkAndAwardBadges(user.id).catch(() => {});
+
     return successResponse({
       attemptId: updated.id,
       score: updated.score,
@@ -156,6 +338,13 @@ export async function POST(
       total,
     });
   } catch (error) {
+    if (error instanceof Error && error.message === "ALREADY_SUBMITTED") {
+      return errorResponse(
+        "ALREADY_SUBMITTED",
+        "Ujian sudah disubmit sebelumnya",
+        400
+      );
+    }
     return handleApiError(error);
   }
 }

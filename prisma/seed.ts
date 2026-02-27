@@ -469,6 +469,152 @@ async function main() {
     }
   }
 
+  // Seed badges
+  const badges = [
+    {
+      slug: "first-exam",
+      name: "Langkah Pertama",
+      description: "Selesaikan ujian pertamamu",
+      icon: "Rocket",
+      category: "exam",
+      requirement: { type: "exam_count", value: 1 },
+      xpReward: 50,
+    },
+    {
+      slug: "ten-exams",
+      name: "Rajin Berlatih",
+      description: "Selesaikan 10 ujian",
+      icon: "Target",
+      category: "exam",
+      requirement: { type: "exam_count", value: 10 },
+      xpReward: 200,
+    },
+    {
+      slug: "fifty-exams",
+      name: "Pejuang Soal",
+      description: "Selesaikan 50 ujian",
+      icon: "Swords",
+      category: "exam",
+      requirement: { type: "exam_count", value: 50 },
+      xpReward: 500,
+    },
+    {
+      slug: "hundred-exams",
+      name: "Master Ujian",
+      description: "Selesaikan 100 ujian",
+      icon: "Crown",
+      category: "exam",
+      requirement: { type: "exam_count", value: 100 },
+      xpReward: 1000,
+    },
+    {
+      slug: "perfect-score",
+      name: "Nilai Sempurna",
+      description: "Raih skor 100 di satu ujian",
+      icon: "Star",
+      category: "mastery",
+      requirement: { type: "best_score", value: 100 },
+      xpReward: 300,
+    },
+    {
+      slug: "high-scorer",
+      name: "Skor Tinggi",
+      description: "Raih skor minimal 90",
+      icon: "TrendingUp",
+      category: "mastery",
+      requirement: { type: "best_score", value: 90 },
+      xpReward: 150,
+    },
+    {
+      slug: "all-correct",
+      name: "Tanpa Cela",
+      description: "Jawab semua soal dengan benar dalam satu ujian",
+      icon: "CheckCircle",
+      category: "mastery",
+      requirement: { type: "all_correct", value: 1 },
+      xpReward: 250,
+    },
+    {
+      slug: "speed-demon",
+      name: "Kilat",
+      description: "Selesaikan ujian dalam kurang dari setengah waktu",
+      icon: "Zap",
+      category: "mastery",
+      requirement: { type: "speed", value: 1 },
+      xpReward: 200,
+    },
+    {
+      slug: "streak-3",
+      name: "Konsisten",
+      description: "Login dan latihan 3 hari berturut-turut",
+      icon: "Flame",
+      category: "streak",
+      requirement: { type: "streak", value: 3 },
+      xpReward: 100,
+    },
+    {
+      slug: "streak-7",
+      name: "Seminggu Penuh",
+      description: "Login dan latihan 7 hari berturut-turut",
+      icon: "CalendarCheck",
+      category: "streak",
+      requirement: { type: "streak", value: 7 },
+      xpReward: 300,
+    },
+    {
+      slug: "streak-30",
+      name: "Dedikasi Tinggi",
+      description: "Login dan latihan 30 hari berturut-turut",
+      icon: "Award",
+      category: "streak",
+      requirement: { type: "streak", value: 30 },
+      xpReward: 1000,
+    },
+    {
+      slug: "multi-category",
+      name: "Serba Bisa",
+      description: "Ikuti ujian dari 3 kategori berbeda",
+      icon: "Layers",
+      category: "exam",
+      requirement: { type: "category_count", value: 3 },
+      xpReward: 200,
+    },
+    {
+      slug: "referral-1",
+      name: "Ajak Teman",
+      description: "Ajak 1 teman bergabung di Toutopia",
+      icon: "UserPlus",
+      category: "social",
+      requirement: { type: "referral_count", value: 1 },
+      xpReward: 100,
+    },
+    {
+      slug: "referral-5",
+      name: "Influencer",
+      description: "Ajak 5 teman bergabung di Toutopia",
+      icon: "Users",
+      category: "social",
+      requirement: { type: "referral_count", value: 5 },
+      xpReward: 500,
+    },
+  ];
+
+  for (const badge of badges) {
+    await prisma.badge.upsert({
+      where: { slug: badge.slug },
+      update: {
+        name: badge.name,
+        description: badge.description,
+        icon: badge.icon,
+        category: badge.category,
+        requirement: badge.requirement,
+        xpReward: badge.xpReward,
+      },
+      create: badge,
+    });
+  }
+  console.log(`  Badges seeded: ${badges.length} badges`);
+
   console.log("\nSeeding complete!");
 }
 

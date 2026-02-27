@@ -33,6 +33,7 @@ export async function CategoryLanding({
     orderBy: { createdAt: "desc" },
     select: {
       id: true,
+      slug: true,
       title: true,
       price: true,
       discountPrice: true,
@@ -119,7 +120,7 @@ export async function CategoryLanding({
                         : formatCurrency(pkg.discountPrice ?? pkg.price)}
                     </p>
                     <Button className="mt-4 w-full" variant="outline" asChild>
-                      <Link href={`/dashboard/tryout/${pkg.id}`}>
+                      <Link href={`/packages/${pkg.slug}`}>
                         Lihat Detail
                       </Link>
                     </Button>

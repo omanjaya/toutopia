@@ -5,6 +5,8 @@ import { prisma } from "@/shared/lib/prisma";
 import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
 import { ArrowLeft } from "lucide-react";
+import { ShareButtons } from "@/shared/components/shared/share-buttons";
+import { sanitizeHtml } from "@/shared/lib/sanitize";
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -89,18 +91,18 @@ export default async function BlogArticlePage({ params }: Props) {
       </div>
 
       {article.coverImage && (
-        <div className="mt-8 overflow-hidden rounded-lg">
+        <div className="relative mt-8 aspect-video overflow-hidden rounded-lg">
           <img
             src={article.coverImage}
             alt={article.title}
-            className="w-full object-cover"
+            className="h-full w-full object-cover"
           />
         </div>
       )}
 
       <div
         className="prose prose-lg mt-8 max-w-none dark:prose-invert"
-        dangerouslySetInnerHTML={{ __html: article.content }}
+        dangerouslySetInnerHTML={{ __html: sanitizeHtml(article.content) }}
       />
 
       {article.tags.length > 0 && (
@@ -112,6 +114,13 @@ export default async function BlogArticlePage({ params }: Props) {
           ))}
         </div>
       )}
+
+      <div className="mt-8 border-t pt-6">
+        <ShareButtons
+          url={`${process.env.NEXT_PUBLIC_APP_URL ?? "https://toutopia.id"}/blog/${slug}`}
+          title={article.title}
+        />
+      </div>
     </article>
   );
 }

@@ -13,11 +13,12 @@ import {
   AlertTriangle,
   ShieldAlert,
   X,
+  Keyboard,
 } from "lucide-react";
 import { Button } from "@/shared/components/ui/button";
 import { Card, CardContent } from "@/shared/components/ui/card";
 import { Badge } from "@/shared/components/ui/badge";
-import { MathRenderer } from "@/shared/components/shared/math-renderer";
+import { LazyMathRenderer as MathRenderer } from "@/shared/components/shared/lazy-math-renderer";
 import { useAntiCheat } from "@/shared/hooks/use-anti-cheat";
 import { cn } from "@/shared/lib/utils";
 
@@ -75,6 +76,10 @@ export function ExamSession({ attemptId }: ExamSessionProps) {
   const [showConfirmSubmit, setShowConfirmSubmit] = useState(false);
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const questionTimeRef = useRef(0);
+  const handleSubmitRef = useRef<() => void>(() => {});
+  const selectOptionRef = useRef<(optionId: string) => void>(() => {});
+  const toggleFlagRef = useRef<() => void>(() => {});
+  const navigateQuestionRef = useRef<(sIdx: number, qIdx: number) => void>(() => {});
 
   // Anti-cheat system
   const {
@@ -136,7 +141,7 @@ export function ExamSession({ attemptId }: ExamSessionProps) {
       setTimeLeft((prev) => {
         if (prev <= 1) {
           clearInterval(interval);
-          handleSubmit();
+          handleSubmitRef.current();
           return 0;
         }
         return prev - 1;
@@ -148,8 +153,113 @@ export function ExamSession({ attemptId }: ExamSessionProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [timeLeft > 0, examData]);
 
+  // Keyboard shortcuts
+  useEffect(() => {
+    function handleKeyboard(e: KeyboardEvent): void {
+      // Don't handle if user is typing in an input
+      if (
+        e.target instanceof HTMLInputElement ||
+        e.target instanceof HTMLTextAreaElement
+      )
+        return;
+
+      const key = e.key.toLowerCase();
+
+      // Option selection: 1-5 or a-e
+      const numKeys = ["1", "2", "3", "4", "5"];
+      const letterKeys = ["a", "b", "c", "d", "e"];
+      const numIdx = numKeys.indexOf(key);
+      const letterIdx = letterKeys.indexOf(key);
+      const optionIdx = numIdx >= 0 ? numIdx : letterIdx;
+
+      if (
+        optionIdx >= 0 &&
+        currentQuestionRef.current &&
+        optionIdx < currentQuestionRef.current.options.length
+      ) {
+        selectOptionRef.current(currentQuestionRef.current.options[optionIdx].id);
+        return;
+      }
+
+      // Navigation
+      if (key === "arrowleft" || key === "arrowup") {
+        e.preventDefault();
+        if (currentQuestionIdxRef.current > 0) {
+          navigateQuestionRef.current(
+            currentSectionIdxRef.current,
+            currentQuestionIdxRef.current - 1
+          );
+        } else if (currentSectionIdxRef.current > 0 && examDataRef.current) {
+          const prevSection =
+            examDataRef.current.sections[currentSectionIdxRef.current - 1];
+          navigateQuestionRef.current(
+            currentSectionIdxRef.current - 1,
+            prevSection.questions.length - 1
+          );
+        }
+        return;
+      }
+
+      if (key === "arrowright" || key === "arrowdown") {
+        e.preventDefault();
+        if (
+          examDataRef.current &&
+          currentSectionRef.current &&
+          currentQuestionIdxRef.current <
+            currentSectionRef.current.questions.length - 1
+        ) {
+          navigateQuestionRef.current(
+            currentSectionIdxRef.current,
+            currentQuestionIdxRef.current + 1
+          );
+        } else if (
+          examDataRef.current &&
+          currentSectionIdxRef.current <
+            examDataRef.current.sections.length - 1
+        ) {
+          navigateQuestionRef.current(currentSectionIdxRef.current + 1, 0);
+        }
+        return;
+      }
+
+      // Flag
+      if (key === "f" && !e.ctrlKey && !e.metaKey) {
+        toggleFlagRef.current();
+        return;
+      }
+
+      // Submit
+      if (key === "enter" && (e.ctrlKey || e.metaKey)) {
+        e.preventDefault();
+        setShowConfirmSubmit(true);
+        return;
+      }
+    }
+
+    document.addEventListener("keydown", handleKeyboard);
+    return () => document.removeEventListener("keydown", handleKeyboard);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const currentSection = examData?.sections[currentSectionIdx];
   const currentQuestion = currentSection?.questions[currentQuestionIdx];
+
+  // Keep refs in sync for keyboard handler
+  const currentQuestionRef = useRef(currentQuestion);
+  const currentSectionRef = useRef(currentSection);
+  const currentQuestionIdxRef = useRef(currentQuestionIdx);
+  const currentSectionIdxRef = useRef(currentSectionIdx);
+  const examDataRef = useRef(examData);
+
+  currentQuestionRef.current = currentQuestion;
+  currentSectionRef.current = currentSection;
+  currentQuestionIdxRef.current = currentQuestionIdx;
+  currentSectionIdxRef.current = currentSectionIdx;
+  examDataRef.current = examData;
+  handleSubmitRef.current = handleSubmit;
+  selectOptionRef.current = selectOption;
+  toggleFlagRef.current = toggleFlag;
+  navigateQuestionRef.current = navigateQuestion;
 
   const allQuestions = examData?.sections.flatMap((s) => s.questions) ?? [];
   const answeredCount = allQuestions.filter(
@@ -191,42 +301,80 @@ export function ExamSession({ attemptId }: ExamSessionProps) {
   function selectOption(optionId: string) {
     if (!examData || !currentQuestion) return;
 
-    const updated = { ...examData };
-    const q = updated.sections[currentSectionIdx].questions[currentQuestionIdx];
-
-    if (q.type === "SINGLE_CHOICE" || q.type === "TRUE_FALSE") {
-      q.selectedOptionId = q.selectedOptionId === optionId ? null : optionId;
-    } else if (q.type === "MULTIPLE_CHOICE") {
-      const idx = q.selectedOptions.indexOf(optionId);
-      if (idx >= 0) {
-        q.selectedOptions = q.selectedOptions.filter((id) => id !== optionId);
-      } else {
-        q.selectedOptions = [...q.selectedOptions, optionId];
-      }
-    }
+    const updated = {
+      ...examData,
+      sections: examData.sections.map((section, sIdx) =>
+        sIdx === currentSectionIdx
+          ? {
+              ...section,
+              questions: section.questions.map((q, qIdx) => {
+                if (qIdx !== currentQuestionIdx) return q;
+                if (q.type === "SINGLE_CHOICE" || q.type === "TRUE_FALSE") {
+                  return { ...q, selectedOptionId: q.selectedOptionId === optionId ? null : optionId };
+                } else if (q.type === "MULTIPLE_CHOICE") {
+                  const idx = q.selectedOptions.indexOf(optionId);
+                  return {
+                    ...q,
+                    selectedOptions: idx >= 0
+                      ? q.selectedOptions.filter((id) => id !== optionId)
+                      : [...q.selectedOptions, optionId],
+                  };
+                }
+                return q;
+              }),
+            }
+          : section
+      ),
+    };
 
     setExamData(updated);
-    debouncedSave(q);
+    debouncedSave(updated.sections[currentSectionIdx].questions[currentQuestionIdx]);
   }
 
   function toggleFlag() {
     if (!examData || !currentQuestion) return;
 
-    const updated = { ...examData };
-    const q = updated.sections[currentSectionIdx].questions[currentQuestionIdx];
-    q.isFlagged = !q.isFlagged;
+    const updated = {
+      ...examData,
+      sections: examData.sections.map((section, sIdx) =>
+        sIdx === currentSectionIdx
+          ? {
+              ...section,
+              questions: section.questions.map((q, qIdx) =>
+                qIdx === currentQuestionIdx
+                  ? { ...q, isFlagged: !q.isFlagged }
+                  : q
+              ),
+            }
+          : section
+      ),
+    };
+
     setExamData(updated);
-    debouncedSave(q);
+    debouncedSave(updated.sections[currentSectionIdx].questions[currentQuestionIdx]);
   }
 
   function navigateQuestion(sectionIdx: number, questionIdx: number) {
     // Save current question time
-    if (currentQuestion) {
-      const updated = { ...examData! };
-      const q = updated.sections[currentSectionIdx].questions[currentQuestionIdx];
-      q.timeSpentSeconds += questionTimeRef.current;
+    if (currentQuestion && examData) {
+      const timeSpent = questionTimeRef.current;
+      const updated = {
+        ...examData,
+        sections: examData.sections.map((section, sIdx) =>
+          sIdx === currentSectionIdx
+            ? {
+                ...section,
+                questions: section.questions.map((q, qIdx) =>
+                  qIdx === currentQuestionIdx
+                    ? { ...q, timeSpentSeconds: q.timeSpentSeconds + timeSpent }
+                    : q
+                ),
+              }
+            : section
+        ),
+      };
       setExamData(updated);
-      saveAnswer(q);
+      saveAnswer(updated.sections[currentSectionIdx].questions[currentQuestionIdx]);
     }
 
     questionTimeRef.current = 0;
@@ -447,10 +595,19 @@ export function ExamSession({ attemptId }: ExamSessionProps) {
                     >
                       {option.label}
                     </span>
-                    <MathRenderer
-                      content={option.content}
-                      className="flex-1 pt-1 text-sm"
-                    />
+                    <div className="flex-1 pt-1">
+                      <MathRenderer
+                        content={option.content}
+                        className="text-sm"
+                      />
+                      {option.imageUrl && (
+                        <img
+                          src={option.imageUrl}
+                          alt={`Opsi ${option.label}`}
+                          className="mt-2 max-h-48 rounded-lg"
+                        />
+                      )}
+                    </div>
                   </button>
                 );
               })}
@@ -534,6 +691,52 @@ export function ExamSession({ attemptId }: ExamSessionProps) {
           </Card>
         </div>
       )}
+
+      {/* Keyboard Shortcuts Help */}
+      <div className="fixed bottom-4 right-4 z-40">
+        <div className="group relative">
+          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-muted/80 text-muted-foreground shadow-sm backdrop-blur transition-colors hover:bg-muted hover:text-foreground">
+            <Keyboard className="h-4 w-4" />
+          </div>
+          <div className="absolute bottom-12 right-0 hidden w-56 rounded-xl border bg-popover p-3 shadow-lg group-hover:block">
+            <p className="mb-2 text-xs font-semibold text-foreground">
+              Pintasan Keyboard
+            </p>
+            <div className="space-y-1.5 text-xs text-muted-foreground">
+              <div className="flex justify-between">
+                <span>Pilih opsi</span>
+                <kbd className="rounded bg-muted px-1.5 py-0.5 font-mono text-[10px]">
+                  1-5
+                </kbd>
+              </div>
+              <div className="flex justify-between">
+                <span>Soal sebelumnya</span>
+                <kbd className="rounded bg-muted px-1.5 py-0.5 font-mono text-[10px]">
+                  &larr;
+                </kbd>
+              </div>
+              <div className="flex justify-between">
+                <span>Soal berikutnya</span>
+                <kbd className="rounded bg-muted px-1.5 py-0.5 font-mono text-[10px]">
+                  &rarr;
+                </kbd>
+              </div>
+              <div className="flex justify-between">
+                <span>Tandai soal</span>
+                <kbd className="rounded bg-muted px-1.5 py-0.5 font-mono text-[10px]">
+                  F
+                </kbd>
+              </div>
+              <div className="flex justify-between">
+                <span>Selesaikan</span>
+                <kbd className="rounded bg-muted px-1.5 py-0.5 font-mono text-[10px]">
+                  &#8984;&#8629;
+                </kbd>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* Submit Confirmation Modal */}
       {showConfirmSubmit && (

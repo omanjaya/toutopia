@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { useForm } from "react-hook-form";
@@ -13,10 +14,18 @@ import { Label } from "@/shared/components/ui/label";
 import { Separator } from "@/shared/components/ui/separator";
 import { loginSchema, type LoginInput } from "@/shared/lib/validators";
 
+function getSafeCallbackUrl(raw: string | null): string {
+  if (!raw) return "/dashboard";
+  if (raw.startsWith("/") && !raw.includes("://") && !raw.includes("//")) {
+    return raw;
+  }
+  return "/dashboard";
+}
+
 export function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get("callbackUrl") ?? "/dashboard";
+  const callbackUrl = getSafeCallbackUrl(searchParams.get("callbackUrl"));
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
   const {
@@ -28,24 +37,34 @@ export function LoginForm() {
   });
 
   async function onSubmit(data: LoginInput) {
-    const result = await signIn("credentials", {
-      email: data.email,
-      password: data.password,
-      redirect: false,
-    });
+    try {
+      const result = await signIn("credentials", {
+        email: data.email,
+        password: data.password,
+        redirect: false,
+      });
 
-    if (result?.error) {
-      toast.error("Email atau password salah");
-      return;
+      if (result?.error) {
+        toast.error("Email atau password salah");
+        return;
+      }
+
+      router.push(callbackUrl);
+      router.refresh();
+    } catch {
+      toast.error("Terjadi kesalahan. Silakan coba lagi.");
     }
-
-    router.push(callbackUrl);
-    router.refresh();
   }
 
   async function handleGoogleLogin() {
     setIsGoogleLoading(true);
-    await signIn("google", { callbackUrl });
+    try {
+      await signIn("google", { callbackUrl });
+    } catch {
+      toast.error("Gagal login dengan Google. Silakan coba lagi.");
+    } finally {
+      setIsGoogleLoading(false);
+    }
   }
 
   return (
@@ -108,7 +127,12 @@ export function LoginForm() {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="password">Password</Label>
+          <div className="flex items-center justify-between">
+            <Label htmlFor="password">Password</Label>
+            <Link href="/forgot-password" className="text-xs text-primary hover:underline underline-offset-4">
+              Lupa password?
+            </Link>
+          </div>
           <Input
             id="password"
             type="password"

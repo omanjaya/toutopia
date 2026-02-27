@@ -8,6 +8,8 @@ const publicRoutes = [
   "/",
   "/login",
   "/register",
+  "/forgot-password",
+  "/reset-password",
   "/tryout-utbk",
   "/tryout-cpns",
   "/tryout-bumn",
@@ -17,10 +19,32 @@ const publicRoutes = [
   "/packages",
   "/faq",
   "/about",
+  "/contact",
+  "/privacy",
+  "/terms",
+  "/leaderboard",
   "/blog",
 ];
 
-const authRoutes = ["/login", "/register"];
+const authRoutes = ["/login", "/register", "/forgot-password", "/reset-password"];
+
+const publicApiPrefixes = [
+  "/api/auth",
+  "/api/health",
+  "/api/articles",
+  "/api/categories",
+  "/api/search",
+  "/api/payment/webhook",
+  "/api/og/",
+];
+
+function isPublicApiRoute(pathname: string): boolean {
+  return publicApiPrefixes.some((prefix) => pathname.startsWith(prefix));
+}
+
+function isValidCallbackUrl(url: string): boolean {
+  return url.startsWith("/") && !url.includes("//") && !url.includes(":");
+}
 
 export default auth((req) => {
   const { nextUrl } = req;
@@ -29,17 +53,18 @@ export default auth((req) => {
 
   const isPublicRoute =
     publicRoutes.includes(pathname) ||
+    (pathname.startsWith("/api/exam/") && pathname.endsWith("/share")) ||
+    pathname.startsWith("/packages/") ||
+    pathname.startsWith("/leaderboard/") ||
     pathname.startsWith("/blog/") ||
-    pathname.startsWith("/api/auth") ||
-    pathname.startsWith("/api/articles") ||
-    pathname.startsWith("/api/payment/webhook") ||
-    pathname.startsWith("/api/health") ||
+    isPublicApiRoute(pathname) ||
     pathname.startsWith("/_next") ||
     pathname.startsWith("/images") ||
     pathname.startsWith("/icons");
 
   const isAuthRoute = authRoutes.includes(pathname);
   const isAdminRoute = pathname.startsWith("/admin");
+  const isAdminApiRoute = pathname.startsWith("/api/admin");
   const isTeacherRoute = pathname.startsWith("/teacher");
   const isApiRoute = pathname.startsWith("/api");
 
@@ -47,14 +72,35 @@ export default auth((req) => {
     return NextResponse.redirect(new URL("/dashboard", nextUrl));
   }
 
+  // Handle non-public API routes: return 401/403 JSON instead of redirect
+  if (isApiRoute && !isPublicRoute) {
+    if (!isLoggedIn) {
+      return NextResponse.json(
+        { success: false, error: { code: "UNAUTHORIZED", message: "Authentication required" } },
+        { status: 401 }
+      );
+    }
+
+    if (isAdminApiRoute) {
+      const role = req.auth?.user?.role;
+      if (role !== "SUPER_ADMIN" && role !== "ADMIN") {
+        return NextResponse.json(
+          { success: false, error: { code: "FORBIDDEN", message: "Admin access required" } },
+          { status: 403 }
+        );
+      }
+    }
+  }
+
   if (!isPublicRoute && !isLoggedIn && !isApiRoute) {
-    const callbackUrl = encodeURIComponent(pathname);
+    const rawCallback = pathname;
+    const callbackUrl = isValidCallbackUrl(rawCallback) ? rawCallback : "/dashboard";
     return NextResponse.redirect(
-      new URL(`/login?callbackUrl=${callbackUrl}`, nextUrl)
+      new URL(`/login?callbackUrl=${encodeURIComponent(callbackUrl)}`, nextUrl)
     );
   }
 
-  if (isAdminRoute && isLoggedIn) {
+  if (isAdminRoute && !isApiRoute && isLoggedIn) {
     const role = req.auth?.user?.role;
     if (role !== "SUPER_ADMIN" && role !== "ADMIN") {
       return NextResponse.redirect(new URL("/dashboard", nextUrl));

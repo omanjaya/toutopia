@@ -30,88 +30,72 @@ const footerLinks = {
 
 export function Footer() {
   return (
-    <footer className="border-t bg-muted/40">
-      <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-2 gap-8 md:grid-cols-4 lg:grid-cols-5">
-          <div className="col-span-2 lg:col-span-1">
+    <footer className="border-t border-border/40 bg-background pt-16 pb-8">
+      <div className="mx-auto max-w-7xl px-6 lg:px-8">
+        <div className="md:grid md:grid-cols-2 md:gap-8">
+          <div className="space-y-4">
             <Link href="/" className="flex items-center gap-2">
               <BookOpenCheck className="h-6 w-6 text-primary" />
-              <span className="text-lg font-bold">{siteConfig.name}</span>
+              <span className="text-xl font-semibold tracking-tight">{siteConfig.name}</span>
             </Link>
-            <p className="mt-4 text-sm text-muted-foreground">
-              {siteConfig.description}
+            <p className="max-w-xs text-sm text-muted-foreground leading-relaxed">
+              Platform simulasi ujian online terdepan dengan standar premium untuk masa depan yang lebih cerah.
             </p>
           </div>
-
-          <div>
-            <h3 className="text-sm font-semibold">Platform</h3>
-            <ul className="mt-4 space-y-3">
-              {footerLinks.platform.map((link) => (
-                <li key={link.href}>
-                  <Link
-                    href={link.href}
-                    className="text-sm text-muted-foreground hover:text-foreground"
-                  >
-                    {link.title}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <div>
-            <h3 className="text-sm font-semibold">Kategori</h3>
-            <ul className="mt-4 space-y-3">
-              {footerLinks.kategori.map((link) => (
-                <li key={link.href}>
-                  <Link
-                    href={link.href}
-                    className="text-sm text-muted-foreground hover:text-foreground"
-                  >
-                    {link.title}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <div>
-            <h3 className="text-sm font-semibold">Perusahaan</h3>
-            <ul className="mt-4 space-y-3">
-              {footerLinks.perusahaan.map((link) => (
-                <li key={link.href}>
-                  <Link
-                    href={link.href}
-                    className="text-sm text-muted-foreground hover:text-foreground"
-                  >
-                    {link.title}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <div>
-            <h3 className="text-sm font-semibold">Legal</h3>
-            <ul className="mt-4 space-y-3">
-              {footerLinks.legal.map((link) => (
-                <li key={link.href}>
-                  <Link
-                    href={link.href}
-                    className="text-sm text-muted-foreground hover:text-foreground"
-                  >
-                    {link.title}
-                  </Link>
-                </li>
-              ))}
-            </ul>
+          <div className="mt-16 grid grid-cols-2 gap-8 md:mt-0 xl:grid-cols-4">
+            <div>
+              <h3 className="text-sm font-semibold text-foreground">Platform</h3>
+              <ul className="mt-4 space-y-3">
+                {footerLinks.platform.map((item) => (
+                  <li key={item.title}>
+                    <Link href={item.href} className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                      {item.title}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div>
+              <h3 className="text-sm font-semibold text-foreground">Kategori</h3>
+              <ul className="mt-4 space-y-3">
+                {footerLinks.kategori.map((item) => (
+                  <li key={item.title}>
+                    <Link href={item.href} className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                      {item.title}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div>
+              <h3 className="text-sm font-semibold text-foreground">Company</h3>
+              <ul className="mt-4 space-y-3">
+                {footerLinks.perusahaan.map((item) => (
+                  <li key={item.title}>
+                    <Link href={item.href} className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                      {item.title}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div>
+              <h3 className="text-sm font-semibold text-foreground">Legal</h3>
+              <ul className="mt-4 space-y-3">
+                {footerLinks.legal.map((item) => (
+                  <li key={item.title}>
+                    <Link href={item.href} className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                      {item.title}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
         </div>
-
-        <div className="mt-12 border-t pt-8">
-          <p className="text-center text-sm text-muted-foreground">
-            &copy; {new Date().getFullYear()} {siteConfig.name}. Hak cipta
-            dilindungi.
+        <div className="mt-16 border-t border-border/40 pt-8 sm:mt-20 lg:mt-24">
+          <p className="text-xs leading-5 text-muted-foreground text-center">
+            &copy; {new Date().getFullYear()} {siteConfig.name}. All rights reserved. Designed with precision in Indonesia.
           </p>
         </div>
       </div>

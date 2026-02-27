@@ -1,11 +1,11 @@
 import { prisma } from "@/shared/lib/prisma";
-import { requireAuth } from "@/shared/lib/auth-guard";
+import { requireAdmin } from "@/shared/lib/auth-guard";
 import { successResponse } from "@/shared/lib/api-response";
 import { handleApiError } from "@/shared/lib/api-error";
 
 export async function GET() {
   try {
-    await requireAuth();
+    await requireAdmin();
 
     const categories = await prisma.examCategory.findMany({
       where: { isActive: true },

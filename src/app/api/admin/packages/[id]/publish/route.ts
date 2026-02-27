@@ -3,13 +3,14 @@ import { prisma } from "@/shared/lib/prisma";
 import { requireAdmin } from "@/shared/lib/auth-guard";
 import { successResponse, notFoundResponse, errorResponse } from "@/shared/lib/api-response";
 import { handleApiError } from "@/shared/lib/api-error";
+import { logAudit } from "@/shared/lib/audit-log";
 
 export async function POST(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    await requireAdmin();
+    const admin = await requireAdmin();
     const { id } = await params;
 
     const pkg = await prisma.examPackage.findUnique({
@@ -38,6 +39,15 @@ export async function POST(
     const updated = await prisma.examPackage.update({
       where: { id },
       data: { status: "PUBLISHED" },
+    });
+
+    logAudit({
+      userId: admin.id,
+      action: "UPDATE",
+      entity: "ExamPackage",
+      entityId: id,
+      oldData: { status: pkg.status },
+      newData: { status: "PUBLISHED" },
     });
 
     return successResponse(updated);

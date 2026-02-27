@@ -9,6 +9,7 @@ export async function GET() {
 
     const teachers = await prisma.teacherProfile.findMany({
       orderBy: [{ isVerified: "asc" }, { createdAt: "desc" }],
+      take: 100,
       include: {
         user: {
           select: { id: true, name: true, email: true, avatar: true },

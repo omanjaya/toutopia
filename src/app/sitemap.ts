@@ -33,5 +33,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.7,
   }));
 
-  return [...staticPages, ...articlePages];
+  // Exam packages
+  const packages = await prisma.examPackage.findMany({
+    where: { status: "PUBLISHED" },
+    select: { slug: true, updatedAt: true },
+  });
+
+  const packagePages: MetadataRoute.Sitemap = packages.map((pkg) => ({
+    url: `${BASE_URL}/packages/${pkg.slug}`,
+    lastModified: pkg.updatedAt,
+    changeFrequency: "weekly",
+    priority: 0.8,
+  }));
+
+  return [...staticPages, ...articlePages, ...packagePages];
 }

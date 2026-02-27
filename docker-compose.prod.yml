@@ -14,33 +14,17 @@ services:
       - internal
     restart: unless-stopped
 
-  worker:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: toutopia-worker
-    command: node dist/worker.js
-    env_file: .env
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-    networks:
-      - internal
-    restart: unless-stopped
-
   postgres:
     image: postgres:16-alpine
     container_name: toutopia-db
     volumes:
       - pgdata:/var/lib/postgresql/data
     environment:
-      POSTGRES_DB: ${DB_NAME:-toutopia}
-      POSTGRES_USER: ${DB_USER:-toutopia}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-toutopia}
+      POSTGRES_USER: ${POSTGRES_USER:-toutopia}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-toutopia}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-toutopia}"]
       interval: 5s
       timeout: 5s
       retries: 5

@@ -1,5 +1,6 @@
 "use client";
 
+import { useRef, useState } from "react";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Image from "@tiptap/extension-image";
@@ -14,7 +15,9 @@ import {
   Redo,
   ImageIcon,
   Code,
+  Loader2,
 } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/shared/components/ui/button";
 import { Separator } from "@/shared/components/ui/separator";
 import { cn } from "@/shared/lib/utils";
@@ -32,6 +35,9 @@ export function RichTextEditor({
   placeholder = "Tulis konten di sini...",
   className,
 }: RichTextEditorProps) {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
+
   const editor = useEditor({
     extensions: [
       StarterKit,
@@ -52,15 +58,49 @@ export function RichTextEditor({
 
   if (!editor) return null;
 
-  function insertImage() {
-    const url = window.prompt("URL gambar:");
-    if (url && editor) {
-      editor.chain().focus().setImage({ src: url }).run();
+  async function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file || !editor) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Ukuran file maksimal 5MB");
+      return;
+    }
+
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      const result = await res.json();
+      if (!res.ok) {
+        toast.error(result.error?.message ?? "Gagal mengupload gambar");
+        return;
+      }
+
+      editor.chain().focus().setImage({ src: result.data.url }).run();
+    } catch {
+      toast.error("Gagal mengupload gambar");
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
     }
   }
 
   return (
     <div className={cn("rounded-lg border", className)}>
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/jpeg,image/png,image/webp,image/gif"
+        className="hidden"
+        onChange={handleFileSelect}
+      />
       <div className="flex flex-wrap items-center gap-1 border-b p-1">
         <Button
           type="button"
@@ -131,9 +171,14 @@ export function RichTextEditor({
           variant="ghost"
           size="icon"
           className="h-8 w-8"
-          onClick={insertImage}
+          onClick={() => fileInputRef.current?.click()}
+          disabled={uploading}
         >
-          <ImageIcon className="h-4 w-4" />
+          {uploading ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <ImageIcon className="h-4 w-4" />
+          )}
         </Button>
         <div className="flex-1" />
         <Button

@@ -60,6 +60,7 @@ export async function GET(
           content: sq.question.content,
           type: sq.question.type,
           explanation: sq.question.explanation,
+          videoUrl: sq.question.videoUrl,
           imageUrl: sq.question.imageUrl,
           options: sq.question.options.map((o) => ({
             id: o.id,

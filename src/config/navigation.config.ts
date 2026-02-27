@@ -17,10 +17,22 @@ export const publicNav: NavItem[] = [
 export const studentNav: NavItem[] = [
   { title: "Dashboard", href: "/dashboard", icon: "LayoutDashboard" },
   { title: "Try Out", href: "/dashboard/tryout", icon: "BookOpen" },
+  { title: "Daily Challenge", href: "/dashboard/daily-challenge", icon: "Zap" },
+  { title: "Tryout Bersama", href: "/dashboard/live-events", icon: "Radio" },
   { title: "Riwayat", href: "/dashboard/history", icon: "History" },
   { title: "Analitik", href: "/dashboard/analytics", icon: "BarChart3" },
+  { title: "Rekomendasi", href: "/dashboard/recommendations", icon: "Brain" },
   { title: "Planner", href: "/dashboard/planner", icon: "CalendarDays" },
   { title: "Bookmark", href: "/dashboard/bookmarks", icon: "Bookmark" },
+  { title: "Latihan", href: "/dashboard/practice", icon: "Dumbbell" },
+  { title: "Ebook", href: "/dashboard/ebooks", icon: "BookText" },
+  { title: "Pencapaian", href: "/dashboard/badges", icon: "Award" },
+  { title: "Rapor", href: "/dashboard/report", icon: "FileText" },
+  { title: "Berlangganan", href: "/dashboard/subscriptions", icon: "Crown" },
+  { title: "Teman", href: "/dashboard/friends", icon: "UsersRound" },
+  { title: "Pembayaran", href: "/dashboard/payment", icon: "Wallet" },
+  { title: "Leaderboard", href: "/leaderboard", icon: "Trophy" },
+  { title: "WhatsApp", href: "/dashboard/whatsapp", icon: "MessageCircle" },
 ];
 
 export const teacherNav: NavItem[] = [
@@ -36,10 +48,23 @@ export const adminNav: NavItem[] = [
   { title: "Pengguna", href: "/admin/users", icon: "Users" },
   { title: "Moderasi Soal", href: "/admin/questions", icon: "FileCheck" },
   { title: "Paket Ujian", href: "/admin/packages", icon: "Package" },
+  { title: "Bundling", href: "/admin/bundles", icon: "Crown" },
+  { title: "Live Events", href: "/admin/live-events", icon: "Radio" },
   { title: "Transaksi", href: "/admin/transactions", icon: "CreditCard" },
+  { title: "Pengajar", href: "/admin/teachers", icon: "GraduationCap" },
   { title: "Payout", href: "/admin/payouts", icon: "Banknote" },
+  { title: "AI Generator", href: "/admin/ai-generator", icon: "Sparkles" },
   { title: "Artikel", href: "/admin/articles", icon: "Newspaper" },
+  { title: "Ebook", href: "/admin/ebooks", icon: "BookText" },
+  { title: "Promo", href: "/admin/promos", icon: "Tag" },
+  { title: "Audit Log", href: "/admin/audit-logs", icon: "ScrollText" },
   { title: "Pengaturan", href: "/admin/settings", icon: "Settings" },
+];
+
+export const parentNav: NavItem[] = [
+  { title: "Dashboard Anak", href: "/dashboard/parent", icon: "Shield" },
+  { title: "Leaderboard", href: "/leaderboard", icon: "Trophy" },
+  { title: "WhatsApp", href: "/dashboard/whatsapp", icon: "MessageCircle" },
 ];
 
 export const examCategoryNav: NavItem[] = [

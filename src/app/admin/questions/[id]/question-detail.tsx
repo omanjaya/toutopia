@@ -23,7 +23,7 @@ import {
 import { Separator } from "@/shared/components/ui/separator";
 import { Textarea } from "@/shared/components/ui/textarea";
 import { Label } from "@/shared/components/ui/label";
-import { MathRenderer } from "@/shared/components/shared/math-renderer";
+import { LazyMathRenderer as MathRenderer } from "@/shared/components/shared/lazy-math-renderer";
 import { QuestionForm } from "@/shared/components/exam/question-form";
 import type { CreateQuestionInput } from "@/shared/lib/validators/question.validators";
 

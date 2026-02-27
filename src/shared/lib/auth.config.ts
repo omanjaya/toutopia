@@ -5,7 +5,7 @@ import type { NextAuthConfig } from "next-auth";
  * Used by middleware for session checking only.
  */
 export const authConfig: NextAuthConfig = {
-  session: { strategy: "jwt" },
+  session: { strategy: "jwt", maxAge: 7 * 24 * 60 * 60 },
   pages: {
     signIn: "/login",
     newUser: "/register",

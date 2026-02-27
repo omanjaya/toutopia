@@ -3,7 +3,8 @@ import { z } from "zod";
 import { prisma } from "@/shared/lib/prisma";
 import { requireAuth } from "@/shared/lib/auth-guard";
 import { successResponse, errorResponse } from "@/shared/lib/api-response";
-import { handleApiError } from "@/shared/lib/api-error";
+import { handleApiError, RateLimitError } from "@/shared/lib/api-error";
+import { checkRateLimit, rateLimits } from "@/shared/lib/rate-limit";
 
 const saveAnswerSchema = z.object({
   questionId: z.string().min(1),
@@ -20,6 +21,10 @@ export async function POST(
 ) {
   try {
     const user = await requireAuth();
+    const ip = request.headers.get("x-forwarded-for")?.split(",")[0] ?? "unknown";
+    const rl = checkRateLimit(`exam-answer:${user.id}:${ip}`, rateLimits.api);
+    if (!rl.success) throw new RateLimitError();
+
     const { attemptId } = await params;
     const body = await request.json();
     const data = saveAnswerSchema.parse(body);

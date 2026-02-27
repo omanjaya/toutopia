@@ -12,6 +12,7 @@ export async function GET() {
         { status: "asc" },
         { createdAt: "desc" },
       ],
+      take: 100,
       include: {
         teacherProfile: {
           include: {

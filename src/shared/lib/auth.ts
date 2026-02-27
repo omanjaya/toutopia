@@ -11,11 +11,14 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   ...authConfig,
   adapter: PrismaAdapter(prisma),
   providers: [
-    Google({
-      clientId: process.env.GOOGLE_CLIENT_ID,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      allowDangerousEmailAccountLinking: true,
-    }),
+    ...(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET
+      ? [
+          Google({
+            clientId: process.env.GOOGLE_CLIENT_ID,
+            clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+          }),
+        ]
+      : []),
     Credentials({
       name: "credentials",
       credentials: {
@@ -91,16 +94,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
         if (existingUser && existingUser.status !== "ACTIVE") {
           return false;
-        }
-
-        if (!existingUser) {
-          await prisma.userCredit.create({
-            data: {
-              userId: user.id!,
-              balance: 0,
-              freeCredits: 2,
-            },
-          });
         }
       }
       return true;

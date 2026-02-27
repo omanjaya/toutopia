@@ -24,6 +24,8 @@ export const createPackageSchema = z.object({
   passingScore: z.number().int().nullable().optional(),
   isFree: z.boolean(),
   isAntiCheat: z.boolean(),
+  startDate: z.string().datetime().nullable().optional(),
+  endDate: z.string().datetime().nullable().optional(),
   maxAttempts: z.number().int().positive(),
   sections: z.array(examSectionSchema).min(1, "Minimal 1 section"),
 });

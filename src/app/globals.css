@@ -1,14 +1,16 @@
-@import "tailwindcss";
+@import "tailwindcss" source("../../src");
 @import "./tw-animate.css";
 @import "./shadcn.css";
+
+@plugin "@tailwindcss/typography";
 
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-inter);
+  --font-mono: var(--font-mono);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -47,80 +49,163 @@
   --radius-4xl: calc(var(--radius) + 16px);
 }
 
+/* ============ MACOS AESTHETIC — Clean, Airy, Premium ============ */
 :root {
-  --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
+  /* Apple Design Standard Radius */
+  --radius: 0.75rem;
+
+  /* App Background: Soft off-white, typical macOS Finder/Settings background */
+  --background: oklch(0.975 0.002 240);
+
+  /* Text: Almost black but softer */
+  --foreground: oklch(0.145 0.005 240);
+
+  /* Card: Pure white, slightly elevated */
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
+  --card-foreground: oklch(0.145 0.005 240);
+
+  /* Popover: Same as Card */
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --popover-foreground: oklch(0.145 0.005 240);
+
+  /* Primary: Apple Blue (San Francisco Blue) */
+  --primary: oklch(0.55 0.22 260);
+  --primary-foreground: oklch(1 0 0);
+
+  /* Secondary: Soft Gray for subtle buttons */
+  --secondary: oklch(0.96 0.005 240);
+  --secondary-foreground: oklch(0.25 0.01 240);
+
+  /* Muted: De-emphasized elements */
+  --muted: oklch(0.96 0.005 240);
+  --muted-foreground: oklch(0.55 0.01 240);
+
+  /* Accent: Used for hover states, selections */
+  --accent: oklch(0.95 0.01 240);
+  --accent-foreground: oklch(0.25 0.01 240);
+
+  /* Destructive: Apple Red */
+  --destructive: oklch(0.6 0.2 25);
+  --border: oklch(0.92 0.005 240);
+  --input: oklch(0.92 0.005 240);
+
+  /* Ring: Focus state glow (Blue) */
+  --ring: oklch(0.55 0.22 260);
+
+  /* Charts: Professional, distinct colors */
+  --chart-1: oklch(0.55 0.22 260);
+  /* Blue */
+  --chart-2: oklch(0.65 0.18 150);
+  /* Green */
+  --chart-3: oklch(0.7 0.15 40);
+  /* Orange */
+  --chart-4: oklch(0.6 0.18 300);
+  /* Purple */
+  --chart-5: oklch(0.65 0.2 10);
+  /* Red */
+
+  /* Sidebar: Translucent effect handled via bg-opacity in components, 
+     but fallback color is slightly distinct from main bg */
+  --sidebar: oklch(0.965 0.002 240);
+  --sidebar-foreground: oklch(0.25 0.01 240);
+  --sidebar-primary: oklch(0.55 0.22 260);
+  --sidebar-primary-foreground: oklch(1 0 0);
+  --sidebar-accent: oklch(0.93 0.01 240);
+  --sidebar-accent-foreground: oklch(0.25 0.01 240);
+  --sidebar-border: oklch(0.9 0.005 240);
+  --sidebar-ring: oklch(0.55 0.22 260);
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  /* Dark Mode: Deep gray, not pure black (Apple Dark Mode style) */
+  --background: oklch(0.18 0.005 240);
+  /* #262626 approx */
+  --foreground: oklch(0.95 0 0);
+
+  /* Card: Slightly lighter than bg */
+  --card: oklch(0.22 0.005 240);
+  --card-foreground: oklch(0.95 0 0);
+
+  --popover: oklch(0.22 0.005 240);
+  --popover-foreground: oklch(0.95 0 0);
+
+  /* Primary: Light Blue for better contrast in dark mode */
+  --primary: oklch(0.65 0.2 260);
+  --primary-foreground: oklch(0.1 0 0);
+
+  --secondary: oklch(0.28 0.01 240);
+  --secondary-foreground: oklch(0.95 0 0);
+
+  --muted: oklch(0.28 0.01 240);
+  --muted-foreground: oklch(0.7 0.01 240);
+
+  --accent: oklch(0.3 0.01 240);
+  --accent-foreground: oklch(0.95 0 0);
+
+  --destructive: oklch(0.6 0.2 25);
+  --border: oklch(0.3 0.01 240);
+  --input: oklch(0.3 0.01 240);
+  --ring: oklch(0.65 0.2 260);
+
+  --chart-1: oklch(0.65 0.2 260);
+  --chart-2: oklch(0.7 0.15 150);
+  --chart-3: oklch(0.75 0.12 40);
+  --chart-4: oklch(0.65 0.15 300);
+  --chart-5: oklch(0.7 0.18 10);
+
+  --sidebar: oklch(0.16 0.005 240);
+  --sidebar-foreground: oklch(0.95 0 0);
+  --sidebar-primary: oklch(0.65 0.2 260);
+  --sidebar-primary-foreground: oklch(0.1 0 0);
+  --sidebar-accent: oklch(0.25 0.01 240);
+  --sidebar-accent-foreground: oklch(0.95 0 0);
+  --sidebar-border: oklch(0.25 0.01 240);
+  --sidebar-ring: oklch(0.65 0.2 260);
+}
+
+/* ============ GLOBAL GSAP DEFAULTS ============ */
+/* 
+   CSS-based animation initial states.
+   Elements start hidden and are revealed by the useGSAPAnimation hook via inline styles.
+*/
+.hero-item,
+.category-card,
+.feature-item {
+  opacity: 0;
+  transform: translateY(20px);
+  filter: blur(4px);
 }
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    @apply border-border/60 outline-ring/50;
   }
+
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased;
+    /* Apple-like font smoothing */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  button,
+  a,
+  [role="button"] {
+    transition: all 200ms cubic-bezier(0.25, 0.1, 0.25, 1);
+    /* Standard eased transition */
+  }
+
+  /* Modern Scrollbar (slimmer, like macOS) */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-muted-foreground/20 rounded-full hover:bg-muted-foreground/40 transition-colors;
   }
 }

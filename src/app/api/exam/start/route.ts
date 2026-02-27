@@ -74,31 +74,48 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check credits for paid packages
+    // Check direct access for paid packages (pre-check before transaction)
+    let hasDirectAccess = false;
     if (!pkg.isFree) {
-      const credit = await prisma.userCredit.findUnique({
-        where: { userId: user.id },
+      const directAccess = await prisma.userPackageAccess.findUnique({
+        where: { userId_packageId: { userId: user.id, packageId } },
       });
-
-      if (!credit || credit.balance < 1) {
-        return errorResponse(
-          "INSUFFICIENT_CREDITS",
-          "Kredit tidak cukup untuk memulai ujian",
-          402
-        );
-      }
+      hasDirectAccess = !!directAccess &&
+        (!directAccess.expiresAt || directAccess.expiresAt > new Date());
     }
 
     const now = new Date();
     const deadline = new Date(now.getTime() + pkg.durationMinutes * 60_000);
 
     const attempt = await prisma.$transaction(async (tx) => {
-      // Deduct credit for paid packages
-      if (!pkg.isFree) {
-        await tx.userCredit.update({
+      // Deduct credit for paid packages (skip if user has direct access)
+      if (!pkg.isFree && !hasDirectAccess) {
+        const credit = await tx.userCredit.findUnique({
           where: { userId: user.id },
-          data: { balance: { decrement: 1 } },
         });
+
+        if (!credit || (credit.freeCredits < 1 && credit.balance < 1)) {
+          throw new Error("INSUFFICIENT_CREDITS");
+        }
+
+        // Use freeCredits first, then balance
+        if (credit.freeCredits >= 1) {
+          const updated = await tx.userCredit.updateMany({
+            where: { userId: user.id, freeCredits: { gte: 1 } },
+            data: { freeCredits: { decrement: 1 } },
+          });
+          if (updated.count === 0) {
+            throw new Error("INSUFFICIENT_CREDITS");
+          }
+        } else {
+          const updated = await tx.userCredit.updateMany({
+            where: { userId: user.id, balance: { gte: 1 } },
+            data: { balance: { decrement: 1 } },
+          });
+          if (updated.count === 0) {
+            throw new Error("INSUFFICIENT_CREDITS");
+          }
+        }
 
         await tx.creditHistory.create({
           data: {
@@ -137,6 +154,13 @@ export async function POST(request: NextRequest) {
 
     return successResponse({ attemptId: attempt.id });
   } catch (error) {
+    if (error instanceof Error && error.message === "INSUFFICIENT_CREDITS") {
+      return errorResponse(
+        "INSUFFICIENT_CREDITS",
+        "Kredit tidak cukup untuk memulai ujian",
+        402
+      );
+    }
     return handleApiError(error);
   }
 }

@@ -4,7 +4,12 @@ import { auth } from "@/shared/lib/auth";
 import { prisma } from "@/shared/lib/prisma";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { Badge } from "@/shared/components/ui/badge";
-import { BookOpen, Trophy, Target, Clock, ArrowRight } from "lucide-react";
+import { Button } from "@/shared/components/ui/button";
+import { BookOpen, Trophy, Target, ArrowRight, Clock, TrendingUp, CalendarDays } from "lucide-react";
+import { StreakBadge } from "@/shared/components/dashboard/streak-badge";
+import { ReferralCard } from "@/shared/components/dashboard/referral-card";
+import { format } from "date-fns";
+import { id } from "date-fns/locale";
 
 export const dynamic = "force-dynamic";
 
@@ -13,69 +18,61 @@ export const metadata: Metadata = {
 };
 
 async function getDashboardStats(userId: string) {
-  const [completedAttempts, allScores, recentAttempts, todayTasks] =
-    await Promise.all([
-      prisma.examAttempt.count({
-        where: { userId, status: "COMPLETED" },
-      }),
-      prisma.examAttempt.findMany({
-        where: { userId, status: "COMPLETED", score: { not: null } },
-        select: { score: true, startedAt: true, finishedAt: true },
-      }),
-      prisma.examAttempt.findMany({
-        where: { userId },
-        orderBy: { startedAt: "desc" },
-        take: 5,
-        include: {
-          package: { select: { title: true, slug: true } },
-        },
-      }),
-      prisma.studyTask.findMany({
-        where: {
-          plan: { userId },
-          date: {
-            gte: new Date(new Date().setHours(0, 0, 0, 0)),
-            lt: new Date(new Date().setHours(23, 59, 59, 999)),
-          },
-        },
-        orderBy: { startTime: "asc" },
-        take: 5,
-        include: { plan: { select: { title: true } } },
-      }),
-    ]);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const tomorrow = new Date(today);
+  tomorrow.setDate(tomorrow.getDate() + 1);
 
-  const scores = allScores.map((a) => a.score!);
-  const bestScore = scores.length > 0 ? Math.max(...scores) : null;
-  const avgScore =
-    scores.length > 0
-      ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length)
-      : null;
-
-  // Calculate total study time in minutes
-  let totalMinutes = 0;
-  for (const a of allScores) {
-    if (a.finishedAt && a.startedAt) {
-      totalMinutes += Math.round(
-        (a.finishedAt.getTime() - a.startedAt.getTime()) / 60000
-      );
-    }
-  }
+  const [scoreAgg, recentAttempts, todayTasks, streak] = await Promise.all([
+    prisma.examAttempt.aggregate({
+      where: { userId, status: "COMPLETED", score: { not: null } },
+      _count: true,
+      _max: { score: true },
+      _avg: { score: true },
+    }),
+    prisma.examAttempt.findMany({
+      where: { userId },
+      orderBy: { startedAt: "desc" },
+      take: 5,
+      select: {
+        id: true,
+        status: true,
+        score: true,
+        startedAt: true,
+        package: { select: { title: true, slug: true } },
+      },
+    }),
+    prisma.studyTask.findMany({
+      where: {
+        plan: { userId },
+        date: { gte: today, lt: tomorrow },
+      },
+      orderBy: { startTime: "asc" },
+      take: 5,
+      select: {
+        id: true,
+        title: true,
+        startTime: true,
+        duration: true,
+        isCompleted: true,
+        plan: { select: { title: true } },
+      },
+    }),
+    prisma.userProfile.findUnique({
+      where: { userId },
+      select: { currentStreak: true, longestStreak: true },
+    }),
+  ]);
 
   return {
-    completedAttempts,
-    bestScore,
-    avgScore,
-    totalMinutes,
+    completedAttempts: scoreAgg._count,
+    bestScore: scoreAgg._max.score ? Math.round(scoreAgg._max.score) : null,
+    avgScore: scoreAgg._avg.score ? Math.round(scoreAgg._avg.score) : null,
     recentAttempts,
     todayTasks,
+    currentStreak: streak?.currentStreak ?? 0,
+    longestStreak: streak?.longestStreak ?? 0,
   };
-}
-
-function formatDuration(minutes: number): string {
-  if (minutes < 60) return `${minutes} menit`;
-  const hours = Math.floor(minutes / 60);
-  const mins = minutes % 60;
-  return mins > 0 ? `${hours} jam ${mins} menit` : `${hours} jam`;
 }
 
 export default async function DashboardPage() {
@@ -83,173 +80,227 @@ export default async function DashboardPage() {
   const userId = (session?.user as { id: string })?.id;
   const stats = userId ? await getDashboardStats(userId) : null;
 
-  const statCards = [
-    {
-      title: "Try Out Selesai",
-      value: stats?.completedAttempts?.toString() ?? "0",
-      icon: BookOpen,
-      description: "Total try out yang telah dikerjakan",
-    },
-    {
-      title: "Skor Tertinggi",
-      value: stats?.bestScore != null ? `${stats.bestScore}` : "-",
-      icon: Trophy,
-      description: "Skor terbaik kamu",
-    },
-    {
-      title: "Rata-rata Skor",
-      value: stats?.avgScore != null ? `${stats.avgScore}` : "-",
-      icon: Target,
-      description: "Rata-rata dari semua percobaan",
-    },
-    {
-      title: "Waktu Belajar",
-      value: stats ? formatDuration(stats.totalMinutes) : "0 menit",
-      icon: Clock,
-      description: "Total waktu mengerjakan try out",
-    },
-  ];
+  const firstName = session?.user?.name?.split(" ")[0] ?? "Kamu";
 
   return (
     <div className="space-y-8">
-      <div>
-        <h2 className="text-2xl font-bold tracking-tight">
-          Halo, {session?.user?.name}
-        </h2>
-        <p className="text-muted-foreground">
-          Berikut ringkasan aktivitas belajar kamu
-        </p>
+      {/* Greeting */}
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">
+            Halo, {firstName}
+          </h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {format(new Date(), "EEEE, d MMMM yyyy", { locale: id })}
+          </p>
+        </div>
+        {stats && (
+          <StreakBadge
+            currentStreak={stats.currentStreak}
+            longestStreak={stats.longestStreak}
+          />
+        )}
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {statCards.map((stat) => (
-          <Card key={stat.title}>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                {stat.title}
-              </CardTitle>
-              <stat.icon className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stat.value}</div>
-              <p className="text-xs text-muted-foreground">
-                {stat.description}
-              </p>
-            </CardContent>
-          </Card>
-        ))}
+      {/* Stat Cards — Bento Grid */}
+      <div className="grid gap-4 sm:grid-cols-3">
+        <Card className="border-0 bg-primary text-primary-foreground shadow-md shadow-primary/20">
+          <CardContent className="p-6">
+            <div className="flex items-start justify-between">
+              <div>
+                <p className="text-sm font-medium text-primary-foreground/70">Try Out Selesai</p>
+                <p className="mt-2 text-4xl font-bold tracking-tight">
+                  {stats?.completedAttempts ?? 0}
+                </p>
+              </div>
+              <div className="rounded-xl bg-white/15 p-2.5">
+                <BookOpen className="h-5 w-5" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-0 bg-card shadow-sm">
+          <CardContent className="p-6">
+            <div className="flex items-start justify-between">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Skor Tertinggi</p>
+                <p className="mt-2 text-4xl font-bold tracking-tight text-foreground">
+                  {stats?.bestScore ?? "—"}
+                </p>
+              </div>
+              <div className="rounded-xl bg-amber-50 p-2.5 dark:bg-amber-950/30">
+                <Trophy className="h-5 w-5 text-amber-500" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-0 bg-card shadow-sm">
+          <CardContent className="p-6">
+            <div className="flex items-start justify-between">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Rata-rata Skor</p>
+                <p className="mt-2 text-4xl font-bold tracking-tight text-foreground">
+                  {stats?.avgScore ?? "—"}
+                </p>
+              </div>
+              <div className="rounded-xl bg-emerald-50 p-2.5 dark:bg-emerald-950/30">
+                <TrendingUp className="h-5 w-5 text-emerald-500" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-2">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle>Riwayat Terbaru</CardTitle>
-            <Link
-              href="/dashboard/history"
-              className="text-sm text-primary hover:underline flex items-center gap-1"
-            >
-              Lihat semua <ArrowRight className="h-3 w-3" />
-            </Link>
+      {/* Main Content Grid */}
+      <div className="grid gap-6 lg:grid-cols-5">
+        {/* Recent Attempts — wider */}
+        <Card className="border-0 bg-card shadow-sm lg:col-span-3">
+          <CardHeader className="flex flex-row items-center justify-between pb-4">
+            <CardTitle className="text-base font-semibold">Riwayat Terbaru</CardTitle>
+            <Button variant="ghost" size="sm" className="h-8 text-xs text-muted-foreground" asChild>
+              <Link href="/dashboard/history">
+                Lihat semua <ArrowRight className="ml-1.5 h-3 w-3" />
+              </Link>
+            </Button>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-2">
             {stats?.recentAttempts && stats.recentAttempts.length > 0 ? (
-              <div className="space-y-3">
-                {stats.recentAttempts.map((attempt) => (
-                  <Link
-                    key={attempt.id}
-                    href={
-                      attempt.status === "COMPLETED"
-                        ? `/exam/${attempt.id}/result`
-                        : `/exam/${attempt.id}`
-                    }
-                    className="flex items-center justify-between rounded-lg border p-3 hover:bg-muted/50 transition-colors"
-                  >
-                    <div className="space-y-1">
-                      <p className="text-sm font-medium">
-                        {attempt.package.title}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {attempt.startedAt.toLocaleDateString("id-ID", {
-                          day: "numeric",
-                          month: "short",
-                          year: "numeric",
-                        })}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      {attempt.status === "COMPLETED" && attempt.score != null && (
-                        <span className="text-sm font-semibold">
-                          {Math.round(attempt.score)}
-                        </span>
-                      )}
-                      <Badge
-                        variant={
-                          attempt.status === "COMPLETED"
-                            ? "default"
-                            : attempt.status === "IN_PROGRESS"
+              stats.recentAttempts.map((attempt) => (
+                <Link
+                  key={attempt.id}
+                  href={
+                    attempt.status === "COMPLETED"
+                      ? `/exam/${attempt.id}/result`
+                      : `/exam/${attempt.id}`
+                  }
+                  className="flex items-center justify-between rounded-xl px-4 py-3 transition-colors hover:bg-muted/50"
+                >
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium">{attempt.package.title}</p>
+                    <p className="mt-0.5 text-xs text-muted-foreground">
+                      {format(new Date(attempt.startedAt), "d MMM yyyy", { locale: id })}
+                    </p>
+                  </div>
+                  <div className="ml-4 flex items-center gap-3">
+                    {attempt.status === "COMPLETED" && attempt.score != null && (
+                      <span className="text-sm font-semibold tabular-nums">
+                        {Math.round(attempt.score)}
+                      </span>
+                    )}
+                    <Badge
+                      variant={
+                        attempt.status === "COMPLETED"
+                          ? "default"
+                          : attempt.status === "IN_PROGRESS"
                             ? "secondary"
                             : "destructive"
-                        }
-                      >
-                        {attempt.status === "COMPLETED"
-                          ? "Selesai"
-                          : attempt.status === "IN_PROGRESS"
+                      }
+                      className="text-xs"
+                    >
+                      {attempt.status === "COMPLETED"
+                        ? "Selesai"
+                        : attempt.status === "IN_PROGRESS"
                           ? "Berlangsung"
                           : attempt.status === "TIMED_OUT"
-                          ? "Waktu Habis"
-                          : "Ditinggalkan"}
-                      </Badge>
-                    </div>
-                  </Link>
-                ))}
-              </div>
+                            ? "Waktu Habis"
+                            : "Ditinggalkan"}
+                    </Badge>
+                  </div>
+                </Link>
+              ))
             ) : (
-              <p className="text-sm text-muted-foreground">
-                Belum ada riwayat try out. Mulai try out pertamamu sekarang!
-              </p>
+              <div className="flex flex-col items-center justify-center py-10 text-center">
+                <BookOpen className="mb-3 h-8 w-8 text-muted-foreground/40" />
+                <p className="text-sm text-muted-foreground">Belum ada riwayat try out.</p>
+                <Button size="sm" className="mt-4 rounded-full" asChild>
+                  <Link href="/dashboard/tryout">Mulai Try Out</Link>
+                </Button>
+              </div>
             )}
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle>Jadwal Belajar Hari Ini</CardTitle>
-            <Link
-              href="/dashboard/planner"
-              className="text-sm text-primary hover:underline flex items-center gap-1"
-            >
-              Planner <ArrowRight className="h-3 w-3" />
-            </Link>
+        {/* Today's Tasks — narrower */}
+        <Card className="border-0 bg-card shadow-sm lg:col-span-2">
+          <CardHeader className="flex flex-row items-center justify-between pb-4">
+            <CardTitle className="text-base font-semibold">Jadwal Hari Ini</CardTitle>
+            <Button variant="ghost" size="sm" className="h-8 text-xs text-muted-foreground" asChild>
+              <Link href="/dashboard/planner">
+                Planner <ArrowRight className="ml-1.5 h-3 w-3" />
+              </Link>
+            </Button>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-2">
             {stats?.todayTasks && stats.todayTasks.length > 0 ? (
-              <div className="space-y-3">
-                {stats.todayTasks.map((task) => (
+              stats.todayTasks.map((task) => (
+                <div
+                  key={task.id}
+                  className="flex items-start gap-3 rounded-xl px-4 py-3 hover:bg-muted/50"
+                >
                   <div
-                    key={task.id}
-                    className="flex items-center justify-between rounded-lg border p-3"
-                  >
-                    <div className="space-y-1">
-                      <p className="text-sm font-medium">{task.title}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {task.plan.title}
-                        {task.startTime && ` · ${task.startTime}`}
-                        {task.duration && ` · ${task.duration} menit`}
-                      </p>
-                    </div>
-                    {task.isCompleted && (
-                      <Badge variant="default">Selesai</Badge>
-                    )}
+                    className={`mt-0.5 h-2 w-2 shrink-0 rounded-full ${task.isCompleted ? "bg-emerald-500" : "bg-primary"
+                      }`}
+                  />
+                  <div className="min-w-0 flex-1">
+                    <p className={`text-sm font-medium ${task.isCompleted ? "line-through text-muted-foreground" : ""}`}>
+                      {task.title}
+                    </p>
+                    <p className="mt-0.5 text-xs text-muted-foreground">
+                      {task.startTime && `${task.startTime}`}
+                      {task.duration && ` · ${task.duration} menit`}
+                    </p>
                   </div>
-                ))}
-              </div>
+                </div>
+              ))
             ) : (
-              <p className="text-sm text-muted-foreground">
-                Belum ada jadwal belajar hari ini. Buat rencana di menu Planner.
-              </p>
+              <div className="flex flex-col items-center justify-center py-10 text-center">
+                <CalendarDays className="mb-3 h-8 w-8 text-muted-foreground/40" />
+                <p className="text-sm text-muted-foreground">Tidak ada jadwal hari ini.</p>
+                <Button variant="outline" size="sm" className="mt-4 rounded-full" asChild>
+                  <Link href="/dashboard/planner">Buat Jadwal</Link>
+                </Button>
+              </div>
             )}
           </CardContent>
         </Card>
+      </div>
+
+      {/* Referral */}
+      <ReferralCard />
+
+      {/* Quick Actions */}
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Link href="/dashboard/tryout">
+          <Card className="group cursor-pointer border-0 bg-card shadow-sm transition-shadow hover:shadow-md">
+            <CardContent className="flex items-center gap-4 p-6">
+              <div className="rounded-2xl bg-primary/10 p-3">
+                <Target className="h-6 w-6 text-primary" />
+              </div>
+              <div className="flex-1">
+                <p className="font-semibold">Mulai Try Out</p>
+                <p className="text-sm text-muted-foreground">Pilih paket dan mulai latihan</p>
+              </div>
+              <ArrowRight className="h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-1" />
+            </CardContent>
+          </Card>
+        </Link>
+
+        <Link href="/dashboard/analytics">
+          <Card className="group cursor-pointer border-0 bg-card shadow-sm transition-shadow hover:shadow-md">
+            <CardContent className="flex items-center gap-4 p-6">
+              <div className="rounded-2xl bg-emerald-50 p-3 dark:bg-emerald-950/30">
+                <TrendingUp className="h-6 w-6 text-emerald-600" />
+              </div>
+              <div className="flex-1">
+                <p className="font-semibold">Lihat Analitik</p>
+                <p className="text-sm text-muted-foreground">Pantau perkembangan skormu</p>
+              </div>
+              <ArrowRight className="h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-1" />
+            </CardContent>
+          </Card>
+        </Link>
       </div>
     </div>
   );

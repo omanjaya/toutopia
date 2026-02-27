@@ -6,8 +6,9 @@ import Link from "next/link";
 import { Button } from "@/shared/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { Badge } from "@/shared/components/ui/badge";
-import { ArrowLeft, CheckCircle2 } from "lucide-react";
-import { MathRenderer } from "@/shared/components/shared/math-renderer";
+import { ArrowLeft, CheckCircle2, Pencil, Trash2 } from "lucide-react";
+import { LazyMathRenderer as MathRenderer } from "@/shared/components/shared/lazy-math-renderer";
+import { TeacherQuestionActions } from "./teacher-question-actions";
 
 export const dynamic = "force-dynamic";
 
@@ -61,6 +62,8 @@ export default async function TeacherQuestionDetailPage({
   if (!question || question.createdById !== session.user.id) notFound();
 
   const status = statusConfig[question.status] ?? { label: question.status, variant: "secondary" as const };
+  const canEdit = question.status === "DRAFT" || question.status === "REJECTED";
+  const canDelete = question.status === "DRAFT";
 
   return (
     <div className="space-y-6">
@@ -79,6 +82,14 @@ export default async function TeacherQuestionDetailPage({
         </div>
         <Badge variant={status.variant}>{status.label}</Badge>
       </div>
+
+      {(canEdit || canDelete) && (
+        <TeacherQuestionActions
+          questionId={question.id}
+          canEdit={canEdit}
+          canDelete={canDelete}
+        />
+      )}
 
       <Card>
         <CardHeader>

@@ -3,6 +3,8 @@ import { prisma } from "@/shared/lib/prisma";
 import { verifySignature } from "@/shared/lib/midtrans";
 import { PRICING } from "@/shared/lib/validators/payment.validators";
 import { createNotification } from "@/shared/lib/notifications";
+import { sendEmailAsync } from "@/infrastructure/email/email.service";
+import { paymentSuccessEmailHtml } from "@/infrastructure/email/templates/payment-success";
 
 export async function POST(request: NextRequest) {
   try {
@@ -43,6 +45,16 @@ export async function POST(request: NextRequest) {
     // Idempotency: skip if already processed
     if (transaction.status === "PAID" || transaction.status === "REFUNDED") {
       return NextResponse.json({ status: "already_processed" });
+    }
+
+    // Validate amount matches expected
+    const webhookAmount = parseInt(gross_amount, 10);
+    if (webhookAmount !== transaction.amount) {
+      console.error(`Payment amount mismatch: expected ${transaction.amount}, got ${webhookAmount} for ${order_id}`);
+      return NextResponse.json(
+        { error: "Amount mismatch" },
+        { status: 400 }
+      );
     }
 
     // Map payment type to our enum
@@ -156,6 +168,25 @@ export async function POST(request: NextRequest) {
           message: `Pembayaran sebesar Rp ${parseInt(gross_amount).toLocaleString("id-ID")} berhasil diproses.`,
           data: { transactionId: transaction.id },
         });
+
+        // Send payment confirmation email
+        const paymentUser = await prisma.user.findUnique({
+          where: { id: transaction.userId },
+          select: { email: true, name: true },
+        });
+        if (paymentUser?.email) {
+          const metadata2 = transaction.metadata as Record<string, string> | null;
+          sendEmailAsync({
+            to: paymentUser.email,
+            subject: "Pembayaran Berhasil — Toutopia",
+            html: paymentSuccessEmailHtml({
+              name: paymentUser.name ?? "Pengguna",
+              packageTitle: metadata2?.description ?? "Paket",
+              amount: parseInt(gross_amount),
+              transactionId: transaction.id,
+            }),
+          });
+        }
       }
     } else if (
       transaction_status === "deny" ||
@@ -180,7 +211,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ status: "ok" });
   } catch (error) {
-    console.error("Payment webhook error:", error);
+    console.error("Payment webhook error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json(
       { error: "Internal error" },
       { status: 500 }

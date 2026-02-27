@@ -11,6 +11,7 @@ export async function GET() {
 
     const packages = await prisma.examPackage.findMany({
       orderBy: { createdAt: "desc" },
+      take: 100,
       include: {
         category: { select: { name: true } },
         sections: {

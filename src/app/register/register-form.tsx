@@ -1,11 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2, UserPlus } from "lucide-react";
+import { Loader2, UserPlus, Gift } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
@@ -15,7 +15,9 @@ import { registerSchema, type RegisterInput } from "@/shared/lib/validators";
 
 export function RegisterForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const [referralCode, setReferralCode] = useState(searchParams.get("ref") ?? "");
 
   const {
     register,
@@ -26,39 +28,49 @@ export function RegisterForm() {
   });
 
   async function onSubmit(data: RegisterInput) {
-    const response = await fetch("/api/auth/register", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
-    });
+    try {
+      const response = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...data, referralCode: referralCode || undefined }),
+      });
 
-    const result = await response.json();
+      const result = await response.json();
 
-    if (!response.ok) {
-      toast.error(result.error?.message ?? "Gagal mendaftar");
-      return;
+      if (!response.ok) {
+        toast.error(result.error?.message ?? "Gagal mendaftar");
+        return;
+      }
+
+      toast.success("Akun berhasil dibuat! Silakan masuk.");
+
+      const signInResult = await signIn("credentials", {
+        email: data.email,
+        password: data.password,
+        redirect: false,
+      });
+
+      if (signInResult?.error) {
+        router.push("/login");
+        return;
+      }
+
+      router.push("/dashboard");
+      router.refresh();
+    } catch {
+      toast.error("Terjadi kesalahan jaringan. Silakan coba lagi.");
     }
-
-    toast.success("Akun berhasil dibuat! Silakan masuk.");
-
-    const signInResult = await signIn("credentials", {
-      email: data.email,
-      password: data.password,
-      redirect: false,
-    });
-
-    if (signInResult?.error) {
-      router.push("/login");
-      return;
-    }
-
-    router.push("/dashboard");
-    router.refresh();
   }
 
   async function handleGoogleRegister() {
     setIsGoogleLoading(true);
-    await signIn("google", { callbackUrl: "/dashboard" });
+    try {
+      await signIn("google", { callbackUrl: "/dashboard" });
+    } catch {
+      toast.error("Gagal daftar dengan Google. Silakan coba lagi.");
+    } finally {
+      setIsGoogleLoading(false);
+    }
   }
 
   return (
@@ -151,6 +163,22 @@ export function RegisterForm() {
           <p className="text-xs text-muted-foreground">
             Minimal 8 karakter, mengandung huruf besar dan angka
           </p>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="referralCode" className="flex items-center gap-1.5">
+            <Gift className="h-3.5 w-3.5 text-primary" />
+            Kode Referral
+            <span className="text-xs text-muted-foreground">(opsional)</span>
+          </Label>
+          <Input
+            id="referralCode"
+            type="text"
+            placeholder="Contoh: TOU-ABC123"
+            value={referralCode}
+            onChange={(e) => setReferralCode(e.target.value.toUpperCase())}
+            className="font-mono tracking-wider"
+          />
         </div>
 
         <Button type="submit" className="w-full" disabled={isSubmitting}>

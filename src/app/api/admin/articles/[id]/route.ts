@@ -1,4 +1,5 @@
 import { NextRequest } from "next/server";
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/shared/lib/prisma";
 import { requireAdmin } from "@/shared/lib/auth-guard";
 import { successResponse, errorResponse } from "@/shared/lib/api-response";
@@ -60,6 +61,16 @@ export async function PUT(
 
     return successResponse(article);
   } catch (error) {
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P2002"
+    ) {
+      return errorResponse(
+        "DUPLICATE_SLUG",
+        "Slug sudah digunakan, gunakan slug lain",
+        409
+      );
+    }
     return handleApiError(error);
   }
 }

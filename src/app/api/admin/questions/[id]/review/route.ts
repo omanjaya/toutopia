@@ -5,6 +5,7 @@ import { successResponse, notFoundResponse } from "@/shared/lib/api-response";
 import { handleApiError } from "@/shared/lib/api-error";
 import { reviewQuestionSchema } from "@/shared/lib/validators/question.validators";
 import { createNotification } from "@/shared/lib/notifications";
+import { logAudit } from "@/shared/lib/audit-log";
 
 export async function POST(
   request: NextRequest,
@@ -27,6 +28,15 @@ export async function POST(
         reviewedAt: new Date(),
         reviewNote: data.reviewNote ?? null,
       },
+    });
+
+    logAudit({
+      userId: user.id,
+      action: "REVIEW",
+      entity: "Question",
+      entityId: id,
+      oldData: { status: existing.status },
+      newData: { status: data.status, reviewNote: data.reviewNote },
     });
 
     // Notify the question creator

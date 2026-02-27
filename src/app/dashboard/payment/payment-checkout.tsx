@@ -3,15 +3,31 @@
 import { useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Loader2, CreditCard, Check } from "lucide-react";
+import {
+  Loader2,
+  CreditCard,
+  Check,
+  Tag,
+  ChevronUp,
+  ChevronDown,
+  X,
+} from "lucide-react";
 import { Button } from "@/shared/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { Badge } from "@/shared/components/ui/badge";
+import { Input } from "@/shared/components/ui/input";
 import { formatCurrency } from "@/shared/lib/utils";
 import { cn } from "@/shared/lib/utils";
 
 interface PaymentCheckoutProps {
   currentBalance: number;
+}
+
+interface AppliedPromo {
+  promoId: string;
+  code: string;
+  discount: number;
+  finalAmount: number;
 }
 
 const plans = [
@@ -57,6 +73,72 @@ export function PaymentCheckout({ currentBalance }: PaymentCheckoutProps) {
   const [selectedPlan, setSelectedPlan] = useState(preselectedPlan);
   const [isProcessing, setIsProcessing] = useState(false);
 
+  const [showPromo, setShowPromo] = useState(false);
+  const [promoCode, setPromoCode] = useState("");
+  const [applyingPromo, setApplyingPromo] = useState(false);
+  const [appliedPromo, setAppliedPromo] = useState<AppliedPromo | null>(null);
+
+  const currentPlan = plans.find((p) => p.id === selectedPlan);
+  const displayTotal = appliedPromo
+    ? appliedPromo.finalAmount
+    : (currentPlan?.price ?? 0);
+
+  async function handleApplyPromo() {
+    if (!promoCode.trim()) return;
+
+    const plan = plans.find((p) => p.id === selectedPlan);
+    if (!plan) {
+      toast.error("Pilih paket terlebih dahulu");
+      return;
+    }
+
+    setApplyingPromo(true);
+
+    try {
+      const response = await fetch("/api/promo/apply", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          code: promoCode.toUpperCase(),
+          amount: plan.price,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        toast.error(result.error?.message ?? "Kode promo tidak valid");
+        return;
+      }
+
+      setAppliedPromo({
+        promoId: result.data.promoId,
+        code: result.data.code,
+        discount: result.data.discount,
+        finalAmount: result.data.finalAmount,
+      });
+      toast.success("Kode promo berhasil diterapkan");
+    } catch {
+      toast.error("Gagal menerapkan kode promo");
+    } finally {
+      setApplyingPromo(false);
+    }
+  }
+
+  function removePromo() {
+    setAppliedPromo(null);
+    setPromoCode("");
+  }
+
+  function handlePlanSelect(planId: string) {
+    setSelectedPlan(planId);
+    // Reset promo when plan changes since discount amount may differ
+    if (appliedPromo) {
+      setAppliedPromo(null);
+      setPromoCode("");
+    }
+  }
+
   async function handlePayment() {
     const plan = plans.find((p) => p.id === selectedPlan);
     if (!plan) {
@@ -75,6 +157,7 @@ export function PaymentCheckout({ currentBalance }: PaymentCheckoutProps) {
           bundleSize: "bundleSize" in plan ? plan.bundleSize : undefined,
           subscriptionPlan:
             "subscriptionPlan" in plan ? plan.subscriptionPlan : undefined,
+          promoId: appliedPromo?.promoId,
         }),
       });
 
@@ -125,7 +208,7 @@ export function PaymentCheckout({ currentBalance }: PaymentCheckoutProps) {
         {plans.map((plan) => (
           <button
             key={plan.id}
-            onClick={() => setSelectedPlan(plan.id)}
+            onClick={() => handlePlanSelect(plan.id)}
             className="text-left"
           >
             <Card
@@ -163,6 +246,71 @@ export function PaymentCheckout({ currentBalance }: PaymentCheckoutProps) {
         ))}
       </div>
 
+      {/* Promo Code */}
+      <Card className="border-0 bg-card shadow-sm">
+        <CardContent className="p-4">
+          <button
+            type="button"
+            onClick={() => setShowPromo(!showPromo)}
+            className="flex w-full items-center justify-between text-sm font-medium"
+          >
+            <span className="flex items-center gap-2">
+              <Tag className="h-4 w-4" />
+              Punya Kode Promo?
+            </span>
+            {showPromo ? (
+              <ChevronUp className="h-4 w-4" />
+            ) : (
+              <ChevronDown className="h-4 w-4" />
+            )}
+          </button>
+
+          {showPromo && (
+            <div className="mt-3 flex gap-2">
+              <Input
+                placeholder="Masukkan kode promo"
+                value={promoCode}
+                onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
+                className="font-mono uppercase"
+                disabled={!!appliedPromo}
+              />
+              <Button
+                variant="outline"
+                onClick={handleApplyPromo}
+                disabled={!promoCode || applyingPromo || !selectedPlan || !!appliedPromo}
+              >
+                {applyingPromo ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  "Terapkan"
+                )}
+              </Button>
+            </div>
+          )}
+
+          {appliedPromo && (
+            <div className="mt-3 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-emerald-700">
+                    {appliedPromo.code} diterapkan
+                  </p>
+                  <p className="text-xs text-emerald-600">
+                    Diskon: {formatCurrency(appliedPromo.discount)}
+                  </p>
+                </div>
+                <button
+                  onClick={removePromo}
+                  className="text-emerald-600 hover:text-emerald-800"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
       {/* Checkout */}
       <Card>
         <CardContent className="flex items-center justify-between pt-6">
@@ -171,12 +319,22 @@ export function PaymentCheckout({ currentBalance }: PaymentCheckoutProps) {
               Saldo saat ini: {currentBalance} kredit
             </p>
             {selectedPlan && (
-              <p className="text-lg font-semibold">
-                Total:{" "}
-                {formatCurrency(
-                  plans.find((p) => p.id === selectedPlan)?.price ?? 0
+              <div>
+                {appliedPromo ? (
+                  <div className="space-y-0.5">
+                    <p className="text-sm text-muted-foreground line-through">
+                      {formatCurrency(currentPlan?.price ?? 0)}
+                    </p>
+                    <p className="text-lg font-semibold text-emerald-600">
+                      Total: {formatCurrency(displayTotal)}
+                    </p>
+                  </div>
+                ) : (
+                  <p className="text-lg font-semibold">
+                    Total: {formatCurrency(displayTotal)}
+                  </p>
                 )}
-              </p>
+              </div>
             )}
           </div>
           <Button

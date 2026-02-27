@@ -1,4 +1,4 @@
-export type UserRole = "SUPER_ADMIN" | "ADMIN" | "TEACHER" | "STUDENT";
+export type UserRole = "SUPER_ADMIN" | "ADMIN" | "TEACHER" | "STUDENT" | "PARENT";
 export type UserStatus = "ACTIVE" | "SUSPENDED" | "BANNED";
 
 export interface SessionUser {

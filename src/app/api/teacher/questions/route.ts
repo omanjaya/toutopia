@@ -5,24 +5,40 @@ import { successResponse } from "@/shared/lib/api-response";
 import { handleApiError } from "@/shared/lib/api-error";
 import { createQuestionSchema } from "@/shared/lib/validators/question.validators";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
     const user = await requireTeacher();
 
-    const questions = await prisma.question.findMany({
-      where: { createdById: user.id },
-      orderBy: { createdAt: "desc" },
-      include: {
-        topic: {
-          include: {
-            subject: { select: { name: true } },
-          },
-        },
-        options: { orderBy: { order: "asc" } },
-      },
-    });
+    const { searchParams } = new URL(request.url);
+    const page = Math.max(1, parseInt(searchParams.get("page") ?? "1", 10));
+    const limit = Math.min(50, Math.max(1, parseInt(searchParams.get("limit") ?? "20", 10)));
 
-    return successResponse(questions);
+    const where = { createdById: user.id };
+
+    const [questions, total] = await Promise.all([
+      prisma.question.findMany({
+        where,
+        orderBy: { createdAt: "desc" },
+        skip: (page - 1) * limit,
+        take: limit,
+        include: {
+          topic: {
+            include: {
+              subject: { select: { name: true } },
+            },
+          },
+          options: { orderBy: { order: "asc" } },
+        },
+      }),
+      prisma.question.count({ where }),
+    ]);
+
+    return successResponse(questions, {
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit),
+    });
   } catch (error) {
     return handleApiError(error);
   }

@@ -46,13 +46,33 @@ export async function GET(
       isCurrentUser: entry.user.id === user.id,
     }));
 
-    // Find current user's rank if not in top 100
     const currentUserEntry = ranked.find((r) => r.isCurrentUser);
+
+    let currentUserRank = currentUserEntry?.rank ?? null;
+
+    if (!currentUserEntry) {
+      const userEntry = await prisma.leaderboardEntry.findUnique({
+        where: {
+          packageId_userId: { packageId, userId: user.id },
+        },
+        select: { score: true },
+      });
+
+      if (userEntry) {
+        const higherCount = await prisma.leaderboardEntry.count({
+          where: {
+            packageId,
+            score: { gt: userEntry.score },
+          },
+        });
+        currentUserRank = higherCount + 1;
+      }
+    }
 
     return successResponse({
       packageTitle: pkg.title,
       entries: ranked,
-      currentUserRank: currentUserEntry?.rank ?? null,
+      currentUserRank,
     });
   } catch (error) {
     return handleApiError(error);

@@ -37,6 +37,7 @@ export async function GET() {
       },
       select: { amount: true, paidAt: true },
       orderBy: { paidAt: "asc" },
+      take: 10000,
     });
 
     const monthlyRevenue: Record<string, number> = {};
@@ -58,6 +59,7 @@ export async function GET() {
       where: { createdAt: { gte: sixMonthsAgo } },
       select: { createdAt: true },
       orderBy: { createdAt: "asc" },
+      take: 10000,
     });
 
     const monthlyUsers: Record<string, number> = {};

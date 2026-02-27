@@ -2,7 +2,7 @@ import { NextRequest } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/shared/lib/prisma";
 import { requireAuth } from "@/shared/lib/auth-guard";
-import { successResponse } from "@/shared/lib/api-response";
+import { successResponse, errorResponse } from "@/shared/lib/api-response";
 import { handleApiError } from "@/shared/lib/api-error";
 
 const subscribeSchema = z.object({
@@ -19,20 +19,31 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const data = subscribeSchema.parse(body);
 
-    const subscription = await prisma.pushSubscription.upsert({
+    // Prevent hijacking: check if endpoint belongs to a different user
+    const existing = await prisma.pushSubscription.findUnique({
       where: { endpoint: data.endpoint },
-      update: {
-        p256dh: data.keys.p256dh,
-        auth: data.keys.auth,
-        userId: user.id,
-      },
-      create: {
-        userId: user.id,
-        endpoint: data.endpoint,
-        p256dh: data.keys.p256dh,
-        auth: data.keys.auth,
-      },
     });
+
+    if (existing && existing.userId !== user.id) {
+      return errorResponse("ENDPOINT_CONFLICT", "Subscription endpoint already in use", 409);
+    }
+
+    const subscription = existing
+      ? await prisma.pushSubscription.update({
+          where: { endpoint: data.endpoint },
+          data: {
+            p256dh: data.keys.p256dh,
+            auth: data.keys.auth,
+          },
+        })
+      : await prisma.pushSubscription.create({
+          data: {
+            userId: user.id,
+            endpoint: data.endpoint,
+            p256dh: data.keys.p256dh,
+            auth: data.keys.auth,
+          },
+        });
 
     return successResponse(subscription, undefined, 201);
   } catch (error) {
