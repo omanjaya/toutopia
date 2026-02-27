@@ -75,6 +75,15 @@ const PROVIDERS: Record<string, ProviderConfig> = {
       Authorization: `Bearer ${apiKey}`,
     }),
   },
+  openrouter: {
+    baseUrl: "https://openrouter.ai/api/v1",
+    defaultHeaders: (apiKey) => ({
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${apiKey}`,
+      "HTTP-Referer": "https://toutopia.id",
+      "X-Title": "Toutopia",
+    }),
+  },
   zhipu: {
     baseUrl: "https://api.z.ai/api/paas/v4",
     defaultHeaders: (apiKey) => ({
@@ -116,6 +125,18 @@ export const PROVIDER_MODELS: Record<string, { id: string; name: string }[]> = {
     { id: "gpt-4.1-mini", name: "GPT-4.1 Mini" },
     { id: "gpt-4.1", name: "GPT-4.1" },
   ],
+  openrouter: [
+    { id: "meta-llama/llama-4-maverick:free", name: "Llama 4 Maverick (Gratis)" },
+    { id: "google/gemini-2.0-flash-exp:free", name: "Gemini 2.0 Flash (Gratis)" },
+    { id: "deepseek/deepseek-chat-v3-0324:free", name: "DeepSeek V3 (Gratis)" },
+    { id: "deepseek/deepseek-r1:free", name: "DeepSeek R1 (Gratis)" },
+    { id: "deepseek/deepseek-chat-v3-0324", name: "DeepSeek V3" },
+    { id: "anthropic/claude-haiku-4-5", name: "Claude Haiku 4.5" },
+    { id: "anthropic/claude-sonnet-4-5", name: "Claude Sonnet 4.5" },
+    { id: "openai/gpt-4.1-nano", name: "GPT-4.1 Nano" },
+    { id: "openai/gpt-4.1-mini", name: "GPT-4.1 Mini" },
+    { id: "google/gemini-2.5-flash-preview", name: "Gemini 2.5 Flash" },
+  ],
   zhipu: [
     { id: "glm-4.7-flash", name: "GLM-4.7 Flash (Gratis)" },
     { id: "glm-4.5-flash", name: "GLM-4.5 Flash (Gratis)" },
@@ -134,6 +155,7 @@ export const PROVIDER_INFO: Record<string, { name: string; description: string }
   deepseek: { name: "DeepSeek", description: "Sangat murah (~$0.047/paket). Kualitas tinggi." },
   mistral: { name: "Mistral", description: "Free tier 1B token/bulan. Model Eropa." },
   openai: { name: "OpenAI", description: "Kualitas terbaik. GPT-4.1 Nano sangat murah." },
+  openrouter: { name: "OpenRouter", description: "1 API key akses 200+ model. Ada free tier: Llama 4, Gemini 2.0, DeepSeek." },
   zhipu: { name: "Z.ai (GLM)", description: "GLM-4.7 Flash gratis, 1 concurrent req. Coding plan untuk akses penuh." },
 };
 
