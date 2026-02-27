@@ -76,7 +76,7 @@ const PROVIDERS: Record<string, ProviderConfig> = {
     }),
   },
   zhipu: {
-    baseUrl: "https://open.bigmodel.cn/api/paas/v4",
+    baseUrl: "https://api.z.ai/api/paas/v4",
     defaultHeaders: (apiKey) => ({
       "Content-Type": "application/json",
       Authorization: `Bearer ${apiKey}`,
@@ -117,13 +117,13 @@ export const PROVIDER_MODELS: Record<string, { id: string; name: string }[]> = {
     { id: "gpt-4.1", name: "GPT-4.1" },
   ],
   zhipu: [
-    { id: "glm-4-flash", name: "GLM-4 Flash (Gratis)" },
-    { id: "glm-4-flashx", name: "GLM-4 Flash X (Gratis, Lebih Cepat)" },
-    { id: "glm-4-air", name: "GLM-4 Air" },
-    { id: "glm-4-airx", name: "GLM-4 Air X" },
-    { id: "glm-4-plus", name: "GLM-4 Plus" },
-    { id: "glm-4-0520", name: "GLM-4 0520" },
-    { id: "glm-4", name: "GLM-4" },
+    { id: "glm-4.7-flash", name: "GLM-4.7 Flash (Gratis)" },
+    { id: "glm-4.5-flash", name: "GLM-4.5 Flash (Gratis)" },
+    { id: "glm-4.5-air", name: "GLM-4.5 Air" },
+    { id: "glm-4.5", name: "GLM-4.5" },
+    { id: "glm-4.6", name: "GLM-4.6" },
+    { id: "glm-4.7", name: "GLM-4.7" },
+    { id: "glm-5", name: "GLM-5" },
   ],
 };
 
@@ -134,7 +134,7 @@ export const PROVIDER_INFO: Record<string, { name: string; description: string }
   deepseek: { name: "DeepSeek", description: "Sangat murah (~$0.047/paket). Kualitas tinggi." },
   mistral: { name: "Mistral", description: "Free tier 1B token/bulan. Model Eropa." },
   openai: { name: "OpenAI", description: "Kualitas terbaik. GPT-4.1 Nano sangat murah." },
-  zhipu: { name: "Zhipu AI (GLM)", description: "GLM-4 Flash gratis unlimited. Bagus untuk konten Asia." },
+  zhipu: { name: "Z.ai (GLM)", description: "GLM-4.7 Flash gratis, 1 concurrent req. Coding plan untuk akses penuh." },
 };
 
 function extractJsonArray(text: string): string {
