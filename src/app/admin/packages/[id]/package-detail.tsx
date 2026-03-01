@@ -16,6 +16,10 @@ import {
   Shield,
   Wand2,
   Sparkles,
+  BookOpen,
+  X,
+  ChevronUp,
+  ChevronDown,
 } from "lucide-react";
 import { Button } from "@/shared/components/ui/button";
 import { Badge } from "@/shared/components/ui/badge";
@@ -32,6 +36,7 @@ import type { CreatePackageInput } from "@/shared/lib/validators/package.validat
 import { GenerateSectionModal } from "@/shared/components/exam/generate-section-modal";
 import { BatchGenerateDialog } from "@/app/admin/packages/[id]/batch-generate-dialog";
 import { detectExamTypeFromCategory } from "@/shared/lib/exam-templates";
+import { AddFromBankDialog } from "@/shared/components/exam/add-from-bank-dialog";
 
 function stripHtml(html: string): string {
   return html
@@ -127,6 +132,23 @@ export function PackageDetail({ pkg, categories }: PackageDetailProps) {
   } | null>(null);
   const [showBatchGenerate, setShowBatchGenerate] = useState(false);
 
+  // Feature 1: Remove question state
+  const [isRemovingQuestion, setIsRemovingQuestion] = useState<
+    Record<string, boolean>
+  >({});
+
+  // Feature 3: Add from bank state
+  const [addFromBank, setAddFromBank] = useState<{
+    sectionId: string;
+    sectionTitle: string;
+    subjectId: string;
+    currentQuestionIds: string[];
+    capacity: number;
+  } | null>(null);
+
+  // Feature 4: Reorder state
+  const [isReordering, setIsReordering] = useState(false);
+
   const detectedExamType = detectExamTypeFromCategory(pkg.category.name) ?? "";
 
   const status = statusConfig[pkg.status] ?? {
@@ -178,6 +200,73 @@ export function PackageDetail({ pkg, categories }: PackageDetailProps) {
     }
   }
 
+  // Feature 1: Remove question from section
+  async function handleRemoveQuestion(
+    sectionId: string,
+    questionId: string
+  ): Promise<void> {
+    if (!confirm("Yakin ingin menghapus soal ini dari section?")) return;
+
+    const key = `${sectionId}-${questionId}`;
+    setIsRemovingQuestion((prev) => ({ ...prev, [key]: true }));
+    try {
+      const response = await fetch(
+        `/api/admin/packages/${pkg.id}/sections/${sectionId}/questions/${questionId}`,
+        { method: "DELETE" }
+      );
+      const result = await response.json();
+      if (!response.ok) {
+        toast.error(result.error?.message ?? "Gagal menghapus soal");
+        return;
+      }
+      toast.success("Soal berhasil dihapus dari section");
+      router.refresh();
+    } finally {
+      setIsRemovingQuestion((prev) => ({ ...prev, [key]: false }));
+    }
+  }
+
+  // Feature 4: Reorder sections
+  async function handleReorderSection(
+    sectionId: string,
+    direction: "up" | "down"
+  ): Promise<void> {
+    const sortedSections = [...pkg.sections].sort((a, b) => a.order - b.order);
+    const currentIndex = sortedSections.findIndex((s) => s.id === sectionId);
+
+    if (direction === "up" && currentIndex === 0) return;
+    if (direction === "down" && currentIndex === sortedSections.length - 1)
+      return;
+
+    const swapIndex =
+      direction === "up" ? currentIndex - 1 : currentIndex + 1;
+    const newOrder = sortedSections.map((s) => s.id);
+    // Swap positions
+    const temp = newOrder[currentIndex];
+    newOrder[currentIndex] = newOrder[swapIndex];
+    newOrder[swapIndex] = temp;
+
+    setIsReordering(true);
+    try {
+      const response = await fetch(
+        `/api/admin/packages/${pkg.id}/sections/reorder`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ orderedIds: newOrder }),
+        }
+      );
+      const result = await response.json();
+      if (!response.ok) {
+        toast.error(result.error?.message ?? "Gagal mengubah urutan section");
+        return;
+      }
+      router.refresh();
+    } finally {
+      setIsReordering(false);
+    }
+  }
+
   if (mode === "edit") {
     const initialData: CreatePackageInput & { id: string } = {
       id: pkg.id,
@@ -222,6 +311,8 @@ export function PackageDetail({ pkg, categories }: PackageDetailProps) {
       </div>
     );
   }
+
+  const sortedSections = [...pkg.sections].sort((a, b) => a.order - b.order);
 
   return (
     <div className="space-y-6">
@@ -361,69 +452,165 @@ export function PackageDetail({ pkg, categories }: PackageDetailProps) {
           <CardTitle>Section Ujian ({pkg.sections.length})</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          {pkg.sections.map((section, idx) => (
-            <div key={section.id} className="rounded-lg border p-4 space-y-3">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-semibold">
-                    {idx + 1}. {section.title}
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    {section.subject.name} &middot; {section.totalQuestions} soal
-                    &middot; {section.durationMinutes} menit
-                  </p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Badge variant={
-                    section.questions.length >= section.totalQuestions
-                      ? "default"
-                      : "outline"
-                  }>
-                    {section.questions.length}/{section.totalQuestions} soal
-                  </Badge>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() =>
-                      setGenerateSection({
-                        sectionId: section.id,
-                        sectionTitle: section.title,
-                        subjectId: section.subject.id,
-                        needed: section.totalQuestions - section.questions.length,
-                      })
-                    }
-                    disabled={section.questions.length >= section.totalQuestions}
-                  >
-                    <Wand2 className="h-3.5 w-3.5 mr-1" />
-                    {section.questions.length >= section.totalQuestions
-                      ? "Penuh"
-                      : "Generate Soal"}
-                  </Button>
-                </div>
-              </div>
-
-              {section.questions.length > 0 && (
-                <div className="space-y-1">
-                  {section.questions.map((sq, qIdx) => (
-                    <div
-                      key={sq.question.id}
-                      className="flex items-center gap-2 text-sm"
+          {sortedSections.map((section, idx) => {
+            const pct = Math.round(
+              (section.questions.length / section.totalQuestions) * 100
+            );
+            return (
+              <div key={section.id} className="rounded-lg border p-4 space-y-3">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold">
+                      {idx + 1}. {section.title}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      {section.subject.name} &middot; {section.totalQuestions} soal
+                      &middot; {section.durationMinutes} menit
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-1 shrink-0">
+                    {/* Feature 4: Up/Down reorder buttons */}
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7"
+                      onClick={() => handleReorderSection(section.id, "up")}
+                      disabled={isReordering || idx === 0}
                     >
-                      <span className="w-6 text-right text-muted-foreground">
-                        {qIdx + 1}.
-                      </span>
-                      <span className="flex-1 truncate">
-                        {truncate(stripHtml(sq.question.content), 60)}
-                      </span>
-                      <Badge variant="outline" className="text-xs">
-                        {difficultyLabel[sq.question.difficulty] ?? sq.question.difficulty}
-                      </Badge>
-                    </div>
-                  ))}
+                      <ChevronUp className="h-3.5 w-3.5" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7"
+                      onClick={() => handleReorderSection(section.id, "down")}
+                      disabled={
+                        isReordering || idx === sortedSections.length - 1
+                      }
+                    >
+                      <ChevronDown className="h-3.5 w-3.5" />
+                    </Button>
+
+                    {/* Fill badge */}
+                    <Badge
+                      variant={
+                        section.questions.length >= section.totalQuestions
+                          ? "default"
+                          : "outline"
+                      }
+                    >
+                      {section.questions.length}/{section.totalQuestions} soal
+                    </Badge>
+
+                    {/* Feature 3: Add from bank button */}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() =>
+                        setAddFromBank({
+                          sectionId: section.id,
+                          sectionTitle: section.title,
+                          subjectId: section.subject.id,
+                          currentQuestionIds: section.questions.map(
+                            (sq) => sq.question.id
+                          ),
+                          capacity:
+                            section.totalQuestions - section.questions.length,
+                        })
+                      }
+                      disabled={
+                        section.questions.length >= section.totalQuestions
+                      }
+                    >
+                      <BookOpen className="h-3.5 w-3.5 mr-1" />
+                      Dari Bank
+                    </Button>
+
+                    {/* Generate Soal button */}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() =>
+                        setGenerateSection({
+                          sectionId: section.id,
+                          sectionTitle: section.title,
+                          subjectId: section.subject.id,
+                          needed:
+                            section.totalQuestions - section.questions.length,
+                        })
+                      }
+                      disabled={
+                        section.questions.length >= section.totalQuestions
+                      }
+                    >
+                      <Wand2 className="h-3.5 w-3.5 mr-1" />
+                      {section.questions.length >= section.totalQuestions
+                        ? "Penuh"
+                        : "Generate Soal"}
+                    </Button>
+                  </div>
                 </div>
-              )}
-            </div>
-          ))}
+
+                {/* Feature 2: Progress bar */}
+                <div className="w-full bg-muted rounded-full h-1.5 mt-2">
+                  <div
+                    className={`h-1.5 rounded-full transition-all ${
+                      pct >= 100
+                        ? "bg-emerald-500"
+                        : pct >= 50
+                          ? "bg-amber-500"
+                          : "bg-red-400"
+                    }`}
+                    style={{ width: `${Math.min(pct, 100)}%` }}
+                  />
+                </div>
+
+                {section.questions.length > 0 && (
+                  <div className="space-y-1">
+                    {section.questions.map((sq, qIdx) => {
+                      const removeKey = `${section.id}-${sq.question.id}`;
+                      return (
+                        <div
+                          key={sq.question.id}
+                          className="flex items-center gap-2 text-sm"
+                        >
+                          <span className="w-6 text-right text-muted-foreground">
+                            {qIdx + 1}.
+                          </span>
+                          <span className="flex-1 truncate">
+                            {truncate(stripHtml(sq.question.content), 60)}
+                          </span>
+                          <Badge variant="outline" className="text-xs">
+                            {difficultyLabel[sq.question.difficulty] ??
+                              sq.question.difficulty}
+                          </Badge>
+                          {/* Feature 1: Remove question button */}
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-5 w-5 text-muted-foreground hover:text-destructive"
+                            onClick={() =>
+                              handleRemoveQuestion(
+                                section.id,
+                                sq.question.id
+                              )
+                            }
+                            disabled={isRemovingQuestion[removeKey]}
+                          >
+                            {isRemovingQuestion[removeKey] ? (
+                              <Loader2 className="h-3 w-3 animate-spin" />
+                            ) : (
+                              <X className="h-3 w-3" />
+                            )}
+                          </Button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </CardContent>
       </Card>
 
@@ -479,6 +666,27 @@ export function PackageDetail({ pkg, categories }: PackageDetailProps) {
           router.refresh();
         }}
       />
+
+      {/* Feature 3: Add from Bank Dialog */}
+      {addFromBank && (
+        <AddFromBankDialog
+          open={!!addFromBank}
+          onOpenChange={(open) => {
+            if (!open) setAddFromBank(null);
+          }}
+          packageId={pkg.id}
+          sectionId={addFromBank.sectionId}
+          sectionTitle={addFromBank.sectionTitle}
+          subjectId={addFromBank.subjectId}
+          currentQuestionIds={addFromBank.currentQuestionIds}
+          capacity={addFromBank.capacity}
+          onSuccess={(added) => {
+            toast.success(`${added} soal berhasil ditambahkan`);
+            setAddFromBank(null);
+            router.refresh();
+          }}
+        />
+      )}
     </div>
   );
 }

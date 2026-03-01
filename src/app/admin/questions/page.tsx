@@ -4,29 +4,19 @@ import { prisma } from "@/shared/lib/prisma";
 import { Button } from "@/shared/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/shared/components/ui/table";
-import { Badge } from "@/shared/components/ui/badge";
-import {
   Plus,
-  Eye,
   Upload,
   HardDrive,
   ChevronLeft,
   ChevronRight,
   Search,
-  FileText,
   FileCheck,
   FileClock,
+  FileText,
   FileX,
 } from "lucide-react";
-import { truncate } from "@/shared/lib/utils";
 import type { Prisma } from "@prisma/client";
+import { QuestionsTable } from "./questions-table";
 
 export const dynamic = "force-dynamic";
 
@@ -34,35 +24,6 @@ export const metadata: Metadata = {
   title: "Moderasi Soal",
 };
 
-const statusBadgeClass: Record<string, string> = {
-  APPROVED: "bg-emerald-500/10 text-emerald-700 border-emerald-200 dark:text-emerald-400",
-  PENDING_REVIEW: "bg-amber-500/10 text-amber-700 border-amber-200 dark:text-amber-400",
-  DRAFT: "bg-slate-500/10 text-slate-700 border-slate-200 dark:text-slate-400",
-  REJECTED: "bg-red-500/10 text-red-700 border-red-200 dark:text-red-400",
-};
-
-const statusLabel: Record<string, string> = {
-  APPROVED: "Disetujui",
-  PENDING_REVIEW: "Menunggu Review",
-  DRAFT: "Draft",
-  REJECTED: "Ditolak",
-};
-
-const difficultyLabel: Record<string, string> = {
-  VERY_EASY: "Sangat Mudah",
-  EASY: "Mudah",
-  MEDIUM: "Sedang",
-  HARD: "Sulit",
-  VERY_HARD: "Sangat Sulit",
-};
-
-const difficultyBadgeClass: Record<string, string> = {
-  VERY_EASY: "bg-sky-500/10 text-sky-700 border-sky-200",
-  EASY: "bg-emerald-500/10 text-emerald-700 border-emerald-200",
-  MEDIUM: "bg-amber-500/10 text-amber-700 border-amber-200",
-  HARD: "bg-orange-500/10 text-orange-700 border-orange-200",
-  VERY_HARD: "bg-red-500/10 text-red-700 border-red-200",
-};
 
 const ITEMS_PER_PAGE = 20;
 
@@ -252,68 +213,10 @@ export default async function AdminQuestionsPage({ searchParams }: Props) {
         </div>
       </div>
 
-      <div className="rounded-lg border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-[40%]">Soal</TableHead>
-              <TableHead>Kategori</TableHead>
-              <TableHead>Kesulitan</TableHead>
-              <TableHead>Tipe</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="w-[60px]" />
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {questions.map((question) => (
-              <TableRow key={question.id}>
-                <TableCell className="text-sm">
-                  <Link href={`/admin/questions/${question.id}`} className="hover:underline">
-                    {truncate(question.content.replace(/<[^>]*>/g, ""), 80)}
-                  </Link>
-                </TableCell>
-                <TableCell className="text-sm text-muted-foreground">
-                  {question.topic.subject.subCategory.category.name}
-                </TableCell>
-                <TableCell>
-                  <Badge variant="outline" className={difficultyBadgeClass[question.difficulty] ?? ""}>
-                    {difficultyLabel[question.difficulty] ?? question.difficulty}
-                  </Badge>
-                </TableCell>
-                <TableCell className="text-sm text-muted-foreground">
-                  {question.type.replace("_", " ")}
-                </TableCell>
-                <TableCell>
-                  <Badge variant="outline" className={statusBadgeClass[question.status] ?? ""}>
-                    {statusLabel[question.status] ?? question.status}
-                  </Badge>
-                </TableCell>
-                <TableCell>
-                  <Button variant="ghost" size="icon" asChild>
-                    <Link href={`/admin/questions/${question.id}`}>
-                      <Eye className="h-4 w-4" />
-                    </Link>
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
-            {questions.length === 0 && (
-              <TableRow>
-                <TableCell colSpan={6} className="h-32 text-center">
-                  <div className="flex flex-col items-center gap-2">
-                    <FileText className="h-8 w-8 text-muted-foreground/50" />
-                    <p className="text-sm text-muted-foreground">
-                      {q || statusFilter || difficultyFilter
-                        ? "Tidak ada soal yang sesuai filter"
-                        : "Belum ada soal"}
-                    </p>
-                  </div>
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </div>
+      <QuestionsTable
+        questions={questions}
+        hasActiveFilter={!!(q || statusFilter || difficultyFilter)}
+      />
 
       {/* Pagination */}
       {totalPages > 1 && (
