@@ -102,39 +102,45 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       return successResponse({ updated: true, balance: result[0].balance });
     }
 
-    // ADJUST action
-    const current = await prisma.userCredit.findUnique({ where: { userId } });
-    const currentBalance = current?.balance ?? 0;
-    const newBalance = currentBalance + data.amount;
-
-    if (newBalance < 0) {
-      return errorResponse(
-        "INSUFFICIENT_CREDITS",
-        `Saldo tidak mencukupi. Saldo saat ini: ${currentBalance}, pengurangan: ${Math.abs(data.amount)}`,
-        400
-      );
-    }
-
+    // ADJUST action — read + update inside transaction to prevent TOCTOU race
     const creditType = data.amount >= 0 ? ("BONUS" as const) : ("USAGE" as const);
 
-    const result = await prisma.$transaction([
-      prisma.userCredit.upsert({
+    const result = await prisma.$transaction(async (tx) => {
+      const current = await tx.userCredit.findUnique({ where: { userId } });
+      const currentBalance = current?.balance ?? 0;
+      const newBalance = currentBalance + data.amount;
+
+      if (newBalance < 0) {
+        throw Object.assign(
+          new Error(`Saldo tidak mencukupi. Saldo saat ini: ${currentBalance}, pengurangan: ${Math.abs(data.amount)}`),
+          { code: "INSUFFICIENT_CREDITS" }
+        );
+      }
+
+      const updated = await tx.userCredit.upsert({
         where: { userId },
         update: { balance: { increment: data.amount } },
         create: { userId, balance: Math.max(0, data.amount) },
-      }),
-      prisma.creditHistory.create({
+      });
+
+      await tx.creditHistory.create({
         data: {
           userId,
           amount: data.amount,
           type: creditType,
           description: data.note,
         },
-      }),
-    ]);
+      });
 
-    return successResponse({ updated: true, balance: result[0].balance });
+      return updated;
+    });
+
+    return successResponse({ updated: true, balance: result.balance });
   } catch (error) {
+    const code = (error as { code?: string }).code;
+    if (code === "INSUFFICIENT_CREDITS") {
+      return errorResponse("INSUFFICIENT_CREDITS", (error as Error).message, 400);
+    }
     return handleApiError(error);
   }
 }

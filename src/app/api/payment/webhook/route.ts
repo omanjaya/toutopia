@@ -18,6 +18,7 @@ export async function POST(request: NextRequest) {
       transaction_status,
       fraud_status,
       payment_type,
+      transaction_id: midtransTransactionId,
     } = body;
 
     // Verify signature
@@ -85,6 +86,7 @@ export async function POST(request: NextRequest) {
               status: "PAID",
               paymentMethod: mappedMethod as never,
               paidAt: new Date(),
+              ...(midtransTransactionId ? { midtransId: String(midtransTransactionId) } : {}),
             },
           });
 

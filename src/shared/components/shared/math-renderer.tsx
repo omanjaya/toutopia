@@ -31,7 +31,8 @@ export function MathRenderer({ content, className }: MathRendererProps) {
       try {
         parts.push(katex.renderToString(tex, { displayMode, throwOnError: false }));
       } catch {
-        parts.push(tex);
+        // Fallback: render as sanitized plain text, not raw HTML
+        parts.push(sanitizeHtml(tex));
       }
 
       lastIndex = match.index + match[0].length;

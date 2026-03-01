@@ -128,6 +128,17 @@ export default auth((req) => {
         );
       }
     }
+
+    const isTeacherApiRoute = canonicalPath.startsWith("/api/teacher");
+    if (isTeacherApiRoute) {
+      const role = req.auth?.user?.role;
+      if (role !== "SUPER_ADMIN" && role !== "ADMIN" && role !== "TEACHER") {
+        return NextResponse.json(
+          { success: false, error: { code: "FORBIDDEN", message: "Teacher access required" } },
+          { status: 403 }
+        );
+      }
+    }
   }
 
   if (!isPublicRoute && !isLoggedIn && !isApiRoute) {

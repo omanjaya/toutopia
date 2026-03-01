@@ -6,10 +6,12 @@ import type { Prisma } from "@prisma/client";
 function escapeCSV(value: string | null | undefined): string {
   if (value === null || value === undefined) return "";
   const str = String(value);
-  if (str.includes(",") || str.includes('"') || str.includes("\n")) {
-    return `"${str.replace(/"/g, '""')}"`;
+  // Prevent CSV injection: prefix dangerous formula starters with a single quote
+  const sanitized = /^[=+\-@\t\r]/.test(str) ? `'${str}` : str;
+  if (sanitized.includes(",") || sanitized.includes('"') || sanitized.includes("\n")) {
+    return `"${sanitized.replace(/"/g, '""')}"`;
   }
-  return str;
+  return sanitized;
 }
 
 export async function GET(req: Request): Promise<Response> {
@@ -57,6 +59,7 @@ export async function GET(req: Request): Promise<Response> {
     : sort === "lowest" ? { amount: "asc" }
     : { createdAt: "desc" };
 
+  try {
   const transactions = await prisma.transaction.findMany({
     where,
     orderBy,
@@ -128,4 +131,10 @@ export async function GET(req: Request): Promise<Response> {
       "Content-Disposition": `attachment; filename="${filename}"`,
     },
   });
+  } catch {
+    return NextResponse.json(
+      { success: false, error: { code: "INTERNAL", message: "Gagal mengekspor data" } },
+      { status: 500 }
+    );
+  }
 }

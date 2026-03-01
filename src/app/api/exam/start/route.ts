@@ -44,50 +44,36 @@ export async function POST(request: NextRequest) {
       return errorResponse("NOT_FOUND", "Paket ujian tidak ditemukan", 404);
     }
 
-    // Check existing in-progress attempt
-    const existing = await prisma.examAttempt.findFirst({
-      where: {
-        userId: user.id,
-        packageId,
-        status: "IN_PROGRESS",
-      },
-    });
-
-    if (existing) {
-      return errorResponse(
-        "ALREADY_IN_PROGRESS",
-        "Anda sudah memiliki sesi ujian yang sedang berjalan",
-        409
-      );
-    }
-
-    // Check max attempts
-    const attemptCount = await prisma.examAttempt.count({
-      where: { userId: user.id, packageId },
-    });
-
-    if (attemptCount >= pkg.maxAttempts) {
-      return errorResponse(
-        "MAX_ATTEMPTS_REACHED",
-        `Anda sudah mencapai batas percobaan (${pkg.maxAttempts}x)`,
-        403
-      );
-    }
-
-    // Check direct access for paid packages (pre-check before transaction)
-    let hasDirectAccess = false;
-    if (!pkg.isFree) {
-      const directAccess = await prisma.userPackageAccess.findUnique({
-        where: { userId_packageId: { userId: user.id, packageId } },
-      });
-      hasDirectAccess = !!directAccess &&
-        (!directAccess.expiresAt || directAccess.expiresAt > new Date());
-    }
-
     const now = new Date();
     const deadline = new Date(now.getTime() + pkg.durationMinutes * 60_000);
 
     const attempt = await prisma.$transaction(async (tx) => {
+      // Race-condition-safe check for existing in-progress attempt (inside transaction)
+      const existing = await tx.examAttempt.findFirst({
+        where: { userId: user.id, packageId, status: "IN_PROGRESS" },
+      });
+      if (existing) {
+        throw Object.assign(new Error("ALREADY_IN_PROGRESS"), { code: "ALREADY_IN_PROGRESS" });
+      }
+
+      // Check max attempts inside transaction
+      const attemptCount = await tx.examAttempt.count({
+        where: { userId: user.id, packageId },
+      });
+      if (attemptCount >= pkg.maxAttempts) {
+        throw Object.assign(new Error("MAX_ATTEMPTS_REACHED"), { code: "MAX_ATTEMPTS_REACHED" });
+      }
+
+      // Check direct access for paid packages
+      let hasDirectAccess = false;
+      if (!pkg.isFree) {
+        const directAccess = await tx.userPackageAccess.findUnique({
+          where: { userId_packageId: { userId: user.id, packageId } },
+        });
+        hasDirectAccess = !!directAccess &&
+          (!directAccess.expiresAt || directAccess.expiresAt > new Date());
+      }
+
       // Deduct credit for paid packages (skip if user has direct access)
       if (!pkg.isFree && !hasDirectAccess) {
         const credit = await tx.userCredit.findUnique({
@@ -154,12 +140,15 @@ export async function POST(request: NextRequest) {
 
     return successResponse({ attemptId: attempt.id });
   } catch (error) {
+    const code = (error as { code?: string }).code;
+    if (code === "ALREADY_IN_PROGRESS") {
+      return errorResponse("ALREADY_IN_PROGRESS", "Anda sudah memiliki sesi ujian yang sedang berjalan", 409);
+    }
+    if (code === "MAX_ATTEMPTS_REACHED") {
+      return errorResponse("MAX_ATTEMPTS_REACHED", "Anda sudah mencapai batas percobaan maksimum", 403);
+    }
     if (error instanceof Error && error.message === "INSUFFICIENT_CREDITS") {
-      return errorResponse(
-        "INSUFFICIENT_CREDITS",
-        "Kredit tidak cukup untuk memulai ujian",
-        402
-      );
+      return errorResponse("INSUFFICIENT_CREDITS", "Kredit tidak cukup untuk memulai ujian", 402);
     }
     return handleApiError(error);
   }

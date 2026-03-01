@@ -151,11 +151,11 @@ export async function POST(request: NextRequest) {
 
     const snapResponse = await snap.createTransaction(midtransParam);
 
-    // Update transaction with Midtrans data and link promo usage to order
+    // Update transaction with Midtrans snap data
+    // midtransId (Midtrans's own transaction_id) is set later by the payment webhook
     await prisma.transaction.update({
       where: { id: transaction.id },
       data: {
-        midtransId: transaction.id,
         snapToken: snapResponse.token,
         midtransUrl: snapResponse.redirect_url,
       },
