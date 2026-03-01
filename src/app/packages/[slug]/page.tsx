@@ -55,16 +55,26 @@ export async function generateMetadata({
     return { title: "Paket Tidak Ditemukan" };
   }
 
+  const BASE_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://toutopia.id";
+  const canonicalUrl = `${BASE_URL}/packages/${slug}`;
+  const description =
+    pkg.description ??
+    `Try out ${pkg.category.name} dengan ${pkg.totalQuestions} soal, ${pkg.durationMinutes} menit. Latihan berkualitas di Toutopia.`;
+
   return {
-    title: `${pkg.title} — Toutopia`,
-    description:
-      pkg.description ??
-      `Try out ${pkg.category.name} dengan ${pkg.totalQuestions} soal, ${pkg.durationMinutes} menit. Latihan berkualitas di Toutopia.`,
+    title: pkg.title,
+    description,
+    alternates: { canonical: canonicalUrl },
     openGraph: {
       title: `${pkg.title} — Toutopia`,
-      description:
-        pkg.description ??
-        `Try out ${pkg.category.name} — ${pkg.totalQuestions} soal, ${pkg.durationMinutes} menit.`,
+      description,
+      url: canonicalUrl,
+      images: [{ url: "/images/og.png", width: 1200, height: 630, alt: pkg.title }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: pkg.title,
+      description,
     },
   };
 }
@@ -78,6 +88,35 @@ export default async function PackageDetailPage({ params }: PageProps) {
   const session = await auth();
   const isLoggedIn = !!session?.user;
 
+  const BASE_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://toutopia.id";
+  const courseJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Course",
+    name: pkg.title,
+    description:
+      pkg.description ??
+      `Try out ${pkg.category.name} dengan ${pkg.totalQuestions} soal, ${pkg.durationMinutes} menit.`,
+    url: `${BASE_URL}/packages/${slug}`,
+    provider: {
+      "@type": "Organization",
+      name: "Toutopia",
+      url: BASE_URL,
+    },
+    educationalLevel: pkg.category.name,
+    numberOfCredits: pkg.totalQuestions,
+    timeRequired: `PT${pkg.durationMinutes}M`,
+    ...(pkg.price > 0
+      ? {
+          offers: {
+            "@type": "Offer",
+            price: pkg.discountPrice ?? pkg.price,
+            priceCurrency: "IDR",
+            availability: "https://schema.org/InStock",
+          },
+        }
+      : { isAccessibleForFree: true }),
+  };
+
   const stats = [
     { icon: FileText, label: "Soal", value: pkg.totalQuestions.toString(), color: "bg-blue-500/10 text-blue-600" },
     { icon: Clock, label: "Menit", value: pkg.durationMinutes.toString(), color: "bg-amber-500/10 text-amber-600" },
@@ -87,6 +126,10 @@ export default async function PackageDetailPage({ params }: PageProps) {
 
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(courseJsonLd) }}
+      />
       <Header />
       <main className="mx-auto max-w-3xl px-4 py-10 sm:px-6 lg:px-8">
         <Link

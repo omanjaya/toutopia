@@ -28,6 +28,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   return {
     title: `Hasil Ujian — Toutopia`,
+    robots: { index: false, follow: false },
     openGraph: {
       title,
       description: `Hasil try out di Toutopia: ${score}/1000 pada ${attempt.package.title}`,

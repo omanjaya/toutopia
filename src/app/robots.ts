@@ -14,6 +14,8 @@ export default function robots(): MetadataRoute.Robots {
           "/teacher/",
           "/dashboard/",
           "/exam/",
+          // Mobile rewrites are duplicates of desktop — prevent double-indexing
+          "/m/",
         ],
       },
     ],

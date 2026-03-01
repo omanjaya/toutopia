@@ -53,8 +53,8 @@ export async function generateMetadata({
   if (!pkg) return { title: "Leaderboard" };
 
   return {
-    title: `Leaderboard ${pkg.title} — Toutopia`,
-    description: `Peringkat peserta terbaik untuk ${pkg.title}. Lihat skor dan posisi di leaderboard Toutopia.`,
+    title: `Leaderboard — ${pkg.title}`,
+    description: `Peringkat peserta terbaik paket try out ${pkg.title} (${pkg.category.name}). Lihat siapa yang berada di puncak dan raih posisi terbaikmu di Toutopia!`,
   };
 }
 

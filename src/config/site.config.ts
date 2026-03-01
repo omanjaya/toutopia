@@ -7,14 +7,33 @@ export const siteConfig = {
   ogImage: `${APP_URL}/images/og.png`,
   creator: "Toutopia",
   keywords: [
+    // UTBK / SNBT
     "tryout utbk online",
+    "simulasi utbk snbt",
+    "latihan soal utbk 2026",
+    "try out snbt online",
+    // CPNS / ASN
     "latihan soal cpns",
-    "tryout bumn",
-    "simulasi ujian online",
-    "tryout kedinasan",
-    "latihan soal gratis",
-    "try out online berbayar",
     "simulasi cat cpns",
+    "tryout cpns skd 2026",
+    "soal twk tiu tkp",
+    // BUMN
+    "tryout bumn",
+    "rekrutmen bersama bumn",
+    "latihan soal bumn fhci",
+    // Kedinasan
+    "tryout kedinasan",
+    "latihan soal stan",
+    "tryout ipdn",
+    // PPPK
+    "latihan soal pppk",
+    "simulasi seleksi pppk",
+    // General
+    "simulasi ujian online",
+    "try out online berbayar",
+    "platform tryout terbaik",
+    "bank soal online",
+    "pembahasan soal lengkap",
   ],
   links: {
     instagram: "https://instagram.com/toutopia.id",

@@ -41,16 +41,34 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   if (!article) return { title: "Artikel Tidak Ditemukan" };
 
+  const BASE_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://toutopia.id";
+  const canonicalUrl = `${BASE_URL}/blog/${article.slug}`;
+  const description = article.excerpt ?? article.content.substring(0, 160);
+
   return {
-    title: `${article.title} - Toutopia`,
-    description: article.excerpt ?? article.content.substring(0, 160),
+    title: article.title,
+    description,
+    alternates: {
+      canonical: canonicalUrl,
+    },
     openGraph: {
       title: article.title,
-      description: article.excerpt ?? article.content.substring(0, 160),
+      description,
       type: "article",
+      url: canonicalUrl,
       publishedTime: article.publishedAt?.toISOString(),
+      modifiedTime: article.updatedAt?.toISOString(),
       authors: article.author.name ? [article.author.name] : undefined,
-      ...(article.coverImage ? { images: [article.coverImage] } : {}),
+      images: article.coverImage
+        ? [{ url: article.coverImage, alt: article.title }]
+        : [{ url: "/images/og.png", width: 1200, height: 630, alt: "Toutopia Blog" }],
+      tags: article.tags,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: article.title,
+      description,
+      images: article.coverImage ? [article.coverImage] : ["/images/og.png"],
     },
   };
 }
@@ -61,7 +79,34 @@ export default async function BlogArticlePage({ params }: Props) {
 
   if (!article) notFound();
 
+  const BASE_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://toutopia.id";
+  const articleJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: article.title,
+    description: article.excerpt ?? article.content.substring(0, 160),
+    url: `${BASE_URL}/blog/${slug}`,
+    datePublished: article.publishedAt?.toISOString(),
+    dateModified: article.updatedAt?.toISOString(),
+    author: {
+      "@type": "Person",
+      name: article.author.name ?? "Toutopia",
+    },
+    publisher: {
+      "@type": "Organization",
+      name: "Toutopia",
+      logo: { "@type": "ImageObject", url: `${BASE_URL}/icons/icon-192x192.png` },
+    },
+    ...(article.coverImage ? { image: article.coverImage } : {}),
+    keywords: article.tags.join(", "),
+  };
+
   return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }}
+      />
     <article className="mx-auto max-w-3xl px-4 py-12">
       <Button variant="ghost" size="sm" className="mb-6" asChild>
         <Link href="/blog">
@@ -122,5 +167,6 @@ export default async function BlogArticlePage({ params }: Props) {
         />
       </div>
     </article>
+    </>
   );
 }
