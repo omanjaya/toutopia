@@ -289,37 +289,7 @@ export default async function AdminEbooksPage({ searchParams }: Props) {
           ))}
         </div>
 
-        {/* Sort Select */}
-        <div className="flex items-center gap-1.5">
-          <label htmlFor="sort-select" className="text-xs text-muted-foreground whitespace-nowrap">
-            Urutkan:
-          </label>
-          <select
-            id="sort-select"
-            value={sort}
-            onChange={(e) => {
-              /* handled via link navigation below — this select is display only */
-            }}
-            className="h-9 rounded-lg border border-input bg-background px-2 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-ring"
-            aria-label="Urutkan"
-          >
-            {sortOptions.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
-              </option>
-            ))}
-          </select>
-          {/* Navigation links for sort (shown as hidden helper) */}
-          <div className="hidden">
-            {sortOptions.map((opt) => (
-              <Link key={opt.value} href={buildUrl({ sort: opt.value, page: "1" })}>
-                {opt.label}
-              </Link>
-            ))}
-          </div>
-        </div>
-
-        {/* Sort quick links (visible buttons) */}
+        {/* Sort quick links */}
         <div className="flex gap-1 rounded-lg border p-1">
           {sortOptions.map((opt) => (
             <Link
