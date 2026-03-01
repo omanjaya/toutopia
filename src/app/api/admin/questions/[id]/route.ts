@@ -100,13 +100,26 @@ export async function DELETE(
     const existing = await prisma.question.findUnique({ where: { id } });
     if (!existing) return notFoundResponse("Soal");
 
-    // TODO: soft-delete is preferred but QuestionStatus enum only has DRAFT, PENDING_REVIEW,
-    // APPROVED, REJECTED — no DELETED/INACTIVE value, and there is no deletedAt field.
-    // A schema migration is needed to add either a DELETED status or a deletedAt DateTime field
-    // before this can be converted to soft-delete. Hard-delete kept until migration is applied.
-    await prisma.question.delete({ where: { id } });
+    // Check if question is referenced in any exam sections
+    const usageCount = await prisma.examSectionQuestion.count({
+      where: { questionId: id },
+    });
 
-    return successResponse({ deleted: true });
+    if (usageCount > 0) {
+      // Soft-delete: question is used in exams, keep it but mark as deleted
+      await prisma.question.update({
+        where: { id },
+        data: {
+          status: "DELETED",
+          deletedAt: new Date(),
+        },
+      });
+    } else {
+      // Hard delete: question not used anywhere, safe to remove
+      await prisma.question.delete({ where: { id } });
+    }
+
+    return successResponse({ message: "Pertanyaan berhasil dihapus" });
   } catch (error) {
     return handleApiError(error);
   }

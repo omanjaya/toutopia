@@ -9,21 +9,42 @@ export async function POST(
   { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
-    await requireAuth();
+    const user = await requireAuth();
     const { slug } = await params;
 
     const ebook = await prisma.ebook.findUnique({
       where: { slug },
-      select: { id: true, status: true, pdfUrl: true },
+      select: { id: true, status: true, pdfUrl: true, isFree: true },
     });
 
     if (!ebook || ebook.status !== "PUBLISHED" || !ebook.pdfUrl) {
       return errorResponse("NOT_FOUND", "Ebook tidak ditemukan", 404);
     }
 
-    // TODO: Add purchase verification once an ebook purchase/access model exists in the schema.
-    // Currently Transaction and UserPackageAccess are tied to ExamPackage only (no ebookId).
-    // When an EbookPurchase or similar model is added, verify the user has paid before proceeding.
+    // Check if ebook is free or user has access
+    if (!ebook.isFree) {
+      const access = await prisma.ebookAccess.findUnique({
+        where: {
+          userId_ebookId: {
+            userId: user.id,
+            ebookId: ebook.id,
+          },
+        },
+      });
+
+      if (!access) {
+        return errorResponse(
+          "FORBIDDEN",
+          "Anda tidak memiliki akses ke ebook ini. Silakan beli terlebih dahulu.",
+          403
+        );
+      }
+
+      // Check if access has expired
+      if (access.expiresAt && new Date() > access.expiresAt) {
+        return errorResponse("ACCESS_EXPIRED", "Akses ebook Anda telah kadaluarsa", 403);
+      }
+    }
 
     await prisma.ebook.update({
       where: { id: ebook.id },

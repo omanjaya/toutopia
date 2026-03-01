@@ -36,6 +36,7 @@ enum QuestionStatus {
   PENDING_REVIEW
   APPROVED
   REJECTED
+  DELETED
 }
 
 enum QuestionDifficulty {
@@ -203,6 +204,7 @@ model User {
   parentLinks     ParentChild[]          @relation("ChildUser")
   childLinks      ParentChild[]          @relation("ParentUser")
   waSubscription  WhatsappSubscription?
+  ebookAccesses   EbookAccess[]
 
   @@index([role])
   @@index([status])
@@ -434,6 +436,7 @@ model Question {
   reviewNote  String?
   createdAt   DateTime           @default(now())
   updatedAt   DateTime           @updatedAt
+  deletedAt   DateTime?
 
   topic           Topic                 @relation(fields: [topicId], references: [id])
   options         QuestionOption[]
@@ -653,6 +656,7 @@ model Transaction {
   id            String            @id @default(cuid())
   userId        String
   packageId     String?
+  ebookId       String?
   amount        Int
   paymentMethod PaymentMethod?
   status        TransactionStatus @default(PENDING)
@@ -665,13 +669,16 @@ model Transaction {
   createdAt     DateTime          @default(now())
   updatedAt     DateTime          @updatedAt
 
-  user    User         @relation(fields: [userId], references: [id])
-  package ExamPackage? @relation(fields: [packageId], references: [id])
+  user          User          @relation(fields: [userId], references: [id])
+  package       ExamPackage?  @relation(fields: [packageId], references: [id])
+  ebook         Ebook?        @relation(fields: [ebookId], references: [id])
+  ebookAccesses EbookAccess[]
 
   @@index([userId])
   @@index([status])
   @@index([midtransId])
   @@index([createdAt])
+  @@index([ebookId])
   @@map("transactions")
 }
 
@@ -832,14 +839,38 @@ model Ebook {
   status        ArticleStatus    @default(DRAFT)
   viewCount     Int              @default(0)
   downloadCount Int              @default(0)
+  price         Int              @default(0)
+  isFree        Boolean          @default(true)
   publishedAt   DateTime?
   createdAt     DateTime         @default(now())
   updatedAt     DateTime         @updatedAt
 
-  author User @relation(fields: [authorId], references: [id])
+  author       User          @relation(fields: [authorId], references: [id])
+  accesses     EbookAccess[]
+  transactions Transaction[]
 
   @@index([status, publishedAt])
   @@map("ebooks")
+}
+
+model EbookAccess {
+  id            String    @id @default(cuid())
+  userId        String
+  ebookId       String
+  transactionId String?
+  grantedBy     String?
+  accessType    String    @default("PURCHASE") // "PURCHASE" | "ADMIN_GRANT" | "FREE"
+  grantedAt     DateTime  @default(now())
+  expiresAt     DateTime?
+
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ebook       Ebook        @relation(fields: [ebookId], references: [id], onDelete: Cascade)
+  transaction Transaction? @relation(fields: [transactionId], references: [id])
+
+  @@unique([userId, ebookId])
+  @@index([userId])
+  @@index([ebookId])
+  @@map("ebook_accesses")
 }
 
 // ============================================================

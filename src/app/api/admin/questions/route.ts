@@ -15,7 +15,12 @@ export async function GET(request: NextRequest) {
     const filters = questionFilterSchema.parse(params);
 
     const where: Prisma.QuestionWhereInput = {};
-    if (filters.status) where.status = filters.status;
+    // Exclude soft-deleted questions unless the caller explicitly requests the DELETED status
+    if (filters.status) {
+      where.status = filters.status;
+    } else {
+      where.status = { not: "DELETED" };
+    }
     if (filters.topicId) where.topicId = filters.topicId;
     if (filters.difficulty) where.difficulty = filters.difficulty;
     if (filters.type) where.type = filters.type;
