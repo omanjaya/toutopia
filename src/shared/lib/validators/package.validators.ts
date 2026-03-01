@@ -9,7 +9,7 @@ export const examSectionSchema = z.object({
   questionIds: z.array(z.string()).optional(),
 });
 
-export const createPackageSchema = z.object({
+const packageBaseSchema = z.object({
   categoryId: z.string().min(1, "Kategori harus dipilih"),
   title: z.string().min(3, "Judul minimal 3 karakter"),
   slug: z
@@ -30,21 +30,36 @@ export const createPackageSchema = z.object({
   sections: z.array(examSectionSchema).min(1, "Minimal 1 section"),
   examType: z.enum(["UTBK", "CPNS", "BUMN", "PPPK", "KEDINASAN"]).optional(),
   jabatan: z.string().optional(),
-})
-.refine(
-  (data) => !data.passingScore || !data.totalQuestions || data.passingScore <= data.totalQuestions,
-  { message: "Passing score tidak boleh melebihi total soal", path: ["passingScore"] }
-)
-.refine(
-  (data) => !data.discountPrice || !data.price || data.discountPrice < data.price,
-  { message: "Harga diskon harus lebih kecil dari harga asli", path: ["discountPrice"] }
-)
-.refine(
-  (data) => !data.startDate || !data.endDate || new Date(data.endDate) > new Date(data.startDate),
-  { message: "Tanggal selesai harus setelah tanggal mulai", path: ["endDate"] }
-);
+});
 
-export const updatePackageSchema = createPackageSchema.partial();
+// .partial() must be called before .refine(), so refinements are applied separately
+export const createPackageSchema = packageBaseSchema
+  .refine(
+    (data) => !data.passingScore || !data.totalQuestions || data.passingScore <= data.totalQuestions,
+    { message: "Passing score tidak boleh melebihi total soal", path: ["passingScore"] }
+  )
+  .refine(
+    (data) => !data.discountPrice || !data.price || data.discountPrice < data.price,
+    { message: "Harga diskon harus lebih kecil dari harga asli", path: ["discountPrice"] }
+  )
+  .refine(
+    (data) => !data.startDate || !data.endDate || new Date(data.endDate) > new Date(data.startDate),
+    { message: "Tanggal selesai harus setelah tanggal mulai", path: ["endDate"] }
+  );
+
+export const updatePackageSchema = packageBaseSchema.partial()
+  .refine(
+    (data) => !data.passingScore || !data.totalQuestions || data.passingScore <= data.totalQuestions,
+    { message: "Passing score tidak boleh melebihi total soal", path: ["passingScore"] }
+  )
+  .refine(
+    (data) => !data.discountPrice || !data.price || data.discountPrice < data.price,
+    { message: "Harga diskon harus lebih kecil dari harga asli", path: ["discountPrice"] }
+  )
+  .refine(
+    (data) => !data.startDate || !data.endDate || new Date(data.endDate) > new Date(data.startDate),
+    { message: "Tanggal selesai harus setelah tanggal mulai", path: ["endDate"] }
+  );
 
 export type CreatePackageInput = z.infer<typeof createPackageSchema>;
 export type UpdatePackageInput = z.infer<typeof updatePackageSchema>;
