@@ -5,7 +5,20 @@ import { prisma } from "@/shared/lib/prisma";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
-import { BookOpen, Trophy, Target, ArrowRight, Clock, TrendingUp, CalendarDays } from "lucide-react";
+import {
+  BookOpen,
+  Trophy,
+  Target,
+  ArrowRight,
+  Clock,
+  TrendingUp,
+  TrendingDown,
+  CalendarDays,
+  Zap,
+  CheckCircle2,
+  Bookmark,
+  Flame,
+} from "lucide-react";
 import { StreakBadge } from "@/shared/components/dashboard/streak-badge";
 import { ReferralCard } from "@/shared/components/dashboard/referral-card";
 import { format } from "date-fns";
@@ -17,61 +30,123 @@ export const metadata: Metadata = {
   title: "Dashboard",
 };
 
+type ScoreTrend = "up" | "down" | "neutral";
+
 async function getDashboardStats(userId: string) {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const tomorrow = new Date(today);
   tomorrow.setDate(tomorrow.getDate() + 1);
 
-  const [scoreAgg, recentAttempts, todayTasks, streak] = await Promise.all([
-    prisma.examAttempt.aggregate({
-      where: { userId, status: "COMPLETED", score: { not: null } },
-      _count: true,
-      _max: { score: true },
-      _avg: { score: true },
-    }),
-    prisma.examAttempt.findMany({
-      where: { userId },
-      orderBy: { startedAt: "desc" },
-      take: 5,
-      select: {
-        id: true,
-        status: true,
-        score: true,
-        startedAt: true,
-        package: { select: { title: true, slug: true } },
-      },
-    }),
-    prisma.studyTask.findMany({
-      where: {
-        plan: { userId },
-        date: { gte: today, lt: tomorrow },
-      },
-      orderBy: { startTime: "asc" },
-      take: 5,
-      select: {
-        id: true,
-        title: true,
-        startTime: true,
-        duration: true,
-        isCompleted: true,
-        plan: { select: { title: true } },
-      },
-    }),
-    prisma.userProfile.findUnique({
-      where: { userId },
-      select: { currentStreak: true, longestStreak: true },
-    }),
-  ]);
+  // Use today's date at UTC midnight for DailyChallenge date comparison
+  const todayDate = new Date();
+  todayDate.setHours(0, 0, 0, 0);
+  const tomorrowDate = new Date(todayDate);
+  tomorrowDate.setDate(tomorrowDate.getDate() + 1);
+
+  const [scoreAgg, recentAttempts, lastTwoScores, todayTasks, streak, dailyChallenge] =
+    await Promise.all([
+      prisma.examAttempt.aggregate({
+        where: { userId, status: "COMPLETED", score: { not: null } },
+        _count: true,
+        _max: { score: true },
+        _avg: { score: true },
+      }),
+      prisma.examAttempt.findMany({
+        where: { userId },
+        orderBy: { startedAt: "desc" },
+        take: 5,
+        select: {
+          id: true,
+          status: true,
+          score: true,
+          startedAt: true,
+          package: { select: { title: true, slug: true } },
+        },
+      }),
+      // Fetch last 2 completed attempts with scores for trend calculation
+      prisma.examAttempt.findMany({
+        where: { userId, status: "COMPLETED", score: { not: null } },
+        orderBy: { finishedAt: "desc" },
+        take: 2,
+        select: { score: true },
+      }),
+      prisma.studyTask.findMany({
+        where: {
+          plan: { userId },
+          date: { gte: today, lt: tomorrow },
+        },
+        orderBy: { startTime: "asc" },
+        take: 5,
+        select: {
+          id: true,
+          title: true,
+          startTime: true,
+          duration: true,
+          isCompleted: true,
+          plan: { select: { title: true } },
+        },
+      }),
+      prisma.userProfile.findUnique({
+        where: { userId },
+        select: { currentStreak: true, longestStreak: true },
+      }),
+      prisma.dailyChallenge.findFirst({
+        where: {
+          date: { gte: todayDate, lt: tomorrowDate },
+          isActive: true,
+        },
+        select: {
+          id: true,
+          question: {
+            select: {
+              topic: {
+                select: {
+                  name: true,
+                  subject: { select: { name: true } },
+                },
+              },
+            },
+          },
+          attempts: {
+            where: { userId },
+            select: { id: true },
+            take: 1,
+          },
+        },
+      }),
+    ]);
+
+  // Determine score trend from last 2 completed attempts
+  let scoreTrend: ScoreTrend = "neutral";
+  if (lastTwoScores.length === 2) {
+    const latest = lastTwoScores[0].score!;
+    const previous = lastTwoScores[1].score!;
+    if (latest > previous) scoreTrend = "up";
+    else if (latest < previous) scoreTrend = "down";
+    else scoreTrend = "neutral";
+  }
+
+  const dailyChallengeCompleted =
+    dailyChallenge !== null && dailyChallenge.attempts.length > 0;
 
   return {
     completedAttempts: scoreAgg._count,
     bestScore: scoreAgg._max.score ? Math.round(scoreAgg._max.score) : null,
     avgScore: scoreAgg._avg.score ? Math.round(scoreAgg._avg.score) : null,
+    scoreTrend,
     recentAttempts,
     todayTasks,
     currentStreak: streak?.currentStreak ?? 0,
     longestStreak: streak?.longestStreak ?? 0,
+    dailyChallenge: dailyChallenge
+      ? {
+          id: dailyChallenge.id,
+          subjectName: dailyChallenge.question.topic.subject.name,
+          topicName: dailyChallenge.question.topic.name,
+          isCompleted: dailyChallengeCompleted,
+        }
+      : null,
   };
 }
 
@@ -94,11 +169,16 @@ export default async function DashboardPage() {
             {format(new Date(), "EEEE, d MMMM yyyy", { locale: id })}
           </p>
         </div>
-        {stats && (
+        {stats && stats.currentStreak > 0 ? (
           <StreakBadge
             currentStreak={stats.currentStreak}
             longestStreak={stats.longestStreak}
           />
+        ) : (
+          <div className="inline-flex items-center gap-1.5 rounded-full bg-muted px-3 py-1.5 text-sm font-medium text-muted-foreground">
+            <Flame className="h-4 w-4" />
+            <span>Mulai streak hari ini!</span>
+          </div>
         )}
       </div>
 
@@ -128,6 +208,18 @@ export default async function DashboardPage() {
                 <p className="mt-2 text-4xl font-bold tracking-tight text-foreground">
                   {stats?.bestScore ?? "—"}
                 </p>
+                {stats?.scoreTrend === "up" && (
+                  <div className="mt-1.5 flex items-center gap-1 text-xs font-medium text-emerald-600">
+                    <TrendingUp className="h-3.5 w-3.5" />
+                    <span>Meningkat</span>
+                  </div>
+                )}
+                {stats?.scoreTrend === "down" && (
+                  <div className="mt-1.5 flex items-center gap-1 text-xs font-medium text-red-500">
+                    <TrendingDown className="h-3.5 w-3.5" />
+                    <span>Menurun</span>
+                  </div>
+                )}
               </div>
               <div className="rounded-xl bg-amber-50 p-2.5 dark:bg-amber-950/30">
                 <Trophy className="h-5 w-5 text-amber-500" />
@@ -144,6 +236,18 @@ export default async function DashboardPage() {
                 <p className="mt-2 text-4xl font-bold tracking-tight text-foreground">
                   {stats?.avgScore ?? "—"}
                 </p>
+                {stats?.scoreTrend === "up" && (
+                  <div className="mt-1.5 flex items-center gap-1 text-xs font-medium text-emerald-600">
+                    <TrendingUp className="h-3.5 w-3.5" />
+                    <span>Meningkat</span>
+                  </div>
+                )}
+                {stats?.scoreTrend === "down" && (
+                  <div className="mt-1.5 flex items-center gap-1 text-xs font-medium text-red-500">
+                    <TrendingDown className="h-3.5 w-3.5" />
+                    <span>Menurun</span>
+                  </div>
+                )}
               </div>
               <div className="rounded-xl bg-emerald-50 p-2.5 dark:bg-emerald-950/30">
                 <TrendingUp className="h-5 w-5 text-emerald-500" />
@@ -152,6 +256,45 @@ export default async function DashboardPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Daily Challenge Teaser */}
+      <Card className="border-0 bg-card shadow-sm">
+        <CardContent className="flex items-center gap-4 p-5">
+          <div className="rounded-2xl bg-yellow-400/15 p-3">
+            <Zap className="h-6 w-6 text-yellow-500" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="font-semibold">Tantangan Harian</p>
+            {stats?.dailyChallenge ? (
+              stats.dailyChallenge.isCompleted ? (
+                <p className="mt-0.5 text-sm text-muted-foreground">
+                  {stats.dailyChallenge.subjectName} · {stats.dailyChallenge.topicName}
+                </p>
+              ) : (
+                <p className="mt-0.5 text-sm text-muted-foreground">
+                  {stats.dailyChallenge.subjectName} · {stats.dailyChallenge.topicName}
+                </p>
+              )
+            ) : (
+              <p className="mt-0.5 text-sm text-muted-foreground">
+                Kerjakan soal harian untuk menjaga konsistensi belajarmu!
+              </p>
+            )}
+          </div>
+          {stats?.dailyChallenge?.isCompleted ? (
+            <div className="flex items-center gap-1.5 shrink-0 text-sm font-medium text-emerald-600">
+              <CheckCircle2 className="h-5 w-5" />
+              <span>Selesai hari ini!</span>
+            </div>
+          ) : (
+            <Button size="sm" className="shrink-0 rounded-full" asChild>
+              <Link href="/dashboard/daily-challenge">
+                Kerjakan Sekarang
+              </Link>
+            </Button>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Main Content Grid */}
       <div className="grid gap-6 lg:grid-cols-5">
@@ -270,7 +413,7 @@ export default async function DashboardPage() {
       {/* Referral */}
       <ReferralCard />
 
-      {/* Quick Actions */}
+      {/* Quick Actions — 2x2 Grid */}
       <div className="grid gap-4 sm:grid-cols-2">
         <Link href="/dashboard/tryout">
           <Card className="group cursor-pointer border-0 bg-card shadow-sm transition-shadow hover:shadow-md">
@@ -296,6 +439,36 @@ export default async function DashboardPage() {
               <div className="flex-1">
                 <p className="font-semibold">Lihat Analitik</p>
                 <p className="text-sm text-muted-foreground">Pantau perkembangan skormu</p>
+              </div>
+              <ArrowRight className="h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-1" />
+            </CardContent>
+          </Card>
+        </Link>
+
+        <Link href="/dashboard/practice">
+          <Card className="group cursor-pointer border-0 bg-card shadow-sm transition-shadow hover:shadow-md">
+            <CardContent className="flex items-center gap-4 p-6">
+              <div className="rounded-2xl bg-blue-50 p-3 dark:bg-blue-950/30">
+                <BookOpen className="h-6 w-6 text-blue-600" />
+              </div>
+              <div className="flex-1">
+                <p className="font-semibold">Mode Latihan</p>
+                <p className="text-sm text-muted-foreground">Latihan soal tanpa tekanan waktu</p>
+              </div>
+              <ArrowRight className="h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-1" />
+            </CardContent>
+          </Card>
+        </Link>
+
+        <Link href="/dashboard/bookmarks">
+          <Card className="group cursor-pointer border-0 bg-card shadow-sm transition-shadow hover:shadow-md">
+            <CardContent className="flex items-center gap-4 p-6">
+              <div className="rounded-2xl bg-purple-50 p-3 dark:bg-purple-950/30">
+                <Bookmark className="h-6 w-6 text-purple-600" />
+              </div>
+              <div className="flex-1">
+                <p className="font-semibold">Bookmark Soal</p>
+                <p className="text-sm text-muted-foreground">Tinjau soal yang kamu simpan</p>
               </div>
               <ArrowRight className="h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-1" />
             </CardContent>

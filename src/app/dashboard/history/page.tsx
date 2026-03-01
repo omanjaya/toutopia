@@ -6,9 +6,20 @@ import { prisma } from "@/shared/lib/prisma";
 import { Card, CardContent } from "@/shared/components/ui/card";
 import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
-import { History, ArrowRight, ChevronLeft, ChevronRight, Clock, CheckCircle2, Timer, AlertCircle } from "lucide-react";
+import {
+  History,
+  ArrowRight,
+  ChevronLeft,
+  ChevronRight,
+  Clock,
+  CheckCircle2,
+  Timer,
+  AlertCircle,
+} from "lucide-react";
 import { cn } from "@/shared/lib/utils";
 import { SegmentedNav } from "./segmented-nav";
+import { HistoryFilters } from "./history-filters";
+import type { Prisma } from "@prisma/client";
 
 export const dynamic = "force-dynamic";
 
@@ -26,17 +37,62 @@ function formatDuration(start: Date, end: Date | null): string {
   return mins > 0 ? `${hours}j ${mins}m` : `${hours} jam`;
 }
 
-const statusConfig: Record<string, { label: string; icon: typeof CheckCircle2; color: string; badgeVariant: "default" | "secondary" | "destructive" }> = {
-  COMPLETED: { label: "Selesai", icon: CheckCircle2, color: "text-emerald-500", badgeVariant: "default" },
-  IN_PROGRESS: { label: "Berlangsung", icon: Timer, color: "text-blue-500", badgeVariant: "secondary" },
-  TIMED_OUT: { label: "Waktu Habis", icon: AlertCircle, color: "text-red-500", badgeVariant: "destructive" },
-  ABANDONED: { label: "Ditinggalkan", icon: AlertCircle, color: "text-muted-foreground", badgeVariant: "secondary" },
+const statusConfig: Record<
+  string,
+  {
+    label: string;
+    icon: typeof CheckCircle2;
+    color: string;
+    badgeVariant: "default" | "secondary" | "destructive";
+  }
+> = {
+  COMPLETED: {
+    label: "Selesai",
+    icon: CheckCircle2,
+    color: "text-emerald-500",
+    badgeVariant: "default",
+  },
+  IN_PROGRESS: {
+    label: "Berlangsung",
+    icon: Timer,
+    color: "text-blue-500",
+    badgeVariant: "secondary",
+  },
+  TIMED_OUT: {
+    label: "Waktu Habis",
+    icon: AlertCircle,
+    color: "text-red-500",
+    badgeVariant: "destructive",
+  },
+  ABANDONED: {
+    label: "Ditinggalkan",
+    icon: AlertCircle,
+    color: "text-muted-foreground",
+    badgeVariant: "secondary",
+  },
 };
+
+function buildPaginationUrl(
+  page: number,
+  params: { status?: string; q?: string; sort?: string }
+): string {
+  const p = new URLSearchParams();
+  if (params.status && params.status !== "all") p.set("status", params.status);
+  if (params.q) p.set("q", params.q);
+  if (params.sort && params.sort !== "newest") p.set("sort", params.sort);
+  p.set("page", String(page));
+  return `/dashboard/history?${p.toString()}`;
+}
 
 export default async function HistoryPage({
   searchParams,
 }: {
-  searchParams: Promise<{ status?: string; page?: string }>;
+  searchParams: Promise<{
+    status?: string;
+    page?: string;
+    q?: string;
+    sort?: string;
+  }>;
 }) {
   const session = await auth();
   if (!session?.user) redirect("/login");
@@ -44,24 +100,56 @@ export default async function HistoryPage({
   const userId = (session.user as { id: string }).id;
   const params = await searchParams;
   const statusFilter = params.status;
+  const searchQuery = params.q ?? "";
+  const sortParam = params.sort ?? "newest";
   const page = Math.max(1, parseInt(params.page ?? "1", 10));
   const limit = 10;
 
-  const where = {
+  const where: Prisma.ExamAttemptWhereInput = {
     userId,
     ...(statusFilter && statusFilter !== "all"
-      ? { status: statusFilter as "COMPLETED" | "IN_PROGRESS" | "TIMED_OUT" | "ABANDONED" }
+      ? {
+          status: statusFilter as
+            | "COMPLETED"
+            | "IN_PROGRESS"
+            | "TIMED_OUT"
+            | "ABANDONED",
+        }
+      : {}),
+    ...(searchQuery
+      ? {
+          package: {
+            title: { contains: searchQuery, mode: "insensitive" },
+          },
+        }
       : {}),
   };
+
+  const orderBy: Prisma.ExamAttemptOrderByWithRelationInput =
+    sortParam === "oldest"
+      ? { startedAt: "asc" }
+      : sortParam === "score_desc"
+        ? { score: "desc" }
+        : sortParam === "score_asc"
+          ? { score: "asc" }
+          : { startedAt: "desc" };
 
   const [attempts, total] = await Promise.all([
     prisma.examAttempt.findMany({
       where,
-      orderBy: { startedAt: "desc" },
+      orderBy,
       skip: (page - 1) * limit,
       take: limit,
-      include: {
-        package: { select: { title: true, slug: true, totalQuestions: true } },
+      select: {
+        id: true,
+        status: true,
+        score: true,
+        totalCorrect: true,
+        startedAt: true,
+        finishedAt: true,
+        package: {
+          select: { title: true, slug: true, totalQuestions: true },
+        },
       },
     }),
     prisma.examAttempt.count({ where }),
@@ -104,32 +192,56 @@ export default async function HistoryPage({
         paramKey="status"
       />
 
+      <HistoryFilters
+        defaultQ={searchQuery}
+        defaultSort={sortParam}
+        defaultStatus={currentStatus}
+      />
+
       {attempts.length === 0 ? (
         <Card className="border-dashed">
           <CardContent className="flex flex-col items-center py-16 text-center">
             <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-muted">
               <History className="h-8 w-8 text-muted-foreground/50" />
             </div>
-            <h3 className="text-lg font-semibold">Belum ada riwayat</h3>
+            <h3 className="text-lg font-semibold">
+              {searchQuery ? "Tidak ada hasil" : "Belum ada riwayat"}
+            </h3>
             <p className="mt-1 max-w-sm text-sm text-muted-foreground">
-              Kerjakan try out pertamamu untuk melihat riwayat di sini.
+              {searchQuery
+                ? `Tidak ditemukan riwayat untuk "${searchQuery}".`
+                : "Kerjakan try out pertamamu untuk melihat riwayat di sini."}
             </p>
-            <Button asChild variant="outline" className="mt-6">
-              <Link href="/dashboard/tryout">
-                Mulai Try Out
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
-            </Button>
+            {!searchQuery && (
+              <Button asChild variant="outline" className="mt-6">
+                <Link href="/dashboard/tryout">
+                  Mulai Try Out
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Link>
+              </Button>
+            )}
           </CardContent>
         </Card>
       ) : (
         <div className="space-y-2">
           {attempts.map((attempt) => {
-            const config = statusConfig[attempt.status] ?? statusConfig.ABANDONED;
+            const config =
+              statusConfig[attempt.status] ?? statusConfig.ABANDONED;
             const StatusIcon = config.icon;
-            const scorePercent = attempt.score != null && attempt.package.totalQuestions > 0
-              ? Math.round((attempt.score / 100) * 100)
-              : null;
+
+            // Score as percentage of 100 (score is already out of 100)
+            const scorePercent =
+              attempt.score != null ? Math.min(100, Math.round(attempt.score)) : null;
+
+            // Color band for score bar
+            const barColor =
+              scorePercent == null
+                ? ""
+                : scorePercent >= 70
+                  ? "bg-emerald-500"
+                  : scorePercent >= 40
+                    ? "bg-amber-500"
+                    : "bg-red-500";
 
             return (
               <Link
@@ -143,13 +255,15 @@ export default async function HistoryPage({
                 <Card className="group transition-all hover:shadow-md hover:border-primary/30 hover:-translate-y-px mb-2">
                   <CardContent className="flex items-center gap-4 py-4">
                     {/* Status icon */}
-                    <div className={cn(
-                      "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl",
-                      attempt.status === "COMPLETED" && "bg-emerald-500/10",
-                      attempt.status === "IN_PROGRESS" && "bg-blue-500/10",
-                      attempt.status === "TIMED_OUT" && "bg-red-500/10",
-                      attempt.status === "ABANDONED" && "bg-muted",
-                    )}>
+                    <div
+                      className={cn(
+                        "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl",
+                        attempt.status === "COMPLETED" && "bg-emerald-500/10",
+                        attempt.status === "IN_PROGRESS" && "bg-blue-500/10",
+                        attempt.status === "TIMED_OUT" && "bg-red-500/10",
+                        attempt.status === "ABANDONED" && "bg-muted"
+                      )}
+                    >
                       <StatusIcon className={cn("h-5 w-5", config.color)} />
                     </div>
 
@@ -172,6 +286,21 @@ export default async function HistoryPage({
                           {formatDuration(attempt.startedAt, attempt.finishedAt)}
                         </span>
                       </div>
+
+                      {/* Progress bar */}
+                      {scorePercent != null && (
+                        <div className="mt-2 flex items-center gap-2">
+                          <div className="h-1.5 flex-1 rounded-full bg-muted overflow-hidden">
+                            <div
+                              className={cn("h-full rounded-full transition-all", barColor)}
+                              style={{ width: `${scorePercent}%` }}
+                            />
+                          </div>
+                          <span className="text-xs tabular-nums text-muted-foreground w-8 text-right">
+                            {scorePercent}%
+                          </span>
+                        </div>
+                      )}
                     </div>
 
                     {/* Score */}
@@ -181,16 +310,15 @@ export default async function HistoryPage({
                           {Math.round(attempt.score)}
                         </p>
                         <p className="text-xs text-muted-foreground">
-                          {attempt.totalCorrect ?? 0}/{attempt.package.totalQuestions}
+                          {attempt.totalCorrect ?? 0}/
+                          {attempt.package.totalQuestions}
                         </p>
                       </div>
                     )}
 
                     {/* Badge + Arrow */}
                     <div className="flex items-center gap-2 shrink-0">
-                      <Badge variant={config.badgeVariant}>
-                        {config.label}
-                      </Badge>
+                      <Badge variant={config.badgeVariant}>{config.label}</Badge>
                       <ArrowRight className="h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
                     </div>
                   </CardContent>
@@ -207,7 +335,11 @@ export default async function HistoryPage({
           {page > 1 ? (
             <Button asChild variant="outline" size="sm">
               <Link
-                href={`/dashboard/history?page=${page - 1}${statusFilter ? `&status=${statusFilter}` : ""}`}
+                href={buildPaginationUrl(page - 1, {
+                  status: statusFilter,
+                  q: searchQuery,
+                  sort: sortParam,
+                })}
               >
                 <ChevronLeft className="mr-1 h-4 w-4" />
                 Sebelumnya
@@ -227,7 +359,11 @@ export default async function HistoryPage({
           {page < totalPages ? (
             <Button asChild variant="outline" size="sm">
               <Link
-                href={`/dashboard/history?page=${page + 1}${statusFilter ? `&status=${statusFilter}` : ""}`}
+                href={buildPaginationUrl(page + 1, {
+                  status: statusFilter,
+                  q: searchQuery,
+                  sort: sortParam,
+                })}
               >
                 Selanjutnya
                 <ChevronRight className="ml-1 h-4 w-4" />

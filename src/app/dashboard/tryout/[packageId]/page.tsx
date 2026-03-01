@@ -1,11 +1,25 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/shared/lib/prisma";
 import { auth } from "@/shared/lib/auth";
 import { StartExamButton } from "./start-exam-button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { Badge } from "@/shared/components/ui/badge";
-import { Clock, FileText, Shield, Users, RotateCcw } from "lucide-react";
+import { Button } from "@/shared/components/ui/button";
+import {
+  Clock,
+  FileText,
+  Shield,
+  Users,
+  RotateCcw,
+  Trophy,
+  ShoppingCart,
+  BarChart2,
+  Target,
+  ArrowRight,
+  CheckCircle2,
+} from "lucide-react";
 import { formatCurrency } from "@/shared/lib/utils";
 
 export const dynamic = "force-dynamic";
@@ -38,32 +52,58 @@ export default async function TryOutDetailPage({
 
   if (!pkg) notFound();
 
-  const userAttempts = session?.user?.id
-    ? await prisma.examAttempt.findMany({
-        where: { userId: session.user.id, packageId },
-        orderBy: { startedAt: "desc" },
-        select: { id: true, status: true, score: true, startedAt: true, finishedAt: true },
-      })
-    : [];
+  const userId = (session?.user as { id?: string } | undefined)?.id;
+
+  const [userAttempts, leaderboardEntry, leaderboardTotal] = await Promise.all([
+    userId
+      ? prisma.examAttempt.findMany({
+          where: { userId, packageId },
+          orderBy: { startedAt: "desc" },
+          select: {
+            id: true,
+            status: true,
+            score: true,
+            startedAt: true,
+            finishedAt: true,
+          },
+        })
+      : Promise.resolve([]),
+    userId
+      ? prisma.leaderboardEntry.findUnique({
+          where: { packageId_userId: { packageId, userId } },
+          select: { rank: true, score: true },
+        })
+      : Promise.resolve(null),
+    prisma.leaderboardEntry.count({ where: { packageId } }),
+  ]);
 
   const inProgress = userAttempts.find((a) => a.status === "IN_PROGRESS");
-  const canStart = userAttempts.length < pkg.maxAttempts && !inProgress;
+  const canStart =
+    userId !== undefined &&
+    userAttempts.length < pkg.maxAttempts &&
+    !inProgress;
+
+  // Show buy button when: paid package + user has no attempts (likely not purchased)
+  const showBuyButton = !pkg.isFree && userAttempts.length === 0;
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
+      {/* Title */}
       <div>
-        <Badge variant="outline" className="mb-2">{pkg.category.name}</Badge>
+        <Badge variant="outline" className="mb-2">
+          {pkg.category.name}
+        </Badge>
         <h2 className="text-2xl font-bold tracking-tight">{pkg.title}</h2>
         {pkg.description && (
           <p className="mt-1 text-muted-foreground">{pkg.description}</p>
         )}
       </div>
 
-      {/* Info Grid */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      {/* Info Grid — 5 cards */}
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
         <Card>
           <CardContent className="flex items-center gap-3 pt-6">
-            <FileText className="h-5 w-5 text-muted-foreground" />
+            <FileText className="h-5 w-5 shrink-0 text-muted-foreground" />
             <div>
               <p className="text-2xl font-bold">{pkg.totalQuestions}</p>
               <p className="text-xs text-muted-foreground">Soal</p>
@@ -72,7 +112,7 @@ export default async function TryOutDetailPage({
         </Card>
         <Card>
           <CardContent className="flex items-center gap-3 pt-6">
-            <Clock className="h-5 w-5 text-muted-foreground" />
+            <Clock className="h-5 w-5 shrink-0 text-muted-foreground" />
             <div>
               <p className="text-2xl font-bold">{pkg.durationMinutes}</p>
               <p className="text-xs text-muted-foreground">Menit</p>
@@ -81,7 +121,7 @@ export default async function TryOutDetailPage({
         </Card>
         <Card>
           <CardContent className="flex items-center gap-3 pt-6">
-            <RotateCcw className="h-5 w-5 text-muted-foreground" />
+            <RotateCcw className="h-5 w-5 shrink-0 text-muted-foreground" />
             <div>
               <p className="text-2xl font-bold">{pkg.maxAttempts}x</p>
               <p className="text-xs text-muted-foreground">Percobaan</p>
@@ -90,7 +130,7 @@ export default async function TryOutDetailPage({
         </Card>
         <Card>
           <CardContent className="flex items-center gap-3 pt-6">
-            <Shield className="h-5 w-5 text-muted-foreground" />
+            <Shield className="h-5 w-5 shrink-0 text-muted-foreground" />
             <div>
               <p className="text-2xl font-bold">
                 {pkg.isAntiCheat ? "Aktif" : "Nonaktif"}
@@ -99,23 +139,100 @@ export default async function TryOutDetailPage({
             </div>
           </CardContent>
         </Card>
+        <Card>
+          <CardContent className="flex items-center gap-3 pt-6">
+            <ShoppingCart className="h-5 w-5 shrink-0 text-muted-foreground" />
+            <div>
+              <p className="text-lg font-bold leading-tight">
+                {pkg.isFree
+                  ? "Gratis"
+                  : formatCurrency(pkg.discountPrice ?? pkg.price)}
+              </p>
+              <p className="text-xs text-muted-foreground">Harga</p>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
-      {/* Price */}
-      <Card>
-        <CardContent className="flex items-center justify-between pt-6">
-          <div>
-            <p className="text-sm text-muted-foreground">Harga</p>
-            <p className="text-xl font-bold">
-              {pkg.isFree ? "Gratis" : formatCurrency(pkg.discountPrice ?? pkg.price)}
-            </p>
-          </div>
+      {/* Passing score + participants */}
+      <div className="flex flex-wrap gap-4">
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Users className="h-4 w-4" />
+          <span>{pkg._count.attempts} peserta</span>
+        </div>
+        {pkg.passingScore !== null && (
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Users className="h-4 w-4" />
-            {pkg._count.attempts} peserta
+            <Target className="h-4 w-4" />
+            <span>
+              Nilai Kelulusan:{" "}
+              <span className="font-semibold text-foreground">
+                {pkg.passingScore}
+              </span>
+            </span>
           </div>
-        </CardContent>
-      </Card>
+        )}
+      </div>
+
+      {/* User leaderboard rank */}
+      {userId && (
+        <Card
+          className={
+            leaderboardEntry
+              ? "border-amber-500/30 bg-amber-500/5"
+              : "border-dashed"
+          }
+        >
+          <CardContent className="flex items-center justify-between pt-6">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-amber-500/10">
+                <Trophy className="h-5 w-5 text-amber-500" />
+              </div>
+              <div>
+                <p className="font-semibold">Peringkat Kamu</p>
+                {leaderboardEntry ? (
+                  <p className="text-sm text-muted-foreground">
+                    #{leaderboardEntry.rank ?? "?"} dari {leaderboardTotal} peserta
+                    {leaderboardEntry.score !== null && (
+                      <> &middot; Skor: <span className="font-medium text-foreground">{Math.round(leaderboardEntry.score)}</span></>
+                    )}
+                  </p>
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    Belum ada peringkat — selesaikan try out untuk masuk leaderboard
+                  </p>
+                )}
+              </div>
+            </div>
+            <Button asChild variant="ghost" size="sm">
+              <Link href={`/dashboard/leaderboard/${packageId}`}>
+                Lihat Leaderboard
+                <ArrowRight className="ml-1 h-4 w-4" />
+              </Link>
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Buy button for paid packages where user hasn't started */}
+      {showBuyButton && (
+        <Card className="border-primary/20 bg-primary/5">
+          <CardContent className="flex items-center justify-between pt-6">
+            <div>
+              <p className="font-semibold">Paket Berbayar</p>
+              <p className="text-sm text-muted-foreground">
+                Beli paket ini untuk mendapatkan akses penuh
+              </p>
+            </div>
+            <Button asChild>
+              <Link href={`/dashboard/payment?packageId=${packageId}`}>
+                <ShoppingCart className="mr-2 h-4 w-4" />
+                Beli Sekarang —{" "}
+                {formatCurrency(pkg.discountPrice ?? pkg.price)}
+              </Link>
+            </Button>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Sections */}
       <Card>
@@ -152,44 +269,73 @@ export default async function TryOutDetailPage({
             <CardTitle>Riwayat Percobaan</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
-            {userAttempts.map((attempt, idx) => (
-              <div
-                key={attempt.id}
-                className="flex items-center justify-between rounded-lg border p-3 text-sm"
-              >
-                <div>
-                  <p className="font-medium">Percobaan {userAttempts.length - idx}</p>
-                  <p className="text-muted-foreground">
-                    {new Date(attempt.startedAt).toLocaleDateString("id-ID", {
-                      dateStyle: "medium",
-                    })}
-                  </p>
-                </div>
-                <div className="text-right">
-                  {attempt.status === "IN_PROGRESS" ? (
-                    <Badge variant="outline">Sedang Berlangsung</Badge>
-                  ) : attempt.score !== null ? (
-                    <p className="text-lg font-bold">
-                      {Math.round(attempt.score)}
+            {userAttempts.map((attempt, idx) => {
+              const isCompleted = attempt.status === "COMPLETED";
+              const row = (
+                <div className="flex items-center justify-between rounded-lg border p-3 text-sm">
+                  <div>
+                    <p className="font-medium">
+                      Percobaan {userAttempts.length - idx}
                     </p>
-                  ) : (
-                    <Badge variant="secondary">{attempt.status}</Badge>
-                  )}
+                    <p className="text-muted-foreground">
+                      {new Date(attempt.startedAt).toLocaleDateString("id-ID", {
+                        dateStyle: "medium",
+                      })}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    {attempt.status === "IN_PROGRESS" ? (
+                      <Badge variant="outline">Sedang Berlangsung</Badge>
+                    ) : attempt.score !== null ? (
+                      <p className="text-lg font-bold">
+                        {Math.round(attempt.score)}
+                      </p>
+                    ) : (
+                      <Badge variant="secondary">{attempt.status}</Badge>
+                    )}
+                    {isCompleted && (
+                      <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-500" />
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+
+              return isCompleted ? (
+                <Link
+                  key={attempt.id}
+                  href={`/exam/${attempt.id}/result`}
+                  className="block rounded-lg transition-colors hover:bg-muted/50"
+                >
+                  {row}
+                </Link>
+              ) : (
+                <div key={attempt.id}>{row}</div>
+              );
+            })}
           </CardContent>
         </Card>
       )}
 
-      {/* Start Button */}
-      <StartExamButton
-        packageId={packageId}
-        inProgressAttemptId={inProgress?.id}
-        canStart={canStart}
-        maxAttempts={pkg.maxAttempts}
-        attemptCount={userAttempts.length}
-      />
+      {/* Start / Continue button */}
+      {!showBuyButton && (
+        <StartExamButton
+          packageId={packageId}
+          inProgressAttemptId={inProgress?.id}
+          canStart={canStart}
+          maxAttempts={pkg.maxAttempts}
+          attemptCount={userAttempts.length}
+        />
+      )}
+
+      {/* Leaderboard link */}
+      <div className="flex justify-center">
+        <Button asChild variant="outline" size="sm">
+          <Link href={`/dashboard/leaderboard/${packageId}`}>
+            <BarChart2 className="mr-2 h-4 w-4" />
+            Lihat Leaderboard
+          </Link>
+        </Button>
+      </div>
     </div>
   );
 }

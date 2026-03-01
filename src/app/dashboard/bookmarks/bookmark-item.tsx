@@ -40,9 +40,9 @@ interface BookmarkItemProps {
 
 const DIFFICULTY_MAP: Record<string, { label: string; color: string }> = {
   VERY_EASY: { label: "Sangat Mudah", color: "bg-emerald-500/10 text-emerald-700 border-emerald-500/20" },
-  EASY: { label: "Mudah", color: "bg-green-500/10 text-green-700 border-green-500/20" },
+  EASY: { label: "Mudah", color: "bg-emerald-500/10 text-emerald-700 border-emerald-500/20" },
   MEDIUM: { label: "Sedang", color: "bg-amber-500/10 text-amber-700 border-amber-500/20" },
-  HARD: { label: "Sulit", color: "bg-orange-500/10 text-orange-700 border-orange-500/20" },
+  HARD: { label: "Sulit", color: "bg-red-500/10 text-red-700 border-red-500/20" },
   VERY_HARD: { label: "Sangat Sulit", color: "bg-red-500/10 text-red-700 border-red-500/20" },
 };
 
@@ -56,9 +56,11 @@ export function BookmarkItem({ bookmark }: BookmarkItemProps) {
       <CardContent className="py-4">
         <div className="flex items-start justify-between gap-4">
           <div className="flex-1 space-y-3">
-            {/* Badges */}
+            {/* Subject / topic / difficulty labels */}
             <div className="flex items-center gap-2 flex-wrap">
-              <Badge variant="outline">{q.topic.subject.name}</Badge>
+              <Badge className="bg-primary/10 text-primary border-primary/20 font-semibold">
+                {q.topic.subject.name}
+              </Badge>
               <Badge variant="secondary">{q.topic.name}</Badge>
               <span className={cn("inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-medium", diff.color)}>
                 {diff.label}
