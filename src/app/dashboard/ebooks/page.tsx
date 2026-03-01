@@ -3,10 +3,10 @@ import Link from "next/link";
 import Image from "next/image";
 import { redirect } from "next/navigation";
 import { prisma } from "@/shared/lib/prisma";
-import { Card, CardContent } from "@/shared/components/ui/card";
+import { Card } from "@/shared/components/ui/card";
 import { Badge } from "@/shared/components/ui/badge";
 import { auth } from "@/shared/lib/auth";
-import { BookText, Eye } from "lucide-react";
+import { BookText, Eye, BookOpen } from "lucide-react";
 import { EbookFilters } from "./ebook-filters";
 
 export const dynamic = "force-dynamic";
@@ -17,8 +17,7 @@ export const metadata: Metadata = {
     "Koleksi ebook dan materi belajar untuk persiapan UTBK, CPNS, BUMN, dan lainnya.",
   openGraph: {
     title: "Ebook - Toutopia",
-    description:
-      "Koleksi ebook dan materi belajar untuk persiapan ujian.",
+    description: "Koleksi materi belajar dan referensi untuk persiapan ujianmu.",
   },
 };
 
@@ -52,6 +51,8 @@ async function getEbooks(category?: string, query?: string) {
       category: true,
       pageCount: true,
       viewCount: true,
+      isFree: true,
+      price: true,
       publishedAt: true,
       author: { select: { name: true } },
     },
@@ -78,89 +79,124 @@ export default async function EbooksPage({ searchParams }: Props) {
   ]);
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-12">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold tracking-tight">Ebook</h1>
-        <p className="mt-2 text-muted-foreground">
-          Koleksi materi belajar dan referensi untuk persiapan ujianmu
-        </p>
-      </div>
-
-      <EbookFilters categories={categories} currentCategory={category} currentQuery={q} />
-
-      {ebooks.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-16 text-center">
-          <BookText className="h-12 w-12 text-muted-foreground/40" />
-          <p className="mt-4 text-muted-foreground">
-            {q || category ? "Tidak ada ebook yang sesuai filter" : "Belum ada ebook tersedia"}
+    <div className="mx-auto max-w-5xl space-y-8 px-4 py-8">
+      {/* Header */}
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Perpustakaan Ebook</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {ebooks.length > 0
+              ? `${ebooks.length} materi tersedia untuk persiapan ujianmu`
+              : "Koleksi materi belajar dan referensi"}
           </p>
         </div>
+        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
+          <BookOpen className="h-5 w-5 text-primary" />
+        </div>
+      </div>
+
+      {/* Filters */}
+      <EbookFilters
+        categories={categories}
+        currentCategory={category}
+        currentQuery={q}
+      />
+
+      {/* Grid */}
+      {ebooks.length === 0 ? (
+        <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed py-20 text-center">
+          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-muted">
+            <BookText className="h-7 w-7 text-muted-foreground/50" />
+          </div>
+          <p className="mt-4 font-medium text-muted-foreground">
+            {q || category ? "Tidak ada ebook yang sesuai" : "Belum ada ebook tersedia"}
+          </p>
+          {(q || category) && (
+            <p className="mt-1 text-sm text-muted-foreground/70">
+              Coba hapus filter atau ubah kata kunci pencarian
+            </p>
+          )}
+        </div>
       ) : (
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {ebooks.map((ebook) => (
-            <Link key={ebook.id} href={`/dashboard/ebooks/${ebook.slug}`}>
-              <Card className="h-full overflow-hidden transition-shadow hover:shadow-lg">
-                <div className="relative aspect-video overflow-hidden bg-muted">
+            <Link key={ebook.id} href={`/dashboard/ebooks/${ebook.slug}`} className="group">
+              <Card className="h-full overflow-hidden border-0 shadow-[3px_4px_16px_rgba(0,0,0,0.12)] transition-all duration-200 hover:-translate-y-1 hover:shadow-[4px_8px_24px_rgba(0,0,0,0.18)]">
+                {/* Book cover — portrait ratio */}
+                <div className="relative aspect-[3/4] w-full overflow-hidden bg-gradient-to-br from-muted to-muted/60">
+                  {/* Book spine left edge */}
+                  <div className="absolute inset-y-0 left-0 z-10 w-2.5 bg-gradient-to-r from-black/20 to-transparent" />
+
                   {ebook.coverImage ? (
                     <Image
                       src={ebook.coverImage}
                       alt={ebook.title}
                       fill
-                      className="object-cover"
-                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                      className="object-cover transition-transform duration-300 group-hover:scale-[1.03]"
+                      sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
                     />
                   ) : (
-                    <div className="flex h-full items-center justify-center">
-                      <BookText className="h-10 w-10 text-muted-foreground/30" />
+                    <div className="flex h-full flex-col items-center justify-center gap-3 px-4">
+                      <BookText className="h-12 w-12 text-muted-foreground/25" />
+                      <p className="text-center text-xs font-medium leading-snug text-muted-foreground/60 line-clamp-3">
+                        {ebook.title}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Gradient overlay at bottom */}
+                  <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/50 to-transparent" />
+
+                  {/* Free / Paid badge */}
+                  <div className="absolute left-2 top-2">
+                    {ebook.isFree ? (
+                      <span className="rounded-full bg-emerald-500 px-2 py-0.5 text-[10px] font-semibold text-white shadow-sm">
+                        Gratis
+                      </span>
+                    ) : (
+                      <span className="rounded-full bg-amber-500 px-2 py-0.5 text-[10px] font-semibold text-white shadow-sm">
+                        Premium
+                      </span>
+                    )}
+                  </div>
+
+                  {/* View count */}
+                  {ebook.viewCount > 0 && (
+                    <div className="absolute bottom-2 right-2 flex items-center gap-1 rounded-full bg-black/40 px-2 py-0.5 text-[10px] text-white backdrop-blur-sm">
+                      <Eye className="h-2.5 w-2.5" />
+                      {ebook.viewCount.toLocaleString("id-ID")}
                     </div>
                   )}
                 </div>
-                <CardContent className="p-4">
-                  <div className="mb-2 flex items-center gap-2">
-                    <Badge variant="secondary">
-                      {ebook.contentType}
-                    </Badge>
-                    {ebook.category && (
-                      <Badge variant="outline">
-                        {ebook.category}
-                      </Badge>
-                    )}
-                  </div>
-                  <h2 className="font-semibold leading-tight line-clamp-2">
+
+                {/* Card body */}
+                <div className="p-3">
+                  <h2 className="line-clamp-2 text-sm font-semibold leading-snug">
                     {ebook.title}
                   </h2>
+
                   {ebook.description && (
-                    <p className="mt-2 text-sm text-muted-foreground line-clamp-2">
+                    <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">
                       {ebook.description}
                     </p>
                   )}
-                  <div className="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
-                    <span>{ebook.author.name}</span>
-                    {ebook.pageCount && (
-                      <>
-                        <span>&middot;</span>
-                        <span>{ebook.pageCount} halaman</span>
-                      </>
-                    )}
-                    {ebook.viewCount > 0 && (
-                      <>
-                        <span>&middot;</span>
-                        <span className="flex items-center gap-1">
-                          <Eye className="h-3 w-3" />
-                          {ebook.viewCount}
-                        </span>
-                      </>
-                    )}
+
+                  <div className="mt-2.5 flex items-center justify-between">
+                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                      {ebook.category && (
+                        <Badge variant="secondary" className="px-1.5 py-0 text-[10px] font-normal">
+                          {ebook.category}
+                        </Badge>
+                      )}
+                      {ebook.pageCount && (
+                        <span>{ebook.pageCount} hal</span>
+                      )}
+                    </div>
+                    <span className="text-xs text-muted-foreground/60">
+                      {ebook.contentType}
+                    </span>
                   </div>
-                  <div className="mt-1 text-xs text-muted-foreground">
-                    {ebook.publishedAt
-                      ? new Date(ebook.publishedAt).toLocaleDateString(
-                          "id-ID",
-                          { dateStyle: "medium" }
-                        )
-                      : ""}
-                  </div>
-                </CardContent>
+                </div>
               </Card>
             </Link>
           ))}

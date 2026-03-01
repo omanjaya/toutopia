@@ -4,10 +4,22 @@ import Link from "next/link";
 import { prisma } from "@/shared/lib/prisma";
 import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
-import { ArrowLeft, FileText } from "lucide-react";
+import { Separator } from "@/shared/components/ui/separator";
+import {
+  ArrowLeft,
+  FileText,
+  CalendarDays,
+  BookOpen,
+  User,
+  Tag,
+  Clock,
+} from "lucide-react";
 import { auth } from "@/shared/lib/auth";
 import { sanitizeHtml } from "@/shared/lib/sanitize";
 import { DownloadButton } from "@/shared/components/ebook/download-button";
+import { BookCover } from "@/shared/components/ebook/book-cover";
+import { ReadingProgress } from "@/shared/components/ebook/reading-progress";
+import { estimateFromHtml, estimateFromPages } from "@/shared/lib/reading-time";
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -16,24 +28,19 @@ interface Props {
 async function getEbook(slug: string) {
   const ebook = await prisma.ebook.findUnique({
     where: { slug },
-    include: {
-      author: { select: { name: true, avatar: true } },
-    },
+    include: { author: { select: { name: true, avatar: true } } },
   });
-
   if (!ebook || ebook.status !== "PUBLISHED") return null;
-
   return ebook;
 }
+
 
 export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const ebook = await getEbook(slug);
-
   if (!ebook) return { title: "Ebook Tidak Ditemukan" };
-
   return {
     title: `${ebook.title} - Toutopia`,
     description: ebook.description ?? `Baca ebook ${ebook.title} di Toutopia`,
@@ -54,94 +61,179 @@ export default async function EbookDetailPage({ params }: Props) {
 
   const { slug } = await params;
   const ebook = await getEbook(slug);
-
   if (!ebook) notFound();
 
+  const readingTime =
+    ebook.contentType === "HTML"
+      ? estimateFromHtml(ebook.htmlContent)
+      : estimateFromPages(ebook.pageCount);
+
   return (
-    <article className="mx-auto max-w-3xl px-4 py-12">
-      <Button variant="ghost" size="sm" className="mb-6" asChild>
-        <Link href="/dashboard/ebooks">
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Kembali ke Ebook
-        </Link>
-      </Button>
+    <>
+      {/* Thin reading progress bar — fixed at very top */}
+      <ReadingProgress />
 
-      <div className="mb-4 flex items-center gap-2">
-        <Badge variant="secondary">{ebook.contentType}</Badge>
-        {ebook.category && (
-          <Badge variant="outline">{ebook.category}</Badge>
-        )}
-      </div>
+      <div className="mx-auto max-w-4xl px-4 py-8">
+        {/* Back */}
+        <Button
+          variant="ghost"
+          size="sm"
+          className="mb-8 -ml-2 gap-1.5 text-muted-foreground hover:text-foreground"
+          asChild
+        >
+          <Link href="/dashboard/ebooks">
+            <ArrowLeft className="h-4 w-4" />
+            Perpustakaan Ebook
+          </Link>
+        </Button>
 
-      <h1 className="text-3xl font-bold tracking-tight lg:text-4xl">
-        {ebook.title}
-      </h1>
+        {/* ── Hero ── */}
+        <div className="flex flex-col gap-8 lg:flex-row lg:items-start lg:gap-12">
+          {/* Book Cover — with 3D effect */}
+          <div className="mx-auto w-44 shrink-0 lg:mx-0 lg:w-52">
+            <BookCover
+              src={ebook.coverImage}
+              alt={ebook.title}
+              width={208}
+              priority
+            />
+          </div>
 
-      <div className="mt-4 flex items-center gap-3 text-sm text-muted-foreground">
-        <span>{ebook.author.name}</span>
-        <span>&middot;</span>
-        <time>
-          {ebook.publishedAt?.toLocaleDateString("id-ID", {
-            dateStyle: "long",
-          })}
-        </time>
-        {ebook.pageCount && (
-          <>
-            <span>&middot;</span>
-            <span>{ebook.pageCount} halaman</span>
-          </>
-        )}
-      </div>
+          {/* Metadata */}
+          <div className="flex-1 min-w-0">
+            {/* Badges */}
+            <div className="flex flex-wrap items-center gap-2">
+              <Badge variant="secondary" className="font-normal">
+                {ebook.contentType}
+              </Badge>
+              {ebook.category && (
+                <Badge variant="outline" className="font-normal">
+                  {ebook.category}
+                </Badge>
+              )}
+              {ebook.isFree ? (
+                <Badge className="bg-emerald-500 hover:bg-emerald-500/90 text-white shadow-sm">
+                  Gratis
+                </Badge>
+              ) : (
+                <Badge className="bg-amber-500 hover:bg-amber-500/90 text-white shadow-sm">
+                  Premium
+                </Badge>
+              )}
+            </div>
 
-      {ebook.description && (
-        <p className="mt-4 text-muted-foreground">{ebook.description}</p>
-      )}
+            {/* Title */}
+            <h1 className="mt-4 text-2xl font-bold leading-tight tracking-tight lg:text-3xl">
+              {ebook.title}
+            </h1>
 
-      {ebook.coverImage && (
-        <div className="relative mt-8 aspect-video overflow-hidden rounded-lg">
-          <img
-            src={ebook.coverImage}
-            alt={ebook.title}
-            className="h-full w-full object-cover"
-          />
+            {/* Description */}
+            {ebook.description && (
+              <p className="mt-3 leading-relaxed text-muted-foreground">
+                {ebook.description}
+              </p>
+            )}
+
+            {/* Meta info */}
+            <div className="mt-5 flex flex-wrap gap-x-5 gap-y-2.5 text-sm text-muted-foreground">
+              {ebook.author.name && (
+                <div className="flex items-center gap-1.5">
+                  <User className="h-3.5 w-3.5 shrink-0" />
+                  <span>{ebook.author.name}</span>
+                </div>
+              )}
+              {ebook.publishedAt && (
+                <div className="flex items-center gap-1.5">
+                  <CalendarDays className="h-3.5 w-3.5 shrink-0" />
+                  <time>
+                    {ebook.publishedAt.toLocaleDateString("id-ID", {
+                      dateStyle: "long",
+                    })}
+                  </time>
+                </div>
+              )}
+              {ebook.pageCount && (
+                <div className="flex items-center gap-1.5">
+                  <BookOpen className="h-3.5 w-3.5 shrink-0" />
+                  <span>{ebook.pageCount} halaman</span>
+                </div>
+              )}
+              {readingTime && (
+                <div className="flex items-center gap-1.5">
+                  <Clock className="h-3.5 w-3.5 shrink-0" />
+                  <span>{readingTime.label}</span>
+                </div>
+              )}
+            </div>
+
+            {/* Tags */}
+            {ebook.tags.length > 0 && (
+              <div className="mt-4 flex flex-wrap items-center gap-1.5">
+                <Tag className="h-3.5 w-3.5 text-muted-foreground/50" />
+                {ebook.tags.map((tag) => (
+                  <span
+                    key={tag}
+                    className="rounded-full border bg-muted/50 px-2.5 py-0.5 text-xs text-muted-foreground"
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            )}
+
+            {/* CTA */}
+            {ebook.contentType === "PDF" && ebook.pdfUrl && (
+              <div className="mt-6">
+                <DownloadButton slug={slug} pdfUrl={ebook.pdfUrl} />
+              </div>
+            )}
+          </div>
         </div>
-      )}
 
-      {/* Ebook content */}
-      <div className="mt-8">
+        <Separator className="my-10" />
+
+        {/* ── Content ── */}
         {ebook.contentType === "HTML" && ebook.htmlContent ? (
           <div
-            className="prose prose-lg max-w-none dark:prose-invert"
+            className="
+              prose prose-neutral max-w-none
+              prose-headings:font-bold prose-headings:tracking-tight
+              prose-h1:text-2xl prose-h2:text-xl prose-h3:text-lg
+              prose-p:leading-[1.85] prose-p:text-[17px]
+              prose-a:text-primary prose-a:no-underline hover:prose-a:underline
+              prose-img:rounded-xl prose-img:shadow-md prose-img:mx-auto
+              prose-pre:rounded-xl prose-pre:border prose-pre:bg-muted
+              prose-code:rounded prose-code:bg-muted prose-code:px-1 prose-code:text-sm
+              prose-blockquote:not-italic prose-blockquote:border-l-4 prose-blockquote:border-primary/50
+              prose-blockquote:bg-primary/5 prose-blockquote:py-0.5 prose-blockquote:rounded-r-lg
+              prose-blockquote:text-muted-foreground
+              prose-li:leading-relaxed
+              prose-strong:text-foreground
+            "
             dangerouslySetInnerHTML={{ __html: sanitizeHtml(ebook.htmlContent) }}
           />
         ) : ebook.contentType === "PDF" && ebook.pdfUrl ? (
-          <div className="space-y-4">
+          <div className="overflow-hidden rounded-xl border shadow-sm">
             <iframe
               src={ebook.pdfUrl}
-              className="w-full h-[80vh] rounded-lg border"
+              className="h-[85vh] w-full"
               title={ebook.title}
             />
-            <DownloadButton slug={slug} pdfUrl={ebook.pdfUrl} />
           </div>
         ) : (
-          <div className="flex flex-col items-center justify-center rounded-lg border border-dashed py-16 text-center">
-            <FileText className="h-12 w-12 text-muted-foreground/40" />
-            <p className="mt-4 text-muted-foreground">
+          <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed py-20 text-center">
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-muted">
+              <FileText className="h-7 w-7 text-muted-foreground/40" />
+            </div>
+            <p className="mt-4 font-medium text-muted-foreground">
               Konten ebook belum tersedia
+            </p>
+            <p className="mt-1 text-sm text-muted-foreground/60">
+              Silakan cek kembali nanti
             </p>
           </div>
         )}
       </div>
-
-      {ebook.tags.length > 0 && (
-        <div className="mt-8 flex flex-wrap gap-2">
-          {ebook.tags.map((tag) => (
-            <Badge key={tag} variant="outline">
-              {tag}
-            </Badge>
-          ))}
-        </div>
-      )}
-    </article>
+    </>
   );
 }
