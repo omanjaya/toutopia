@@ -9,6 +9,8 @@ import {
   RotateCcw,
   ArrowLeft,
   Trophy,
+  Bookmark,
+  BookmarkCheck,
 } from "lucide-react";
 import { Button } from "@/shared/components/ui/button";
 import { Card, CardContent } from "@/shared/components/ui/card";
@@ -55,6 +57,7 @@ export function PracticeSession({
   const [currentIdx, setCurrentIdx] = useState(0);
   const [answers, setAnswers] = useState<Record<string, AnswerState>>({});
   const [showSummary, setShowSummary] = useState(false);
+  const [bookmarked, setBookmarked] = useState<Record<string, boolean>>({});
 
   const currentQuestion = questions[currentIdx];
   const currentAnswer = answers[currentQuestion.id];
@@ -73,6 +76,35 @@ export function PracticeSession({
       }));
     },
     [currentQuestion.id, isAnswered]
+  );
+
+  const toggleBookmark = useCallback(
+    (questionId: string): void => {
+      const isCurrentlyBookmarked = bookmarked[questionId] ?? false;
+      // Optimistic toggle
+      setBookmarked((prev) => ({ ...prev, [questionId]: !isCurrentlyBookmarked }));
+
+      if (!isCurrentlyBookmarked) {
+        fetch("/api/user/bookmarks", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ questionId }),
+        }).catch(() => {
+          // Revert on failure
+          setBookmarked((prev) => ({ ...prev, [questionId]: isCurrentlyBookmarked }));
+        });
+      } else {
+        fetch("/api/user/bookmarks", {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ questionId }),
+        }).catch(() => {
+          // Revert on failure
+          setBookmarked((prev) => ({ ...prev, [questionId]: isCurrentlyBookmarked }));
+        });
+      }
+    },
+    [bookmarked]
   );
 
   function goToNext(): void {
@@ -237,6 +269,28 @@ export function PracticeSession({
       {/* Question Content */}
       <Card>
         <CardContent className="pt-6">
+          <div className="mb-3 flex items-center justify-between">
+            <Badge variant="secondary" className="text-xs">
+              Soal {currentIdx + 1}
+            </Badge>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-7 w-7 p-0"
+              onClick={() => toggleBookmark(currentQuestion.id)}
+              aria-label={
+                bookmarked[currentQuestion.id]
+                  ? "Hapus bookmark"
+                  : "Tambah bookmark"
+              }
+            >
+              {bookmarked[currentQuestion.id] ? (
+                <BookmarkCheck className="h-4 w-4 text-primary" />
+              ) : (
+                <Bookmark className="h-4 w-4 text-muted-foreground" />
+              )}
+            </Button>
+          </div>
           <MathRenderer
             content={currentQuestion.content}
             className="prose prose-sm max-w-none dark:prose-invert"

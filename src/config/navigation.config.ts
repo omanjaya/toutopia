@@ -4,6 +4,7 @@ export interface NavItem {
   icon?: string;
   description?: string;
   disabled?: boolean;
+  group?: string;
 }
 
 export const publicNav: NavItem[] = [
@@ -15,24 +16,24 @@ export const publicNav: NavItem[] = [
 ];
 
 export const studentNav: NavItem[] = [
-  { title: "Dashboard", href: "/dashboard", icon: "LayoutDashboard" },
-  { title: "Try Out", href: "/dashboard/tryout", icon: "BookOpen" },
-  { title: "Daily Challenge", href: "/dashboard/daily-challenge", icon: "Zap" },
-  { title: "Tryout Bersama", href: "/dashboard/live-events", icon: "Radio" },
-  { title: "Riwayat", href: "/dashboard/history", icon: "History" },
-  { title: "Analitik", href: "/dashboard/analytics", icon: "BarChart3" },
-  { title: "Rekomendasi", href: "/dashboard/recommendations", icon: "Brain" },
-  { title: "Planner", href: "/dashboard/planner", icon: "CalendarDays" },
-  { title: "Bookmark", href: "/dashboard/bookmarks", icon: "Bookmark" },
-  { title: "Latihan", href: "/dashboard/practice", icon: "Dumbbell" },
-  { title: "Ebook", href: "/dashboard/ebooks", icon: "BookText" },
-  { title: "Pencapaian", href: "/dashboard/badges", icon: "Award" },
-  { title: "Rapor", href: "/dashboard/report", icon: "FileText" },
-  { title: "Berlangganan", href: "/dashboard/subscriptions", icon: "Crown" },
-  { title: "Teman", href: "/dashboard/friends", icon: "UsersRound" },
-  { title: "Pembayaran", href: "/dashboard/payment", icon: "Wallet" },
-  { title: "Leaderboard", href: "/leaderboard", icon: "Trophy" },
-  { title: "WhatsApp", href: "/dashboard/whatsapp", icon: "MessageCircle" },
+  { title: "Dashboard", href: "/dashboard", icon: "LayoutDashboard", group: "Belajar" },
+  { title: "Try Out", href: "/dashboard/tryout", icon: "BookOpen", group: "Belajar" },
+  { title: "Daily Challenge", href: "/dashboard/daily-challenge", icon: "Zap", group: "Belajar" },
+  { title: "Tryout Bersama", href: "/dashboard/live-events", icon: "Radio", group: "Belajar" },
+  { title: "Latihan", href: "/dashboard/practice", icon: "Dumbbell", group: "Belajar" },
+  { title: "Ebook", href: "/dashboard/ebooks", icon: "BookText", group: "Belajar" },
+  { title: "Riwayat", href: "/dashboard/history", icon: "History", group: "Progres" },
+  { title: "Analitik", href: "/dashboard/analytics", icon: "BarChart3", group: "Progres" },
+  { title: "Rekomendasi", href: "/dashboard/recommendations", icon: "Brain", group: "Progres" },
+  { title: "Rapor", href: "/dashboard/report", icon: "FileText", group: "Progres" },
+  { title: "Pencapaian", href: "/dashboard/badges", icon: "Award", group: "Progres" },
+  { title: "Bookmark", href: "/dashboard/bookmarks", icon: "Bookmark", group: "Progres" },
+  { title: "Teman", href: "/dashboard/friends", icon: "UsersRound", group: "Komunitas" },
+  { title: "Leaderboard", href: "/leaderboard", icon: "Trophy", group: "Komunitas" },
+  { title: "Planner", href: "/dashboard/planner", icon: "CalendarDays", group: "Akun" },
+  { title: "Berlangganan", href: "/dashboard/subscriptions", icon: "Crown", group: "Akun" },
+  { title: "Pembayaran", href: "/dashboard/payment", icon: "Wallet", group: "Akun" },
+  { title: "WhatsApp", href: "/dashboard/whatsapp", icon: "MessageCircle", group: "Akun" },
 ];
 
 export const teacherNav: NavItem[] = [

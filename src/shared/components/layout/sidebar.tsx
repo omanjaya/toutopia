@@ -115,57 +115,88 @@ export function Sidebar({ items, collapsed, onToggle }: SidebarProps) {
 
       {/* Navigation */}
       <ScrollArea className="flex-1 px-3 py-3">
-        {!collapsed && (
-          <p className="mb-2 px-2 text-[11px] font-medium uppercase tracking-wider text-muted-foreground/50">
-            Menu
-          </p>
-        )}
         <nav className="flex flex-col gap-0.5">
-          {items.map((item) => {
-            const Icon = item.icon ? iconMap[item.icon] : LayoutDashboard;
-            const isActive =
-              pathname === item.href ||
-              (item.href !== "/dashboard" && pathname.startsWith(item.href));
+          {(() => {
+            // Build ordered group list while preserving item order
+            const groupOrder: string[] = [];
+            const groupedItems: Record<string, NavItem[]> = {};
 
-            const link = (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={cn(
-                  "group flex items-center gap-3 rounded-lg px-2.5 py-[7px] text-[13px] transition-all duration-150",
-                  isActive
-                    ? "bg-primary/10 text-primary font-medium"
-                    : "text-sidebar-foreground/65 hover:bg-sidebar-accent hover:text-sidebar-foreground",
-                  collapsed && "justify-center px-2"
-                )}
-              >
-                {Icon && (
-                  <Icon
-                    className={cn(
-                      "h-[17px] w-[17px] shrink-0 transition-colors",
-                      isActive
-                        ? "text-primary"
-                        : "text-sidebar-foreground/45 group-hover:text-sidebar-foreground/70"
-                    )}
-                  />
-                )}
-                {!collapsed && <span>{item.title}</span>}
-              </Link>
-            );
-
-            if (collapsed) {
-              return (
-                <Tooltip key={item.href}>
-                  <TooltipTrigger asChild>{link}</TooltipTrigger>
-                  <TooltipContent side="right" sideOffset={8}>
-                    {item.title}
-                  </TooltipContent>
-                </Tooltip>
-              );
+            for (const item of items) {
+              const key = item.group ?? "";
+              if (!groupOrder.includes(key)) {
+                groupOrder.push(key);
+                groupedItems[key] = [];
+              }
+              groupedItems[key].push(item);
             }
 
-            return link;
-          })}
+            return groupOrder.map((groupName, groupIndex) => {
+              const groupItems = groupedItems[groupName];
+              const isFirstGroup = groupIndex === 0;
+
+              return (
+                <div key={groupName || "__ungrouped"}>
+                  {/* Group divider + label */}
+                  {!isFirstGroup && (
+                    collapsed ? (
+                      <div className="my-2 mx-2 border-t border-sidebar-border/50" />
+                    ) : (
+                      <p className="mt-3 mb-1 px-2 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/40">
+                        {groupName}
+                      </p>
+                    )
+                  )}
+
+                  {/* Items in this group */}
+                  {groupItems.map((item) => {
+                    const Icon = item.icon ? iconMap[item.icon] : LayoutDashboard;
+                    const isActive =
+                      pathname === item.href ||
+                      (item.href !== "/dashboard" && pathname.startsWith(item.href));
+
+                    const link = (
+                      <Link
+                        key={item.href}
+                        href={item.href}
+                        className={cn(
+                          "group flex items-center gap-3 rounded-lg px-2.5 py-[7px] text-[13px] transition-all duration-150",
+                          isActive
+                            ? "bg-primary/10 text-primary font-medium"
+                            : "text-sidebar-foreground/65 hover:bg-sidebar-accent hover:text-sidebar-foreground",
+                          collapsed && "justify-center px-2"
+                        )}
+                      >
+                        {Icon && (
+                          <Icon
+                            className={cn(
+                              "h-[17px] w-[17px] shrink-0 transition-colors",
+                              isActive
+                                ? "text-primary"
+                                : "text-sidebar-foreground/45 group-hover:text-sidebar-foreground/70"
+                            )}
+                          />
+                        )}
+                        {!collapsed && <span>{item.title}</span>}
+                      </Link>
+                    );
+
+                    if (collapsed) {
+                      return (
+                        <Tooltip key={item.href}>
+                          <TooltipTrigger asChild>{link}</TooltipTrigger>
+                          <TooltipContent side="right" sideOffset={8}>
+                            {item.title}
+                          </TooltipContent>
+                        </Tooltip>
+                      );
+                    }
+
+                    return link;
+                  })}
+                </div>
+              );
+            });
+          })()}
         </nav>
       </ScrollArea>
 
