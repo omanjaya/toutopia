@@ -105,7 +105,7 @@ export function EbookActions({ ebookId, ebookSlug, status }: EbookActionsProps) 
           className="h-8 gap-1.5 px-2.5 text-xs"
           asChild
         >
-          <a href={`/ebooks/${ebookSlug}`} target="_blank" rel="noopener noreferrer">
+          <a href={`/dashboard/ebooks/${ebookSlug}`} target="_blank" rel="noopener noreferrer">
             <Eye className="h-3.5 w-3.5" />
             Preview
           </a>
