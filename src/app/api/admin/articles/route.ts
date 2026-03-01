@@ -5,6 +5,7 @@ import { requireAdmin } from "@/shared/lib/auth-guard";
 import { successResponse, errorResponse } from "@/shared/lib/api-response";
 import { handleApiError } from "@/shared/lib/api-error";
 import { createArticleSchema } from "@/shared/lib/validators/article.validators";
+import { sanitizeHtml } from "@/shared/lib/sanitize";
 
 export async function GET(request: NextRequest) {
   try {
@@ -61,8 +62,8 @@ export async function POST(request: NextRequest) {
         authorId: user.id,
         title: data.title,
         slug: data.slug,
-        content: data.content,
-        excerpt: data.excerpt ?? null,
+        content: sanitizeHtml(data.content),
+        excerpt: data.excerpt ? data.excerpt.replace(/<[^>]*>/g, "").trim() : null,
         coverImage: data.coverImage ?? null,
         category: data.category ?? null,
         tags: data.tags ?? [],

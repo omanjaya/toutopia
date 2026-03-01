@@ -21,6 +21,10 @@ export async function POST(
       return errorResponse("NOT_FOUND", "Ebook tidak ditemukan", 404);
     }
 
+    // TODO: Add purchase verification once an ebook purchase/access model exists in the schema.
+    // Currently Transaction and UserPackageAccess are tied to ExamPackage only (no ebookId).
+    // When an EbookPurchase or similar model is added, verify the user has paid before proceeding.
+
     await prisma.ebook.update({
       where: { id: ebook.id },
       data: { downloadCount: { increment: 1 } },

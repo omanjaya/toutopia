@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/shared/lib/prisma";
-import { requireRole } from "@/shared/lib/auth-guard";
+import { requireAdmin } from "@/shared/lib/auth-guard";
 import { successResponse, errorResponse } from "@/shared/lib/api-response";
 import { handleApiError } from "@/shared/lib/api-error";
 import { encrypt, decrypt, maskApiKey } from "@/shared/lib/encryption";
@@ -26,7 +26,7 @@ const testConnectionSchema = z.object({
 
 export async function GET() {
   try {
-    await requireRole(["SUPER_ADMIN"]);
+    await requireAdmin();
 
     const configs = await prisma.aiProviderConfig.findMany({
       orderBy: { provider: "asc" },
@@ -57,7 +57,7 @@ export async function GET() {
 
 export async function PUT(request: NextRequest) {
   try {
-    await requireRole(["SUPER_ADMIN"]);
+    await requireAdmin();
 
     const body = await request.json();
     const data = updateSettingsSchema.parse(body);
@@ -76,7 +76,7 @@ export async function PUT(request: NextRequest) {
     };
 
     if (data.apiKey) {
-      updateData.apiKey = encrypt(data.apiKey);
+      updateData.apiKey = encrypt(data.apiKey.trim());
     }
 
     if (existing) {
@@ -110,12 +110,12 @@ export async function PUT(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    await requireRole(["SUPER_ADMIN"]);
+    await requireAdmin();
 
     const body = await request.json();
     const data = testConnectionSchema.parse(body);
 
-    let apiKey = data.apiKey;
+    let apiKey = data.apiKey.trim();
 
     // If client sends "use-saved", retrieve the actual key from DB
     if (apiKey === "use-saved") {
@@ -125,10 +125,17 @@ export async function POST(request: NextRequest) {
       if (!config?.apiKey) {
         return successResponse({
           success: false,
-          message: "Tidak ada API key tersimpan untuk provider ini",
+          message: "Tidak ada API key tersimpan untuk provider ini. Masukkan dan simpan API key terlebih dahulu.",
         });
       }
-      apiKey = decrypt(config.apiKey);
+      apiKey = decrypt(config.apiKey).trim();
+    }
+
+    if (!apiKey) {
+      return successResponse({
+        success: false,
+        message: "API key kosong setelah diproses. Coba masukkan ulang API key.",
+      });
     }
 
     const result = await testConnection(data.provider, apiKey, data.model);

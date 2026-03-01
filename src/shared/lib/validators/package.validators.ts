@@ -28,7 +28,21 @@ export const createPackageSchema = z.object({
   endDate: z.string().datetime().nullable().optional(),
   maxAttempts: z.number().int().positive(),
   sections: z.array(examSectionSchema).min(1, "Minimal 1 section"),
-});
+  examType: z.enum(["UTBK", "CPNS", "BUMN", "PPPK", "KEDINASAN"]).optional(),
+  jabatan: z.string().optional(),
+})
+.refine(
+  (data) => !data.passingScore || !data.totalQuestions || data.passingScore <= data.totalQuestions,
+  { message: "Passing score tidak boleh melebihi total soal", path: ["passingScore"] }
+)
+.refine(
+  (data) => !data.discountPrice || !data.price || data.discountPrice < data.price,
+  { message: "Harga diskon harus lebih kecil dari harga asli", path: ["discountPrice"] }
+)
+.refine(
+  (data) => !data.startDate || !data.endDate || new Date(data.endDate) > new Date(data.startDate),
+  { message: "Tanggal selesai harus setelah tanggal mulai", path: ["endDate"] }
+);
 
 export const updatePackageSchema = createPackageSchema.partial();
 

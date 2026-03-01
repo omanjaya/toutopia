@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import Image from "next/image";
 import { Loader2, ImagePlus, X } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/shared/components/ui/button";
@@ -53,10 +54,13 @@ export function ImageUpload({ value, onChange, className }: ImageUploadProps) {
   if (value) {
     return (
       <div className={cn("relative inline-block", className)}>
-        <img
+        <Image
           src={value}
           alt="Preview"
-          className="h-24 w-auto rounded-lg border object-cover"
+          width={96}
+          height={96}
+          className="rounded-lg border object-cover"
+          unoptimized
         />
         <Button
           type="button"

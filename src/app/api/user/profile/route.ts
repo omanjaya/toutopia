@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/shared/lib/prisma";
 import { requireAuth } from "@/shared/lib/auth-guard";
-import { successResponse } from "@/shared/lib/api-response";
+import { successResponse, errorResponse } from "@/shared/lib/api-response";
 import { handleApiError } from "@/shared/lib/api-error";
 
 export async function GET() {
@@ -45,7 +46,7 @@ export async function GET() {
 
 const updateProfileSchema = z.object({
   name: z.string().min(1).max(100).optional(),
-  phone: z.string().max(20).nullable().optional(),
+  phone: z.string().regex(/^\+?[0-9\s\-()]{7,20}$/, "Format nomor telepon tidak valid").nullable().optional(),
   avatar: z.string().url().nullable().optional(),
   school: z.string().max(200).nullable().optional(),
   city: z.string().max(100).nullable().optional(),
@@ -102,6 +103,10 @@ export async function PATCH(request: NextRequest) {
 
     return successResponse({ updated: true });
   } catch (error) {
+    // Phone number is unique — surface a clear error instead of a generic 500
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+      return errorResponse("PHONE_TAKEN", "Nomor telepon sudah digunakan", 409);
+    }
     return handleApiError(error);
   }
 }

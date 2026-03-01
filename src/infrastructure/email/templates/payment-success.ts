@@ -1,3 +1,12 @@
+function escapeHtml(text: string): string {
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
 interface PaymentEmailParams {
   name: string;
   packageTitle: string;
@@ -20,14 +29,14 @@ export function paymentSuccessEmailHtml({ name, packageTitle, amount, transactio
           <h1 style="margin:0;color:#fff;font-size:24px;font-weight:700">Pembayaran Berhasil</h1>
         </td></tr>
         <tr><td style="padding:32px 24px">
-          <p style="margin:0 0 16px;color:#18181b;font-size:16px">Halo <strong>${name}</strong>,</p>
+          <p style="margin:0 0 16px;color:#18181b;font-size:16px">Halo <strong>${escapeHtml(name)}</strong>,</p>
           <p style="margin:0 0 24px;color:#52525b;font-size:14px;line-height:1.6">
             Pembayaran kamu telah dikonfirmasi. Berikut detailnya:
           </p>
           <table width="100%" cellpadding="8" cellspacing="0" style="border:1px solid #e4e4e7;border-radius:8px;font-size:14px">
-            <tr style="background:#f4f4f5"><td style="color:#71717a">Paket</td><td style="color:#18181b;font-weight:600">${packageTitle}</td></tr>
-            <tr><td style="color:#71717a">Total</td><td style="color:#18181b;font-weight:600">${formattedAmount}</td></tr>
-            <tr style="background:#f4f4f5"><td style="color:#71717a">ID Transaksi</td><td style="color:#18181b;font-family:monospace;font-size:12px">${transactionId}</td></tr>
+            <tr style="background:#f4f4f5"><td style="color:#71717a">Paket</td><td style="color:#18181b;font-weight:600">${escapeHtml(packageTitle)}</td></tr>
+            <tr><td style="color:#71717a">Total</td><td style="color:#18181b;font-weight:600">${escapeHtml(formattedAmount)}</td></tr>
+            <tr style="background:#f4f4f5"><td style="color:#71717a">ID Transaksi</td><td style="color:#18181b;font-family:monospace;font-size:12px">${escapeHtml(transactionId)}</td></tr>
           </table>
           <table width="100%" cellpadding="0" cellspacing="0">
             <tr><td align="center" style="padding:24px 0">

@@ -1,3 +1,13 @@
+function sanitizeInstruction(instruction: string | undefined): string {
+  if (!instruction) return "";
+  return instruction
+    .replace(/[\r\n]+/g, " ")           // Remove newlines (used for injection)
+    .replace(/[<>{}[\]]/g, "")          // Remove brackets used in prompt formatting
+    .replace(/ignore|system|assistant|override/gi, "") // Remove common injection keywords
+    .slice(0, 300)                       // Limit length
+    .trim();
+}
+
 interface PromptParams {
   subtest: string;
   topic: string;
@@ -147,7 +157,7 @@ Untuk setiap soal, pikirkan langkah-langkah berikut:
 ATURAN:
 ${buildBaseRules(params.type)}
 
-${params.customInstruction ? `INSTRUKSI TAMBAHAN:\n${params.customInstruction}\n` : ""}
+${sanitizeInstruction(params.customInstruction) ? `INSTRUKSI TAMBAHAN:\n${sanitizeInstruction(params.customInstruction)}\n` : ""}
 
 FORMAT OUTPUT: JSON array SAJA (tanpa markdown code block, tanpa teks tambahan).
 ${JSON_SCHEMA}
@@ -427,7 +437,7 @@ ${ANTI_SEARCH_INSTRUCTIONS}
 ATURAN UMUM:
 ${buildBaseRules(params.type)}
 
-${params.customInstruction ? `INSTRUKSI TAMBAHAN:\n${params.customInstruction}\n` : ""}
+${sanitizeInstruction(params.customInstruction) ? `INSTRUKSI TAMBAHAN:\n${sanitizeInstruction(params.customInstruction)}\n` : ""}
 
 FORMAT OUTPUT: JSON array SAJA (tanpa markdown code block, tanpa teks tambahan).
 ${getCpnsSchema(params.subtest)}
@@ -491,7 +501,7 @@ ${ANTI_SEARCH_INSTRUCTIONS}
 ATURAN:
 ${buildBaseRules(params.type)}
 
-${params.customInstruction ? `INSTRUKSI TAMBAHAN:\n${params.customInstruction}\n` : ""}
+${sanitizeInstruction(params.customInstruction) ? `INSTRUKSI TAMBAHAN:\n${sanitizeInstruction(params.customInstruction)}\n` : ""}
 
 FORMAT OUTPUT: JSON array SAJA (tanpa markdown code block, tanpa teks tambahan).
 ${getBumnSchema(params.subtest)}
@@ -539,7 +549,7 @@ ${ANTI_SEARCH_INSTRUCTIONS}
 ATURAN:
 ${buildBaseRules(params.type)}
 
-${params.customInstruction ? `INSTRUKSI TAMBAHAN:\n${params.customInstruction}\n` : ""}
+${sanitizeInstruction(params.customInstruction) ? `INSTRUKSI TAMBAHAN:\n${sanitizeInstruction(params.customInstruction)}\n` : ""}
 
 FORMAT OUTPUT: JSON array SAJA (tanpa markdown code block, tanpa teks tambahan).
 ${JSON_SCHEMA}
@@ -606,7 +616,7 @@ ${ANTI_SEARCH_INSTRUCTIONS}
 ATURAN:
 ${buildBaseRules(params.type)}
 
-${params.customInstruction ? `INSTRUKSI TAMBAHAN:\n${params.customInstruction}\n` : ""}
+${sanitizeInstruction(params.customInstruction) ? `INSTRUKSI TAMBAHAN:\n${sanitizeInstruction(params.customInstruction)}\n` : ""}
 
 FORMAT OUTPUT: JSON array SAJA (tanpa markdown code block, tanpa teks tambahan).
 ${getPppkSchema(params.subtest)}
@@ -640,7 +650,7 @@ ${ANTI_SEARCH_INSTRUCTIONS}
 ATURAN:
 ${buildBaseRules(params.type)}
 
-${params.customInstruction ? `INSTRUKSI TAMBAHAN:\n${params.customInstruction}\n` : ""}
+${sanitizeInstruction(params.customInstruction) ? `INSTRUKSI TAMBAHAN:\n${sanitizeInstruction(params.customInstruction)}\n` : ""}
 
 FORMAT OUTPUT: JSON array SAJA (tanpa markdown code block, tanpa teks tambahan).
 ${JSON_SCHEMA}

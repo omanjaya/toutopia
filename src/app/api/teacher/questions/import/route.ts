@@ -3,6 +3,7 @@ import { prisma } from "@/shared/lib/prisma";
 import { requireTeacher } from "@/shared/lib/auth-guard";
 import { successResponse, errorResponse } from "@/shared/lib/api-response";
 import { handleApiError } from "@/shared/lib/api-error";
+import { sanitizeHtml } from "@/shared/lib/sanitize";
 
 interface CsvQuestion {
   topicId: string;
@@ -98,7 +99,11 @@ export async function POST(request: NextRequest): Promise<Response> {
       return errorResponse("VALIDATION_ERROR", "File CSV wajib diupload", 422);
     }
 
-    if (!file.name.endsWith(".csv")) {
+    if (
+      file.type !== "text/csv" &&
+      file.type !== "text/plain" &&
+      !file.name.endsWith(".csv")
+    ) {
       return errorResponse("VALIDATION_ERROR", "Hanya file CSV yang diizinkan", 422);
     }
 
@@ -170,13 +175,13 @@ export async function POST(request: NextRequest): Promise<Response> {
             createdById: user.id,
             type: questionType,
             difficulty: questionDifficulty,
-            content: q.content,
-            explanation: q.explanation || null,
+            content: sanitizeHtml(q.content),
+            explanation: q.explanation ? sanitizeHtml(q.explanation) : null,
             status: "PENDING_REVIEW",
             options: {
               create: optionValues.map((content, idx) => ({
                 label: labels[idx],
-                content,
+                content: sanitizeHtml(content),
                 isCorrect: labels[idx] === q.correctOption.toUpperCase(),
                 order: idx,
               })),

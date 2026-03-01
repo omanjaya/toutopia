@@ -1,3 +1,12 @@
+function escapeHtml(text: string): string {
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
 export function welcomeEmailHtml(name: string): string {
   return `
 <!DOCTYPE html>
@@ -11,7 +20,7 @@ export function welcomeEmailHtml(name: string): string {
           <h1 style="margin:0;color:#fff;font-size:24px;font-weight:700">Selamat Datang di Toutopia!</h1>
         </td></tr>
         <tr><td style="padding:32px 24px">
-          <p style="margin:0 0 16px;color:#18181b;font-size:16px">Halo <strong>${name}</strong>,</p>
+          <p style="margin:0 0 16px;color:#18181b;font-size:16px">Halo <strong>${escapeHtml(name)}</strong>,</p>
           <p style="margin:0 0 16px;color:#52525b;font-size:14px;line-height:1.6">
             Akun kamu berhasil dibuat. Kamu mendapatkan <strong>2 kredit gratis</strong> untuk memulai try out pertamamu.
           </p>

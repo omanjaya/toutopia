@@ -5,6 +5,7 @@ import { requireAdmin } from "@/shared/lib/auth-guard";
 import { successResponse, errorResponse } from "@/shared/lib/api-response";
 import { handleApiError } from "@/shared/lib/api-error";
 import { updateArticleSchema } from "@/shared/lib/validators/article.validators";
+import { sanitizeHtml } from "@/shared/lib/sanitize";
 
 export async function GET(
   _request: NextRequest,
@@ -46,8 +47,8 @@ export async function PUT(
       data: {
         title: data.title,
         slug: data.slug,
-        content: data.content,
-        excerpt: data.excerpt,
+        content: data.content !== undefined ? sanitizeHtml(data.content) : undefined,
+        excerpt: data.excerpt !== undefined ? (data.excerpt ? data.excerpt.replace(/<[^>]*>/g, "").trim() : null) : undefined,
         coverImage: data.coverImage,
         category: data.category,
         tags: data.tags,

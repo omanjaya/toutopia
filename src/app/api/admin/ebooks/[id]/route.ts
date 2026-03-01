@@ -5,6 +5,7 @@ import { requireAdmin } from "@/shared/lib/auth-guard";
 import { successResponse, errorResponse } from "@/shared/lib/api-response";
 import { handleApiError } from "@/shared/lib/api-error";
 import { updateEbookSchema } from "@/shared/lib/validators/ebook.validators";
+import { sanitizeHtml } from "@/shared/lib/sanitize";
 
 export async function GET(
   _request: NextRequest,
@@ -46,10 +47,10 @@ export async function PUT(
       data: {
         title: data.title,
         slug: data.slug,
-        description: data.description,
+        description: data.description !== undefined ? (data.description ? data.description.replace(/<[^>]*>/g, "").trim() : null) : undefined,
         coverImage: data.coverImage,
         contentType: data.contentType,
-        htmlContent: data.htmlContent,
+        htmlContent: data.htmlContent !== undefined ? (data.htmlContent ? sanitizeHtml(data.htmlContent) : null) : undefined,
         pdfUrl: data.pdfUrl,
         fileSize: data.fileSize,
         pageCount: data.pageCount,

@@ -4,6 +4,7 @@ import { prisma } from "@/shared/lib/prisma";
 import { requireAdmin } from "@/shared/lib/auth-guard";
 import { successResponse, errorResponse } from "@/shared/lib/api-response";
 import { handleApiError } from "@/shared/lib/api-error";
+import { logAudit } from "@/shared/lib/audit-log";
 
 const updatePayoutSchema = z.object({
   status: z.enum(["PROCESSING", "COMPLETED", "REJECTED"]),
@@ -15,7 +16,7 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    await requireAdmin();
+    const user = await requireAdmin();
     const { id } = await params;
     const body = await request.json();
     const data = updatePayoutSchema.parse(body);
@@ -49,6 +50,18 @@ export async function PUT(
         status: data.status,
         rejectionReason: data.status === "REJECTED" ? (data.rejectionReason ?? null) : undefined,
         processedAt: data.status === "COMPLETED" || data.status === "PROCESSING" ? new Date() : undefined,
+      },
+    });
+
+    logAudit({
+      userId: user.id,
+      action: `PAYOUT_${data.status}`,
+      entity: "PayoutRequest",
+      entityId: id,
+      oldData: { status: payout.status },
+      newData: {
+        status: data.status,
+        ...(data.rejectionReason && { rejectionReason: data.rejectionReason }),
       },
     });
 

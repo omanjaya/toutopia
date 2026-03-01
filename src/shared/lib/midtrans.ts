@@ -21,7 +21,10 @@ export function verifySignature(
   grossAmount: string,
   signatureKey: string
 ): boolean {
-  const serverKey = process.env.MIDTRANS_SERVER_KEY!;
+  const serverKey = process.env.MIDTRANS_SERVER_KEY;
+  if (!serverKey) {
+    throw new Error("MIDTRANS_SERVER_KEY environment variable is not configured");
+  }
   const hash = crypto
     .createHash("sha512")
     .update(`${orderId}${statusCode}${grossAmount}${serverKey}`)

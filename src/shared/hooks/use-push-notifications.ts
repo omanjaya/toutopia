@@ -32,10 +32,9 @@ export function usePushNotifications() {
       // Get VAPID key
       const keyRes = await fetch("/api/notifications/push/vapid-key");
       const keyResult = await keyRes.json();
-      if (!keyRes.ok) return false;
+      if (!keyRes.ok || !keyResult?.data?.publicKey) return false;
 
       const publicKey = keyResult.data.publicKey;
-      if (!publicKey) return false;
 
       // Request permission
       const permission = await Notification.requestPermission();

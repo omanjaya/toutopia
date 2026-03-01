@@ -27,8 +27,10 @@ export async function POST(request: NextRequest) {
       select: { id: true, name: true, passwordHash: true },
     });
 
-    // Always return success to prevent email enumeration
+    // Artificial delay when user is not found prevents timing attack that would
+    // reveal whether an email is registered (the happy path does significant DB work).
     if (!user || !user.passwordHash) {
+      await new Promise((resolve) => setTimeout(resolve, 200));
       return successResponse({ message: "Jika email terdaftar, kami akan mengirim link reset password." });
     }
 

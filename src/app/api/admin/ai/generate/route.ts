@@ -8,6 +8,7 @@ import {
   generateQuestions,
   validateGeneratedQuestionsWithAI,
   getPromptPreview,
+  PROVIDER_MODELS,
 } from "@/infrastructure/ai/ai-provider.service";
 import { z } from "zod";
 
@@ -40,6 +41,11 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json();
     const data = generateSchema.parse(body);
+
+    const providerModels = PROVIDER_MODELS[data.provider]?.map((m: { id: string }) => m.id) ?? [];
+    if (data.model && providerModels.length > 0 && !providerModels.includes(data.model)) {
+      return errorResponse("INVALID_MODEL", "Model tidak valid untuk provider ini", 400);
+    }
 
     const providerConfig = await prisma.aiProviderConfig.findUnique({
       where: { provider: data.provider },

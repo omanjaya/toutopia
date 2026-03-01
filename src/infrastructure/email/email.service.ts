@@ -14,8 +14,7 @@ interface SendEmailParams {
 
 export async function sendEmail({ to, subject, html }: SendEmailParams): Promise<void> {
   if (!resend) {
-    console.warn("[email] RESEND_API_KEY not set, skipping email to:", to);
-    return;
+    throw new Error("[email] RESEND_API_KEY not configured — email cannot be sent");
   }
 
   try {
@@ -26,7 +25,9 @@ export async function sendEmail({ to, subject, html }: SendEmailParams): Promise
       html,
     });
   } catch (error) {
-    console.error("[email] Failed to send email:", error);
+    const msg = error instanceof Error ? error.message : String(error);
+    console.error(`[email] Failed to send to ${to}: ${msg}`);
+    throw new Error(`Email delivery failed: ${msg}`);
   }
 }
 

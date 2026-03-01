@@ -9,14 +9,14 @@ import { checkAndAwardBadges } from "@/infrastructure/badge-service";
 import { scoreResultEmailHtml } from "@/infrastructure/email/templates/score-result";
 
 function gradeAnswer(
-  question: { type: string; options: { id: string }[] },
+  question: { type: string; options: { id: string; isCorrect?: boolean; content?: string }[] },
   answer: { selectedOptionId: string | null; selectedOptions: string[]; numericAnswer: number | null } | undefined
 ): boolean | null {
   if (!answer || (!answer.selectedOptionId && answer.selectedOptions.length === 0 && answer.numericAnswer === null)) {
     return null; // unanswered
   }
 
-  const correctOptionIds = question.options.map((o) => o.id);
+  const correctOptionIds = question.options.filter((o) => o.isCorrect).map((o) => o.id);
 
   if (question.type === "SINGLE_CHOICE" || question.type === "TRUE_FALSE") {
     return answer.selectedOptionId ? correctOptionIds.includes(answer.selectedOptionId) : false;
@@ -24,6 +24,13 @@ function gradeAnswer(
     const selected = new Set(answer.selectedOptions);
     const correct = new Set(correctOptionIds);
     return selected.size === correct.size && [...selected].every((id) => correct.has(id));
+  } else if (question.type === "NUMERIC") {
+    // Find the correct numeric answer from options (stored as content of correct option)
+    const correctOption = question.options.find((o) => o.isCorrect);
+    if (!correctOption || answer.numericAnswer === null || answer.numericAnswer === undefined) {
+      return false;
+    }
+    return Number(correctOption.content) === answer.numericAnswer;
   }
   return false;
 }
@@ -53,7 +60,7 @@ export async function POST(
                         createdById: true,
                         correctRate: true,
                         usageCount: true,
-                        options: { where: { isCorrect: true }, select: { id: true } },
+                        options: { select: { id: true, isCorrect: true, content: true } },
                       },
                     },
                   },
@@ -75,6 +82,14 @@ export async function POST(
         "Ujian sudah disubmit sebelumnya",
         400
       );
+    }
+
+    if (new Date() > new Date(attempt.serverDeadline)) {
+      await prisma.examAttempt.update({
+        where: { id: attemptId },
+        data: { status: "TIMED_OUT", finishedAt: new Date() },
+      });
+      return errorResponse("TIME_UP", "Waktu ujian telah habis", 400);
     }
 
     // Grade all answers

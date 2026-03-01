@@ -34,9 +34,12 @@ export async function POST(request: NextRequest) {
     if (data.referralCode) {
       const referrer = await prisma.user.findUnique({
         where: { referralCode: data.referralCode },
-        select: { id: true },
+        select: { id: true, status: true },
       });
-      if (referrer) referrerId = referrer.id;
+      // Only grant referral if the referrer is an active account
+      if (referrer && referrer.status === "ACTIVE") {
+        referrerId = referrer.id;
+      }
     }
 
     const user = await prisma.$transaction(async (tx) => {

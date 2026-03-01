@@ -18,73 +18,115 @@ export async function POST(request: NextRequest): Promise<Response> {
     const body = await request.json();
     const { code, amount } = applyPromoSchema.parse(body);
 
-    const promo = await prisma.promoCode.findUnique({
-      where: { code: code.toUpperCase() },
-    });
+    // Validate and persist promo usage atomically to prevent race conditions
+    const result = await prisma.$transaction(async (tx) => {
+      const promo = await tx.promoCode.findUnique({
+        where: { code: code.toUpperCase() },
+      });
 
-    if (!promo || !promo.isActive) {
-      return errorResponse("INVALID_CODE", "Kode promo tidak valid", 404);
-    }
+      if (!promo || !promo.isActive) {
+        throw new Error("INVALID_CODE");
+      }
 
-    const now = new Date();
+      const now = new Date();
 
-    if (promo.validFrom && now < promo.validFrom) {
-      return errorResponse("NOT_STARTED", "Kode promo belum berlaku", 400);
-    }
+      if (promo.validFrom && now < promo.validFrom) {
+        throw new Error("NOT_STARTED");
+      }
 
-    if (promo.validUntil && now > promo.validUntil) {
-      return errorResponse("EXPIRED", "Kode promo sudah kedaluwarsa", 400);
-    }
+      if (promo.validUntil && now > promo.validUntil) {
+        throw new Error("EXPIRED");
+      }
 
-    if (promo.maxUses && promo.usedCount >= promo.maxUses) {
-      return errorResponse("MAX_USES", "Kode promo sudah habis", 400);
-    }
+      // Check max uses inside transaction to prevent race condition
+      if (promo.maxUses !== null && promo.usedCount >= promo.maxUses) {
+        throw new Error("MAX_USES");
+      }
 
-    const existing = await prisma.promoUsage.findUnique({
-      where: {
-        promoCodeId_userId: {
+      const existing = await tx.promoUsage.findUnique({
+        where: {
+          promoCodeId_userId: {
+            promoCodeId: promo.id,
+            userId: user.id,
+          },
+        },
+      });
+
+      if (existing) {
+        throw new Error("ALREADY_USED");
+      }
+
+      if (amount < promo.minPurchase) {
+        throw new Error("MIN_PURCHASE");
+      }
+
+      let discount = 0;
+      if (promo.discountType === "PERCENTAGE") {
+        discount = Math.round(amount * (promo.discountValue / 100));
+      } else {
+        discount = Math.min(promo.discountValue, amount);
+      }
+
+      // Record usage and increment counter atomically
+      await tx.promoUsage.create({
+        data: {
           promoCodeId: promo.id,
           userId: user.id,
+          discount,
+          // orderId will be linked when payment is created
         },
-      },
+      });
+
+      await tx.promoCode.update({
+        where: { id: promo.id },
+        data: { usedCount: { increment: 1 } },
+      });
+
+      return {
+        promoId: promo.id,
+        code: promo.code,
+        discountType: promo.discountType,
+        discountValue: promo.discountValue,
+        minPurchase: promo.minPurchase,
+        discount,
+        description: promo.description,
+      };
     });
 
-    if (existing) {
-      return errorResponse(
-        "ALREADY_USED",
-        "Kamu sudah menggunakan kode promo ini",
-        400
-      );
-    }
-
-    if (amount < promo.minPurchase) {
-      return errorResponse(
-        "MIN_PURCHASE",
-        `Minimum pembelian Rp ${promo.minPurchase.toLocaleString("id-ID")}`,
-        400
-      );
-    }
-
-    let discount = 0;
-    if (promo.discountType === "PERCENTAGE") {
-      discount = Math.round(amount * (promo.discountValue / 100));
-    } else {
-      discount = Math.min(promo.discountValue, amount);
-    }
-
-    const finalAmount = amount - discount;
+    const finalAmount = amount - result.discount;
 
     return successResponse({
-      promoId: promo.id,
-      code: promo.code,
-      discountType: promo.discountType,
-      discountValue: promo.discountValue,
-      discount,
+      promoId: result.promoId,
+      code: result.code,
+      discountType: result.discountType,
+      discountValue: result.discountValue,
+      discount: result.discount,
       originalAmount: amount,
       finalAmount,
-      description: promo.description,
+      description: result.description,
     });
   } catch (error) {
+    // Handle domain errors thrown from inside the transaction
+    if (error instanceof Error) {
+      switch (error.message) {
+        case "INVALID_CODE":
+          return errorResponse("INVALID_CODE", "Kode promo tidak valid", 404);
+        case "NOT_STARTED":
+          return errorResponse("NOT_STARTED", "Kode promo belum berlaku", 400);
+        case "EXPIRED":
+          return errorResponse("EXPIRED", "Kode promo sudah kedaluwarsa", 400);
+        case "MAX_USES":
+          return errorResponse("MAX_USES", "Kode promo sudah habis", 400);
+        case "ALREADY_USED":
+          return errorResponse("ALREADY_USED", "Kamu sudah menggunakan kode promo ini", 400);
+        case "MIN_PURCHASE":
+          return errorResponse(
+            "MIN_PURCHASE",
+            `Minimum pembelian tidak terpenuhi`,
+            400
+          );
+      }
+    }
     return handleApiError(error);
   }
 }

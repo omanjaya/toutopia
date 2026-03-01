@@ -4,13 +4,14 @@ import { requireAdmin } from "@/shared/lib/auth-guard";
 import { successResponse, errorResponse } from "@/shared/lib/api-response";
 import { handleApiError } from "@/shared/lib/api-error";
 import { verifyTeacherSchema } from "@/shared/lib/validators/teacher.validators";
+import { logAudit } from "@/shared/lib/audit-log";
 
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    await requireAdmin();
+    const admin = await requireAdmin();
     const { id } = await params;
     const body = await request.json();
     const data = verifyTeacherSchema.parse(body);
@@ -35,9 +36,27 @@ export async function POST(
           data: { role: "TEACHER" },
         }),
       ]);
+
+      logAudit({
+        userId: admin.id,
+        action: "TEACHER_APPROVED",
+        entity: "TeacherProfile",
+        entityId: id,
+        oldData: { isVerified: false, role: profile.user.role },
+        newData: { isVerified: true, role: "TEACHER" },
+      });
     } else {
       // Rejected — delete the profile so they can re-apply
       await prisma.teacherProfile.delete({ where: { id } });
+
+      logAudit({
+        userId: admin.id,
+        action: "TEACHER_REJECTED",
+        entity: "TeacherProfile",
+        entityId: id,
+        oldData: { isVerified: false, role: profile.user.role },
+        newData: { deleted: true },
+      });
     }
 
     return successResponse({

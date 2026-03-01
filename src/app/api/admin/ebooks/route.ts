@@ -5,6 +5,7 @@ import { requireAdmin } from "@/shared/lib/auth-guard";
 import { successResponse, errorResponse } from "@/shared/lib/api-response";
 import { handleApiError } from "@/shared/lib/api-error";
 import { createEbookSchema } from "@/shared/lib/validators/ebook.validators";
+import { sanitizeHtml } from "@/shared/lib/sanitize";
 
 export async function GET(request: NextRequest) {
   try {
@@ -64,10 +65,10 @@ export async function POST(request: NextRequest) {
         authorId: user.id,
         title: data.title,
         slug: data.slug,
-        description: data.description ?? null,
+        description: data.description ? data.description.replace(/<[^>]*>/g, "").trim() : null,
         coverImage: data.coverImage ?? null,
         contentType: data.contentType,
-        htmlContent: data.htmlContent ?? null,
+        htmlContent: data.htmlContent ? sanitizeHtml(data.htmlContent) : null,
         pdfUrl: data.pdfUrl ?? null,
         fileSize: data.fileSize ?? null,
         pageCount: data.pageCount ?? null,

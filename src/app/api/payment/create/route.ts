@@ -80,6 +80,30 @@ export async function POST(request: NextRequest) {
       return errorResponse("INVALID", "Jumlah pembayaran tidak valid", 400);
     }
 
+    // Apply promo discount if promoCodeId is provided
+    let promoDiscount = 0;
+    if (data.promoCodeId) {
+      const promoUsage = await prisma.promoUsage.findUnique({
+        where: {
+          promoCodeId_userId: {
+            promoCodeId: data.promoCodeId,
+            userId: user.id,
+          },
+        },
+      });
+
+      if (!promoUsage) {
+        return errorResponse(
+          "INVALID_PROMO",
+          "Kode promo tidak ditemukan atau belum diaktifkan",
+          400
+        );
+      }
+
+      promoDiscount = promoUsage.discount;
+      amount = Math.max(0, amount - promoDiscount);
+    }
+
     // Create transaction record
     const transaction = await prisma.transaction.create({
       data: {
@@ -92,6 +116,8 @@ export async function POST(request: NextRequest) {
           bundleSize: data.bundleSize ?? null,
           subscriptionPlan: data.subscriptionPlan ?? null,
           description,
+          promoCodeId: data.promoCodeId ?? null,
+          promoDiscount,
         },
       },
     });
@@ -125,7 +151,7 @@ export async function POST(request: NextRequest) {
 
     const snapResponse = await snap.createTransaction(midtransParam);
 
-    // Update transaction with Midtrans data
+    // Update transaction with Midtrans data and link promo usage to order
     await prisma.transaction.update({
       where: { id: transaction.id },
       data: {
@@ -134,6 +160,19 @@ export async function POST(request: NextRequest) {
         midtransUrl: snapResponse.redirect_url,
       },
     });
+
+    // Link the PromoUsage record to this transaction so we have a full audit trail
+    if (data.promoCodeId) {
+      await prisma.promoUsage.update({
+        where: {
+          promoCodeId_userId: {
+            promoCodeId: data.promoCodeId,
+            userId: user.id,
+          },
+        },
+        data: { orderId: transaction.id },
+      });
+    }
 
     return successResponse({
       transactionId: transaction.id,

@@ -5,6 +5,7 @@ export const createPaymentSchema = z.object({
   packageId: z.string().optional(),
   bundleSize: z.enum(["5", "10"]).optional(),
   subscriptionPlan: z.enum(["MONTHLY", "YEARLY"]).optional(),
+  promoCodeId: z.string().optional(),
 });
 
 export type CreatePaymentInput = z.infer<typeof createPaymentSchema>;

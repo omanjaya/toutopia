@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check existing pending payout
+    // Check existing pending payout (outside transaction — fast early exit)
     const pendingPayout = await prisma.payoutRequest.findFirst({
       where: {
         teacherProfileId: profile.id,
@@ -76,34 +76,52 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check available balance
-    const paidOut = await prisma.payoutRequest.aggregate({
-      where: {
-        teacherProfileId: profile.id,
-        status: { in: ["COMPLETED", "PROCESSING"] },
-      },
-      _sum: { amount: true },
-    });
+    // Balance check and payout creation are atomic to prevent race conditions
+    let payout;
+    try {
+      payout = await prisma.$transaction(async (tx) => {
+        const latestProfile = await tx.teacherProfile.findUnique({
+          where: { userId: user.id },
+          select: { id: true, totalEarnings: true, bankName: true, bankAccount: true, bankHolder: true },
+        });
 
-    const available = profile.totalEarnings - (paidOut._sum.amount ?? 0);
+        if (!latestProfile) {
+          throw new Error("PROFILE_NOT_FOUND");
+        }
 
-    if (data.amount > available) {
-      return errorResponse(
-        "INSUFFICIENT_BALANCE",
-        "Saldo tidak mencukupi",
-        400
-      );
+        const paidOut = await tx.payoutRequest.aggregate({
+          where: {
+            teacherProfileId: latestProfile.id,
+            status: { in: ["COMPLETED", "PROCESSING"] },
+          },
+          _sum: { amount: true },
+        });
+
+        const available = latestProfile.totalEarnings - (paidOut._sum.amount ?? 0);
+
+        if (data.amount > available) {
+          throw new Error("INSUFFICIENT_BALANCE");
+        }
+
+        return tx.payoutRequest.create({
+          data: {
+            teacherProfileId: latestProfile.id,
+            amount: data.amount,
+            bankName: latestProfile.bankName!,
+            bankAccount: latestProfile.bankAccount!,
+            bankHolder: latestProfile.bankHolder!,
+          },
+        });
+      });
+    } catch (err) {
+      if (err instanceof Error && err.message === "INSUFFICIENT_BALANCE") {
+        return errorResponse("INSUFFICIENT_BALANCE", "Saldo tidak mencukupi", 400);
+      }
+      if (err instanceof Error && err.message === "PROFILE_NOT_FOUND") {
+        return errorResponse("NOT_FOUND", "Profil tidak ditemukan", 404);
+      }
+      throw err;
     }
-
-    const payout = await prisma.payoutRequest.create({
-      data: {
-        teacherProfileId: profile.id,
-        amount: data.amount,
-        bankName: profile.bankName,
-        bankAccount: profile.bankAccount,
-        bankHolder: profile.bankHolder,
-      },
-    });
 
     return successResponse(payout, undefined, 201);
   } catch (error) {

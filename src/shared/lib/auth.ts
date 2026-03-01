@@ -35,6 +35,16 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
         const user = await prisma.user.findUnique({
           where: { email },
+          select: {
+            id: true,
+            email: true,
+            name: true,
+            avatar: true,
+            role: true,
+            status: true,
+            passwordHash: true,
+            emailVerified: true,
+          },
         });
 
         if (!user || !user.passwordHash) {
@@ -43,6 +53,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
         if (user.status === "BANNED" || user.status === "SUSPENDED") {
           return null;
+        }
+
+        if (!user.emailVerified) {
+          throw new Error("EMAIL_NOT_VERIFIED");
         }
 
         const isValid = await verify(user.passwordHash, password);
@@ -73,8 +87,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       }
 
       if (trigger === "update" && session) {
-        token.name = session.name;
-        token.picture = session.image;
+        if (session.name !== undefined) token.name = session.name;
+        if ("image" in session) token.picture = session.image;
       }
 
       return token;
@@ -83,6 +97,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       if (token) {
         session.user.id = token.id as string;
         session.user.role = token.role as UserRole;
+        session.user.image = (token.picture as string | null | undefined) ?? null;
       }
       return session;
     },

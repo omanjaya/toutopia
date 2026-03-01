@@ -10,6 +10,7 @@ async function initRedis(): Promise<Redis | null> {
   try {
     const { default: IORedis } = await import("ioredis");
     const client = new IORedis(url, {
+      connectTimeout: 5000,
       maxRetriesPerRequest: 3,
       lazyConnect: true,
     });

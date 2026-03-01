@@ -100,6 +100,10 @@ export async function DELETE(
     const existing = await prisma.question.findUnique({ where: { id } });
     if (!existing) return notFoundResponse("Soal");
 
+    // TODO: soft-delete is preferred but QuestionStatus enum only has DRAFT, PENDING_REVIEW,
+    // APPROVED, REJECTED — no DELETED/INACTIVE value, and there is no deletedAt field.
+    // A schema migration is needed to add either a DELETED status or a deletedAt DateTime field
+    // before this can be converted to soft-delete. Hard-delete kept until migration is applied.
     await prisma.question.delete({ where: { id } });
 
     return successResponse({ deleted: true });

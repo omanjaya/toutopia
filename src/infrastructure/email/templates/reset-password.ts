@@ -1,4 +1,21 @@
+function escapeHtml(text: string): string {
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+function safeResetUrl(url: string): string {
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://toutopia.id";
+  // Only allow URLs that start with the expected application origin
+  if (url.startsWith(appUrl + "/")) return url;
+  return appUrl;
+}
+
 export function resetPasswordEmailHtml(name: string, resetUrl: string): string {
+  const safeUrl = safeResetUrl(resetUrl);
   return `
 <!DOCTYPE html>
 <html>
@@ -11,13 +28,13 @@ export function resetPasswordEmailHtml(name: string, resetUrl: string): string {
           <h1 style="margin:0;color:#fff;font-size:24px;font-weight:700">Reset Password</h1>
         </td></tr>
         <tr><td style="padding:32px 24px">
-          <p style="margin:0 0 16px;color:#18181b;font-size:16px">Halo <strong>${name}</strong>,</p>
+          <p style="margin:0 0 16px;color:#18181b;font-size:16px">Halo <strong>${escapeHtml(name)}</strong>,</p>
           <p style="margin:0 0 16px;color:#52525b;font-size:14px;line-height:1.6">
             Kami menerima permintaan untuk reset password akun Toutopia kamu. Klik tombol di bawah untuk membuat password baru.
           </p>
           <table width="100%" cellpadding="0" cellspacing="0">
             <tr><td align="center" style="padding:16px 0">
-              <a href="${resetUrl}"
+              <a href="${escapeHtml(safeUrl)}"
                  style="display:inline-block;background:#2563eb;color:#fff;text-decoration:none;padding:12px 32px;border-radius:8px;font-size:14px;font-weight:600">
                 Reset Password
               </a>
@@ -27,7 +44,7 @@ export function resetPasswordEmailHtml(name: string, resetUrl: string): string {
             Link ini akan kadaluarsa dalam 1 jam. Jika kamu tidak meminta reset password, abaikan email ini.
           </p>
           <p style="margin:16px 0 0;color:#a1a1aa;font-size:11px;word-break:break-all">
-            ${resetUrl}
+            ${escapeHtml(safeUrl)}
           </p>
         </td></tr>
       </table>
