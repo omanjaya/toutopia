@@ -2,11 +2,12 @@ import type { Metadata } from "next";
 import { prisma } from "@/shared/lib/prisma";
 import { auth } from "@/shared/lib/auth";
 import Link from "next/link";
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { Badge } from "@/shared/components/ui/badge";
 import { Trophy, Medal, Users } from "lucide-react";
 import { SegmentedNav } from "../history/segmented-nav";
 import { cn } from "@/shared/lib/utils";
+
+const cardCls = "rounded-2xl bg-card shadow-[0_2px_8px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.05]";
 
 export const dynamic = "force-dynamic";
 
@@ -124,14 +125,14 @@ export default async function LeaderboardPage({
 
           return (
             <Link key={pkg.id} href={`/dashboard/leaderboard/${pkg.id}`}>
-              <Card className="hover:border-primary/50 hover:shadow-md transition-all h-full">
-                <CardHeader className="pb-3">
+              <div className={`${cardCls} hover:ring-primary/50 hover:shadow-md transition-all h-full`}>
+                <div className="px-6 pt-6 pb-2">
                   <Badge variant="outline" className="w-fit mb-1">
                     {pkg.category.name}
                   </Badge>
-                  <CardTitle className="text-base leading-snug">
+                  <h3 className="text-base font-semibold tracking-tight leading-snug">
                     {pkg.title}
-                  </CardTitle>
+                  </h3>
                   <div className="flex items-center justify-between">
                     <p className="text-xs text-muted-foreground flex items-center gap-1">
                       <Users className="h-3 w-3" />
@@ -139,15 +140,14 @@ export default async function LeaderboardPage({
                     </p>
                     {userRank != null && (
                       <Badge
-                        variant="secondary"
                         className="text-xs text-primary border-primary/20"
                       >
                         Kamu: #{userRank}
                       </Badge>
                     )}
                   </div>
-                </CardHeader>
-                <CardContent>
+                </div>
+                <div className="p-6">
                   {top.length > 0 ? (
                     <div className="space-y-2">
                       {top.map((entry, idx) => (
@@ -180,8 +180,8 @@ export default async function LeaderboardPage({
                       Belum ada peserta
                     </p>
                   )}
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             </Link>
           );
         })}

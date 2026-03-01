@@ -20,8 +20,9 @@ import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
 import { Textarea } from "@/shared/components/ui/textarea";
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { Badge } from "@/shared/components/ui/badge";
+
+const cardCls = "rounded-2xl bg-card shadow-[0_2px_8px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.05]";
 import { Progress } from "@/shared/components/ui/progress";
 import {
   Dialog,
@@ -525,8 +526,8 @@ export default function PlannerPage() {
 
       {/* Countdown Banner */}
       {nearestTarget && nearestTarget.daysLeft > 0 && (
-        <Card className="border-primary/30 bg-primary/5">
-          <CardContent className="flex items-center justify-between py-4">
+        <div className="rounded-2xl border border-primary/30 bg-primary/5">
+          <div className="flex items-center justify-between py-4 px-6">
             <div className="flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
                 <Target className="h-5 w-5 text-primary" />
@@ -549,41 +550,41 @@ export default function PlannerPage() {
               </p>
               <p className="text-xs text-muted-foreground">hari lagi</p>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       )}
 
       {/* Weekly Progress */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-sm font-medium text-muted-foreground">
+      <div className={cardCls}>
+        <div className="px-6 pt-6 pb-2">
+          <p className="text-sm font-medium text-muted-foreground">
             Progres Minggu Ini
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
+          </p>
+        </div>
+        <div className="p-6">
           <div className="flex items-center gap-4">
             <Progress value={weekProgress} className="flex-1" />
             <span className="text-sm font-medium">
               {weekCompleted}/{weekTasks.length} task
             </span>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Calendar */}
-        <Card className="lg:col-span-2">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
+        <div className={`${cardCls} lg:col-span-2`}>
+          <div className="flex flex-row items-center justify-between px-6 pt-6 pb-2">
             <Button variant="ghost" size="icon" onClick={prevMonth}>
               <ChevronLeft className="h-4 w-4" />
             </Button>
             <div className="text-center">
-              <CardTitle>
+              <h3 className="text-lg font-semibold tracking-tight">
                 {currentDate.toLocaleDateString("id-ID", {
                   month: "long",
                   year: "numeric",
                 })}
-              </CardTitle>
+              </h3>
               {/* Phase legend */}
               <div className="flex items-center justify-center gap-3 mt-1">
                 <span className="flex items-center gap-1 text-[10px] text-muted-foreground">
@@ -603,8 +604,8 @@ export default function PlannerPage() {
             <Button variant="ghost" size="icon" onClick={nextMonth}>
               <ChevronRight className="h-4 w-4" />
             </Button>
-          </CardHeader>
-          <CardContent>
+          </div>
+          <div className="p-6">
             <div className="grid grid-cols-7 gap-1">
               {DAYS.map((d) => (
                 <div
@@ -664,27 +665,27 @@ export default function PlannerPage() {
                 );
               })}
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
         {/* Selected Date Tasks */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm">
+        <div className={cardCls}>
+          <div className="px-6 pt-6 pb-2">
+            <h3 className="text-sm font-semibold tracking-tight">
               {selectedDate
                 ? new Date(selectedDate + "T00:00:00").toLocaleDateString(
                     "id-ID",
                     { dateStyle: "long" }
                   )
                 : "Pilih tanggal"}
-            </CardTitle>
+            </h3>
             {selectedDate && targetDates.has(selectedDate) && (
               <Badge variant="destructive" className="w-fit text-[10px]">
                 Hari Ujian
               </Badge>
             )}
-          </CardHeader>
-          <CardContent>
+          </div>
+          <div className="p-6">
             {!selectedDate ? (
               <p className="text-sm text-muted-foreground text-center py-4">
                 Klik tanggal di kalender untuk melihat task
@@ -800,8 +801,8 @@ export default function PlannerPage() {
                 </Button>
               </div>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
 
       {/* Study Plans */}
@@ -819,8 +820,8 @@ export default function PlannerPage() {
                 : null;
 
               return (
-                <Card key={plan.id}>
-                  <CardContent className="pt-6">
+                <div key={plan.id} className={cardCls}>
+                  <div className="p-6">
                     <div className="flex items-start justify-between mb-2">
                       <div>
                         <h4 className="font-medium">{plan.title}</h4>
@@ -872,8 +873,8 @@ export default function PlannerPage() {
                         )}
                       </div>
                     )}
-                  </CardContent>
-                </Card>
+                  </div>
+                </div>
               );
             })}
           </div>

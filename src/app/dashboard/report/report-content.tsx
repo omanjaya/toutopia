@@ -15,9 +15,10 @@ import {
     Flame,
 } from "lucide-react";
 import { Button } from "@/shared/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { Badge } from "@/shared/components/ui/badge";
 import { cn } from "@/shared/lib/utils";
+
+const cardCls = "rounded-2xl bg-card shadow-[0_2px_8px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.05]";
 
 interface ReportSummary {
     totalAttempts: number;
@@ -207,39 +208,39 @@ export function ReportContent() {
             <div ref={reportRef} className="space-y-6">
                 {/* Summary Stats */}
                 <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                    <Card className="border-0 bg-card shadow-sm">
-                        <CardContent className="flex flex-col items-center p-4">
+                    <div className="rounded-2xl bg-card">
+                        <div className="flex flex-col items-center p-4">
                             <Trophy className="mb-1 h-5 w-5 text-amber-500" />
                             <p className="text-2xl font-bold tabular-nums">{data.summary.avgScore}</p>
                             <p className="text-xs text-muted-foreground">Rata-rata Skor</p>
-                        </CardContent>
-                    </Card>
-                    <Card className="border-0 bg-card shadow-sm">
-                        <CardContent className="flex flex-col items-center p-4">
+                        </div>
+                    </div>
+                    <div className="rounded-2xl bg-card">
+                        <div className="flex flex-col items-center p-4">
                             <Target className="mb-1 h-5 w-5 text-emerald-500" />
                             <p className="text-2xl font-bold tabular-nums">{data.summary.passingRate}%</p>
                             <p className="text-xs text-muted-foreground">Tingkat Lulus</p>
-                        </CardContent>
-                    </Card>
-                    <Card className="border-0 bg-card shadow-sm">
-                        <CardContent className="flex flex-col items-center p-4">
+                        </div>
+                    </div>
+                    <div className="rounded-2xl bg-card">
+                        <div className="flex flex-col items-center p-4">
                             <Clock className="mb-1 h-5 w-5 text-blue-500" />
                             <p className="text-2xl font-bold tabular-nums">{data.summary.totalStudyTimeMinutes}m</p>
                             <p className="text-xs text-muted-foreground">Waktu Belajar</p>
-                        </CardContent>
-                    </Card>
-                    <Card className="border-0 bg-card shadow-sm">
-                        <CardContent className="flex flex-col items-center p-4">
+                        </div>
+                    </div>
+                    <div className="rounded-2xl bg-card">
+                        <div className="flex flex-col items-center p-4">
                             <Flame className="mb-1 h-5 w-5 text-orange-500" />
                             <p className="text-2xl font-bold tabular-nums">{data.summary.currentStreak}</p>
                             <p className="text-xs text-muted-foreground">Streak</p>
-                        </CardContent>
-                    </Card>
+                        </div>
+                    </div>
                 </div>
 
                 {/* Accuracy Summary */}
-                <Card className="border-0 shadow-sm">
-                    <CardContent className="p-6">
+                <div className={cardCls}>
+                    <div className="p-6">
                         <div className="flex items-center justify-between">
                             <div>
                                 <p className="text-sm text-muted-foreground">Total Soal Dikerjakan</p>
@@ -266,19 +267,19 @@ export function ReportContent() {
                             <span>{data.summary.totalCorrect} benar</span>
                             <span>{data.summary.totalQuestions - data.summary.totalCorrect} salah</span>
                         </div>
-                    </CardContent>
-                </Card>
+                    </div>
+                </div>
 
                 {/* Category Breakdown */}
                 {data.categoryBreakdown.length > 0 && (
-                    <Card className="border-0 shadow-sm">
-                        <CardHeader className="pb-3">
-                            <CardTitle className="flex items-center gap-2 text-base">
+                    <div className={cardCls}>
+                        <div className="px-6 pt-6 pb-2">
+                            <h3 className="flex items-center gap-2 text-base font-semibold">
                                 <BarChart3 className="h-5 w-5 text-primary" />
                                 Breakdown per Kategori
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-3">
+                            </h3>
+                        </div>
+                        <div className="space-y-3 p-6 pt-2">
                             {data.categoryBreakdown.map((cat) => (
                                 <div key={cat.category} className="space-y-1.5">
                                     <div className="flex items-center justify-between">
@@ -300,20 +301,20 @@ export function ReportContent() {
                                     </p>
                                 </div>
                             ))}
-                        </CardContent>
-                    </Card>
+                        </div>
+                    </div>
                 )}
 
                 {/* Recent Attempts */}
                 {data.recentAttempts.length > 0 && (
-                    <Card className="border-0 shadow-sm">
-                        <CardHeader className="pb-3">
-                            <CardTitle className="flex items-center gap-2 text-base">
+                    <div className={cardCls}>
+                        <div className="px-6 pt-6 pb-2">
+                            <h3 className="flex items-center gap-2 text-base font-semibold">
                                 <TrendingUp className="h-5 w-5 text-primary" />
                                 Riwayat Terakhir
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-2">
+                            </h3>
+                        </div>
+                        <div className="space-y-2 p-6 pt-2">
                             {data.recentAttempts.map((attempt, idx) => (
                                 <div key={idx} className="flex items-center justify-between rounded-lg border p-3">
                                     <div>
@@ -336,20 +337,20 @@ export function ReportContent() {
                                     </div>
                                 </div>
                             ))}
-                        </CardContent>
-                    </Card>
+                        </div>
+                    </div>
                 )}
 
                 {/* Badges */}
                 {data.badges.length > 0 && (
-                    <Card className="border-0 shadow-sm">
-                        <CardHeader className="pb-3">
-                            <CardTitle className="flex items-center gap-2 text-base">
+                    <div className={cardCls}>
+                        <div className="px-6 pt-6 pb-2">
+                            <h3 className="flex items-center gap-2 text-base font-semibold">
                                 <Award className="h-5 w-5 text-amber-500" />
                                 Badge yang Diperoleh
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent>
+                            </h3>
+                        </div>
+                        <div className="p-6 pt-2">
                             <div className="flex flex-wrap gap-2">
                                 {data.badges.map((badge, idx) => (
                                     <Badge key={idx} variant="outline" className="gap-1 px-3 py-1.5">
@@ -358,8 +359,8 @@ export function ReportContent() {
                                     </Badge>
                                 ))}
                             </div>
-                        </CardContent>
-                    </Card>
+                        </div>
+                    </div>
                 )}
 
                 {/* Footer */}

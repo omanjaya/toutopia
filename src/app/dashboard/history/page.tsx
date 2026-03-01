@@ -3,7 +3,6 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { auth } from "@/shared/lib/auth";
 import { prisma } from "@/shared/lib/prisma";
-import { Card, CardContent } from "@/shared/components/ui/card";
 import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
 import {
@@ -18,6 +17,8 @@ import {
 } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
 import { SegmentedNav } from "./segmented-nav";
+
+const cardCls = "rounded-2xl bg-card shadow-[0_2px_8px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.05]";
 import { HistoryFilters } from "./history-filters";
 import type { Prisma } from "@prisma/client";
 
@@ -199,8 +200,8 @@ export default async function HistoryPage({
       />
 
       {attempts.length === 0 ? (
-        <Card className="border-dashed">
-          <CardContent className="flex flex-col items-center py-16 text-center">
+        <div className="rounded-2xl border-dashed border-2 bg-card">
+          <div className="flex flex-col items-center py-16 text-center">
             <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-muted">
               <History className="h-8 w-8 text-muted-foreground/50" />
             </div>
@@ -220,8 +221,8 @@ export default async function HistoryPage({
                 </Link>
               </Button>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       ) : (
         <div className="space-y-2">
           {attempts.map((attempt) => {
@@ -252,8 +253,8 @@ export default async function HistoryPage({
                     : `/exam/${attempt.id}/result`
                 }
               >
-                <Card className="group transition-all hover:shadow-md hover:border-primary/30 hover:-translate-y-px mb-2">
-                  <CardContent className="flex items-center gap-4 py-4">
+                <div className={`${cardCls} group transition-all hover:ring-primary/30 hover:shadow-md hover:-translate-y-px mb-2`}>
+                  <div className="flex items-center gap-4 py-4 px-6">
                     {/* Status icon */}
                     <div
                       className={cn(
@@ -321,8 +322,8 @@ export default async function HistoryPage({
                       <Badge variant={config.badgeVariant}>{config.label}</Badge>
                       <ArrowRight className="h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
                     </div>
-                  </CardContent>
-                </Card>
+                  </div>
+                </div>
               </Link>
             );
           })}

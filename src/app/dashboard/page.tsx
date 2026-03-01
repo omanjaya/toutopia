@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { auth } from "@/shared/lib/auth";
 import { prisma } from "@/shared/lib/prisma";
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
 import {
@@ -31,6 +30,8 @@ export const metadata: Metadata = {
 };
 
 type ScoreTrend = "up" | "down" | "neutral";
+
+const cardCls = "rounded-2xl bg-card shadow-[0_2px_8px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.05]";
 
 async function getDashboardStats(userId: string) {
   const today = new Date();
@@ -184,8 +185,8 @@ export default async function DashboardPage() {
 
       {/* Stat Cards — Bento Grid */}
       <div className="grid gap-4 sm:grid-cols-3">
-        <Card className="border-0 bg-primary text-primary-foreground shadow-md shadow-primary/20">
-          <CardContent className="p-6">
+        <div className="rounded-2xl bg-primary text-primary-foreground shadow-md shadow-primary/20">
+          <div className="p-6">
             <div className="flex items-start justify-between">
               <div>
                 <p className="text-sm font-medium text-primary-foreground/70">Try Out Selesai</p>
@@ -197,11 +198,11 @@ export default async function DashboardPage() {
                 <BookOpen className="h-5 w-5" />
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
-        <Card className="border-0 bg-card shadow-sm">
-          <CardContent className="p-6">
+        <div className={cardCls}>
+          <div className="p-6">
             <div className="flex items-start justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Skor Tertinggi</p>
@@ -225,11 +226,11 @@ export default async function DashboardPage() {
                 <Trophy className="h-5 w-5 text-amber-500" />
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
-        <Card className="border-0 bg-card shadow-sm">
-          <CardContent className="p-6">
+        <div className={cardCls}>
+          <div className="p-6">
             <div className="flex items-start justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Rata-rata Skor</p>
@@ -253,13 +254,13 @@ export default async function DashboardPage() {
                 <TrendingUp className="h-5 w-5 text-emerald-500" />
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
 
       {/* Daily Challenge Teaser */}
-      <Card className="border-0 bg-card shadow-sm">
-        <CardContent className="flex items-center gap-4 p-5">
+      <div className={cardCls}>
+        <div className="flex items-center gap-4 p-5">
           <div className="rounded-2xl bg-yellow-400/15 p-3">
             <Zap className="h-6 w-6 text-yellow-500" />
           </div>
@@ -293,22 +294,22 @@ export default async function DashboardPage() {
               </Link>
             </Button>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Main Content Grid */}
       <div className="grid gap-6 lg:grid-cols-5">
         {/* Recent Attempts — wider */}
-        <Card className="border-0 bg-card shadow-sm lg:col-span-3">
-          <CardHeader className="flex flex-row items-center justify-between pb-4">
-            <CardTitle className="text-base font-semibold">Riwayat Terbaru</CardTitle>
+        <div className={`${cardCls} lg:col-span-3`}>
+          <div className="flex flex-row items-center justify-between px-6 pt-6 pb-2">
+            <h3 className="text-lg font-semibold tracking-tight">Riwayat Terbaru</h3>
             <Button variant="ghost" size="sm" className="h-8 text-xs text-muted-foreground" asChild>
               <Link href="/dashboard/history">
                 Lihat semua <ArrowRight className="ml-1.5 h-3 w-3" />
               </Link>
             </Button>
-          </CardHeader>
-          <CardContent className="space-y-2">
+          </div>
+          <div className="space-y-2 p-6 pt-2">
             {stats?.recentAttempts && stats.recentAttempts.length > 0 ? (
               stats.recentAttempts.map((attempt) => (
                 <Link
@@ -362,20 +363,20 @@ export default async function DashboardPage() {
                 </Button>
               </div>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
         {/* Today's Tasks — narrower */}
-        <Card className="border-0 bg-card shadow-sm lg:col-span-2">
-          <CardHeader className="flex flex-row items-center justify-between pb-4">
-            <CardTitle className="text-base font-semibold">Jadwal Hari Ini</CardTitle>
+        <div className={`${cardCls} lg:col-span-2`}>
+          <div className="flex flex-row items-center justify-between px-6 pt-6 pb-2">
+            <h3 className="text-lg font-semibold tracking-tight">Jadwal Hari Ini</h3>
             <Button variant="ghost" size="sm" className="h-8 text-xs text-muted-foreground" asChild>
               <Link href="/dashboard/planner">
                 Planner <ArrowRight className="ml-1.5 h-3 w-3" />
               </Link>
             </Button>
-          </CardHeader>
-          <CardContent className="space-y-2">
+          </div>
+          <div className="space-y-2 p-6 pt-2">
             {stats?.todayTasks && stats.todayTasks.length > 0 ? (
               stats.todayTasks.map((task) => (
                 <div
@@ -406,8 +407,8 @@ export default async function DashboardPage() {
                 </Button>
               </div>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
 
       {/* Referral */}
@@ -416,8 +417,8 @@ export default async function DashboardPage() {
       {/* Quick Actions — 2x2 Grid */}
       <div className="grid gap-4 sm:grid-cols-2">
         <Link href="/dashboard/tryout">
-          <Card className="group cursor-pointer border-0 bg-card shadow-sm transition-shadow hover:shadow-md">
-            <CardContent className="flex items-center gap-4 p-6">
+          <div className={`${cardCls} group cursor-pointer transition-shadow hover:shadow-md`}>
+            <div className="flex items-center gap-4 p-6">
               <div className="rounded-2xl bg-primary/10 p-3">
                 <Target className="h-6 w-6 text-primary" />
               </div>
@@ -426,13 +427,13 @@ export default async function DashboardPage() {
                 <p className="text-sm text-muted-foreground">Pilih paket dan mulai latihan</p>
               </div>
               <ArrowRight className="h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-1" />
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </Link>
 
         <Link href="/dashboard/analytics">
-          <Card className="group cursor-pointer border-0 bg-card shadow-sm transition-shadow hover:shadow-md">
-            <CardContent className="flex items-center gap-4 p-6">
+          <div className={`${cardCls} group cursor-pointer transition-shadow hover:shadow-md`}>
+            <div className="flex items-center gap-4 p-6">
               <div className="rounded-2xl bg-emerald-50 p-3 dark:bg-emerald-950/30">
                 <TrendingUp className="h-6 w-6 text-emerald-600" />
               </div>
@@ -441,13 +442,13 @@ export default async function DashboardPage() {
                 <p className="text-sm text-muted-foreground">Pantau perkembangan skormu</p>
               </div>
               <ArrowRight className="h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-1" />
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </Link>
 
         <Link href="/dashboard/practice">
-          <Card className="group cursor-pointer border-0 bg-card shadow-sm transition-shadow hover:shadow-md">
-            <CardContent className="flex items-center gap-4 p-6">
+          <div className={`${cardCls} group cursor-pointer transition-shadow hover:shadow-md`}>
+            <div className="flex items-center gap-4 p-6">
               <div className="rounded-2xl bg-blue-50 p-3 dark:bg-blue-950/30">
                 <BookOpen className="h-6 w-6 text-blue-600" />
               </div>
@@ -456,13 +457,13 @@ export default async function DashboardPage() {
                 <p className="text-sm text-muted-foreground">Latihan soal tanpa tekanan waktu</p>
               </div>
               <ArrowRight className="h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-1" />
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </Link>
 
         <Link href="/dashboard/bookmarks">
-          <Card className="group cursor-pointer border-0 bg-card shadow-sm transition-shadow hover:shadow-md">
-            <CardContent className="flex items-center gap-4 p-6">
+          <div className={`${cardCls} group cursor-pointer transition-shadow hover:shadow-md`}>
+            <div className="flex items-center gap-4 p-6">
               <div className="rounded-2xl bg-purple-50 p-3 dark:bg-purple-950/30">
                 <Bookmark className="h-6 w-6 text-purple-600" />
               </div>
@@ -471,8 +472,8 @@ export default async function DashboardPage() {
                 <p className="text-sm text-muted-foreground">Tinjau soal yang kamu simpan</p>
               </div>
               <ArrowRight className="h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-1" />
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </Link>
       </div>
     </div>

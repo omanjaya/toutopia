@@ -8,13 +8,6 @@ import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
 import { Textarea } from "@/shared/components/ui/textarea";
 import { Label } from "@/shared/components/ui/label";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/shared/components/ui/card";
 
 interface ProfileData {
   name: string;
@@ -25,6 +18,8 @@ interface ProfileData {
   targetExam: string | null;
   bio: string | null;
 }
+
+const cardCls = "rounded-2xl bg-card shadow-[0_2px_8px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.05]";
 
 export function ProfileSection() {
   const { update: updateSession } = useSession();
@@ -177,26 +172,26 @@ export function ProfileSection() {
 
   if (loading) {
     return (
-      <Card>
-        <CardContent className="flex items-center justify-center py-12">
+      <div className={cardCls}>
+        <div className="flex items-center justify-center py-12">
           <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     );
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
+    <div className={cardCls}>
+      <div className="px-6 pt-6 pb-2">
+        <h3 className="text-lg font-semibold tracking-tight flex items-center gap-2">
           <UserCircle className="h-5 w-5" />
           Profil
-        </CardTitle>
-        <CardDescription>
+        </h3>
+        <p className="mt-1 text-sm text-muted-foreground">
           Informasi profil kamu yang ditampilkan di platform
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-6">
+        </p>
+      </div>
+      <div className="p-6 space-y-6">
         {/* Avatar Section */}
         <div className="flex items-center gap-4">
           <div className="relative">
@@ -320,7 +315,7 @@ export function ProfileSection() {
             Simpan Profil
           </Button>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

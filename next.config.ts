@@ -2,7 +2,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   output: "standalone",
-  serverExternalPackages: ["argon2", "pg", "midtrans-client", "web-push", "minio", "ioredis"],
+  serverExternalPackages: ["argon2", "pg", "midtrans-client", "web-push", "minio", "ioredis", "sharp"],
   experimental: {
     optimizePackageImports: ["lucide-react", "@radix-ui/react-icons", "recharts"],
   },

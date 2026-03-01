@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { prisma } from "@/shared/lib/prisma";
 import { auth } from "@/shared/lib/auth";
-import { Card, CardContent, CardHeader } from "@/shared/components/ui/card";
 import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
 import { Progress } from "@/shared/components/ui/progress";
@@ -16,6 +15,8 @@ import {
 import type { Prisma } from "@prisma/client";
 import { formatCurrency, cn } from "@/shared/lib/utils";
 import { TryoutFilterBar } from "./tryout-filter-bar";
+
+const cardCls = "rounded-2xl bg-card shadow-[0_2px_8px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.05]";
 
 export const dynamic = "force-dynamic";
 
@@ -182,14 +183,15 @@ export default async function TryOutCatalogPage({ searchParams }: PageProps) {
           const maxReached = attemptCount >= pkg.maxAttempts;
 
           return (
-            <Card
+            <div
               key={pkg.id}
               className={cn(
+                cardCls,
                 "flex flex-col border-l-4 transition-shadow hover:shadow-md",
                 accentClass,
               )}
             >
-              <CardHeader className="pb-3">
+              <div className="px-6 pt-6 pb-2">
                 {/* Top row: category badge + price */}
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex items-center gap-1.5">
@@ -223,9 +225,9 @@ export default async function TryOutCatalogPage({ searchParams }: PageProps) {
                     {pkg.description}
                   </p>
                 )}
-              </CardHeader>
+              </div>
 
-              <CardContent className="flex-1 space-y-3 pt-0">
+              <div className="flex-1 space-y-3 p-6 pt-0">
                 {/* Stats row */}
                 <div className="flex gap-4 text-xs text-muted-foreground">
                   <span className="flex items-center gap-1">
@@ -322,8 +324,8 @@ export default async function TryOutCatalogPage({ searchParams }: PageProps) {
                     </Button>
                   )}
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           );
         })}
 

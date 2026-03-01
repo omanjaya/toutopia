@@ -4,9 +4,8 @@ import { prisma } from "@/shared/lib/prisma";
 import { auth } from "@/shared/lib/auth";
 import Link from "next/link";
 import { Button } from "@/shared/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { Badge } from "@/shared/components/ui/badge";
-import { ArrowLeft, CheckCircle2, Pencil, Trash2 } from "lucide-react";
+import { ArrowLeft, CheckCircle2 } from "lucide-react";
 import { LazyMathRenderer as MathRenderer } from "@/shared/components/shared/lazy-math-renderer";
 import { TeacherQuestionActions } from "./teacher-question-actions";
 
@@ -15,6 +14,8 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Detail Soal",
 };
+
+const cardCls = "rounded-2xl bg-card shadow-[0_2px_8px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.05]";
 
 const statusConfig: Record<string, { label: string; variant: "default" | "secondary" | "outline" | "destructive" }> = {
   APPROVED: { label: "Disetujui", variant: "default" },
@@ -91,11 +92,11 @@ export default async function TeacherQuestionDetailPage({
         />
       )}
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Informasi</CardTitle>
-        </CardHeader>
-        <CardContent className="grid gap-4 sm:grid-cols-3">
+      <div className={cardCls}>
+        <div className="px-6 pt-6 pb-2">
+          <h3 className="text-lg font-semibold tracking-tight">Informasi</h3>
+        </div>
+        <div className="p-6 grid gap-4 sm:grid-cols-3">
           <div>
             <p className="text-sm text-muted-foreground">Tipe</p>
             <p className="text-sm">{question.type.replace("_", " ")}</p>
@@ -108,26 +109,26 @@ export default async function TeacherQuestionDetailPage({
             <p className="text-sm text-muted-foreground">Sumber</p>
             <p className="text-sm">{question.source ?? "-"}</p>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Pertanyaan</CardTitle>
-        </CardHeader>
-        <CardContent>
+      <div className={cardCls}>
+        <div className="px-6 pt-6 pb-2">
+          <h3 className="text-lg font-semibold tracking-tight">Pertanyaan</h3>
+        </div>
+        <div className="p-6">
           <MathRenderer
             content={question.content}
             className="prose prose-sm max-w-none dark:prose-invert"
           />
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Opsi Jawaban</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
+      <div className={cardCls}>
+        <div className="px-6 pt-6 pb-2">
+          <h3 className="text-lg font-semibold tracking-tight">Opsi Jawaban</h3>
+        </div>
+        <div className="p-6 space-y-3">
           {question.options.map((opt) => (
             <div
               key={opt.id}
@@ -144,32 +145,32 @@ export default async function TeacherQuestionDetailPage({
               {opt.isCorrect && <CheckCircle2 className="h-5 w-5 shrink-0 text-emerald-500" />}
             </div>
           ))}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {question.explanation && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Pembahasan</CardTitle>
-          </CardHeader>
-          <CardContent>
+        <div className={cardCls}>
+          <div className="px-6 pt-6 pb-2">
+            <h3 className="text-lg font-semibold tracking-tight">Pembahasan</h3>
+          </div>
+          <div className="p-6">
             <MathRenderer
               content={question.explanation}
               className="prose prose-sm max-w-none dark:prose-invert"
             />
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       )}
 
       {question.reviewNote && (
-        <Card className={question.status === "REJECTED" ? "border-destructive" : ""}>
-          <CardHeader>
-            <CardTitle>Catatan Review</CardTitle>
-          </CardHeader>
-          <CardContent>
+        <div className={`${cardCls}${question.status === "REJECTED" ? " ring-destructive" : ""}`}>
+          <div className="px-6 pt-6 pb-2">
+            <h3 className="text-lg font-semibold tracking-tight">Catatan Review</h3>
+          </div>
+          <div className="p-6">
             <p className="text-sm">{question.reviewNote}</p>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       )}
     </div>
   );

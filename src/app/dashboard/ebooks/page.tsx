@@ -3,11 +3,12 @@ import Link from "next/link";
 import Image from "next/image";
 import { redirect } from "next/navigation";
 import { prisma } from "@/shared/lib/prisma";
-import { Card } from "@/shared/components/ui/card";
 import { Badge } from "@/shared/components/ui/badge";
 import { auth } from "@/shared/lib/auth";
 import { BookText, Eye, BookOpen } from "lucide-react";
 import { EbookFilters } from "./ebook-filters";
+
+const cardCls = "rounded-2xl bg-card shadow-[0_2px_8px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.05]";
 
 export const dynamic = "force-dynamic";
 
@@ -121,7 +122,7 @@ export default async function EbooksPage({ searchParams }: Props) {
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {ebooks.map((ebook) => (
             <Link key={ebook.id} href={`/dashboard/ebooks/${ebook.slug}`} className="group">
-              <Card className="h-full overflow-hidden border-0 shadow-[3px_4px_16px_rgba(0,0,0,0.12)] transition-all duration-200 hover:-translate-y-1 hover:shadow-[4px_8px_24px_rgba(0,0,0,0.18)]">
+              <div className={`${cardCls} h-full overflow-hidden transition-all duration-200 hover:-translate-y-1 hover:shadow-[4px_8px_24px_rgba(0,0,0,0.18)]`}>
                 {/* Book cover — portrait ratio */}
                 <div className="relative aspect-[3/4] w-full overflow-hidden bg-gradient-to-br from-muted to-muted/60">
                   {/* Book spine left edge */}
@@ -197,7 +198,7 @@ export default async function EbooksPage({ searchParams }: Props) {
                     </span>
                   </div>
                 </div>
-              </Card>
+              </div>
             </Link>
           ))}
         </div>

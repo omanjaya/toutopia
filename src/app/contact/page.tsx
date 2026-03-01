@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Header } from "@/shared/components/layout/header";
 import { Footer } from "@/shared/components/layout/footer";
-import { Card, CardContent } from "@/shared/components/ui/card";
 import { Button } from "@/shared/components/ui/button";
 import { Mail, MessageCircle, Clock, HelpCircle, ArrowRight } from "lucide-react";
 
@@ -10,6 +9,8 @@ export const metadata: Metadata = {
   title: "Kontak — Toutopia",
   description: "Hubungi tim Toutopia untuk pertanyaan, masukan, atau kerja sama.",
 };
+
+const cardCls = "rounded-2xl bg-card shadow-[0_2px_8px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.05]";
 
 const contacts = [
   {
@@ -63,8 +64,8 @@ export default function ContactPage() {
 
             <div className="mt-14 grid gap-4 sm:grid-cols-3">
               {contacts.map((c) => (
-                <Card key={c.title} className="group transition-all hover:shadow-md hover:-translate-y-0.5">
-                  <CardContent className="pt-6 text-center">
+                <div key={c.title} className={`${cardCls} group transition-all hover:shadow-md hover:-translate-y-0.5`}>
+                  <div className="pt-6 text-center px-6 pb-6">
                     <div className={`mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl ${c.color}`}>
                       <c.icon className="h-7 w-7" />
                     </div>
@@ -82,13 +83,13 @@ export default function ContactPage() {
                     ) : (
                       <p className="mt-3 text-sm font-semibold">{c.value}</p>
                     )}
-                  </CardContent>
-                </Card>
+                  </div>
+                </div>
               ))}
             </div>
 
-            <Card className="mt-10 bg-gradient-to-r from-muted/50 to-muted/30 border-dashed">
-              <CardContent className="flex flex-col items-center py-8 text-center sm:flex-row sm:gap-6 sm:text-left">
+            <div className={`${cardCls} mt-10 bg-gradient-to-r from-muted/50 to-muted/30 border-dashed`}>
+              <div className="flex flex-col items-center py-8 text-center sm:flex-row sm:gap-6 sm:text-left px-6">
                 <div className="mb-4 flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/10 sm:mb-0">
                   <HelpCircle className="h-6 w-6 text-primary" />
                 </div>
@@ -104,8 +105,8 @@ export default function ContactPage() {
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </Link>
                 </Button>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           </div>
         </section>
       </main>

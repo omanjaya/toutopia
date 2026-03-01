@@ -5,12 +5,6 @@ import { prisma } from "@/shared/lib/prisma";
 import { auth } from "@/shared/lib/auth";
 import { Header } from "@/shared/components/layout/header";
 import { Footer } from "@/shared/components/layout/footer";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/shared/components/ui/card";
 import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
 import {
@@ -28,6 +22,8 @@ import { formatCurrency } from "@/shared/lib/utils";
 import { cn } from "@/shared/lib/utils";
 
 export const dynamic = "force-dynamic";
+
+const cardCls = "rounded-2xl bg-card shadow-[0_2px_8px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.05]";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -134,21 +130,21 @@ export default async function PackageDetailPage({ params }: PageProps) {
           {/* Stats Grid */}
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             {stats.map((stat) => (
-              <Card key={stat.label}>
-                <CardContent className="flex flex-col items-center py-5">
+              <div key={stat.label} className={cardCls}>
+                <div className="flex flex-col items-center py-5">
                   <div className={cn("mb-2 flex h-10 w-10 items-center justify-center rounded-xl", stat.color)}>
                     <stat.icon className="h-5 w-5" />
                   </div>
                   <p className="text-2xl font-bold">{stat.value}</p>
                   <p className="text-xs text-muted-foreground">{stat.label}</p>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             ))}
           </div>
 
           {/* Price */}
-          <Card>
-            <CardContent className="flex items-center justify-between py-5">
+          <div className={cardCls}>
+            <div className="flex items-center justify-between py-5 px-6">
               <div>
                 <p className="text-sm text-muted-foreground mb-1">Harga</p>
                 {pkg.isFree ? (
@@ -174,18 +170,18 @@ export default async function PackageDetailPage({ params }: PageProps) {
               <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
                 <Trophy className="h-6 w-6 text-primary" />
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
 
           {/* Sections */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+          <div className={cardCls}>
+            <div className="px-6 pt-6 pb-2">
+              <h3 className="text-lg font-semibold tracking-tight flex items-center gap-2">
                 <BookOpen className="h-5 w-5 text-muted-foreground" />
                 Struktur Ujian
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
+              </h3>
+            </div>
+            <div className="px-6 pb-6 space-y-2">
               {pkg.sections.map((section, idx) => (
                 <div
                   key={section.id}
@@ -214,11 +210,11 @@ export default async function PackageDetailPage({ params }: PageProps) {
                   </div>
                 </div>
               ))}
-            </CardContent>
-          </Card>
+            </div>
+          </div>
 
           {/* CTA */}
-          <Card className="overflow-hidden">
+          <div className={`${cardCls} overflow-hidden`}>
             <div className="bg-gradient-to-r from-primary/10 to-primary/5 p-8 text-center">
               {isLoggedIn ? (
                 <>
@@ -251,7 +247,7 @@ export default async function PackageDetailPage({ params }: PageProps) {
                 </>
               )}
             </div>
-          </Card>
+          </div>
         </div>
       </main>
       <Footer />

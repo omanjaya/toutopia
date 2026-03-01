@@ -12,8 +12,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/shared/components/ui/select";
-import { Card, CardContent } from "@/shared/components/ui/card";
 import { Label } from "@/shared/components/ui/label";
+
+const cardCls = "rounded-2xl bg-card shadow-[0_2px_8px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.05]";
 import { cn } from "@/shared/lib/utils";
 import { MobilePracticeSession } from "./practice-session";
 
@@ -191,8 +192,8 @@ export function MobilePracticeSetup({
         </div>
       </div>
 
-      <Card>
-        <CardContent className="space-y-5 p-4">
+      <div className={cardCls}>
+        <div className="space-y-5 p-4">
           {/* Category */}
           <div className="space-y-2">
             <Label className="text-sm">Kategori Ujian</Label>
@@ -326,8 +327,8 @@ export function MobilePracticeSetup({
             )}
             Mulai Latihan
           </Button>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 }

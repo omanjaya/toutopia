@@ -5,13 +5,6 @@ import { toast } from "sonner";
 import { Bell, Loader2 } from "lucide-react";
 import { Switch } from "@/shared/components/ui/switch";
 import { Label } from "@/shared/components/ui/label";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/shared/components/ui/card";
 
 interface NotifPrefs {
   notifyExamResult: boolean;
@@ -26,6 +19,8 @@ const prefItems: { key: keyof NotifPrefs; label: string; description: string }[]
   { key: "notifyPromo", label: "Promo & Pengumuman", description: "Info promo dan pengumuman terbaru" },
   { key: "notifyPush", label: "Push Notification", description: "Terima push notification di browser" },
 ];
+
+const cardCls = "rounded-2xl bg-card shadow-[0_2px_8px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.05]";
 
 export function NotificationSection() {
   const [prefs, setPrefs] = useState<NotifPrefs | null>(null);
@@ -68,17 +63,17 @@ export function NotificationSection() {
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
+    <div className={cardCls}>
+      <div className="px-6 pt-6 pb-2">
+        <h3 className="text-lg font-semibold tracking-tight flex items-center gap-2">
           <Bell className="h-5 w-5" />
           Preferensi Notifikasi
-        </CardTitle>
-        <CardDescription>
+        </h3>
+        <p className="mt-1 text-sm text-muted-foreground">
           Atur jenis notifikasi yang ingin kamu terima
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
+        </p>
+      </div>
+      <div className="p-6">
         {loading ? (
           <div className="flex items-center justify-center py-8">
             <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
@@ -103,7 +98,7 @@ export function NotificationSection() {
             ))}
           </div>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

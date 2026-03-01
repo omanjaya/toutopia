@@ -3,12 +3,11 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Loader2, ArrowLeft, FileUp } from "lucide-react";
+import { Loader2, FileUp, BookPlus, ChevronLeft, FileText, FileCode } from "lucide-react";
 import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
 import { Textarea } from "@/shared/components/ui/textarea";
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import {
   Select,
   SelectContent,
@@ -19,6 +18,9 @@ import {
 import Link from "next/link";
 
 const CATEGORIES = ["UTBK", "CPNS", "BUMN", "Kedinasan", "PPPK", "Umum"];
+
+const cardCls =
+  "rounded-2xl bg-card shadow-[0_2px_8px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.05]";
 
 function slugify(text: string): string {
   return text
@@ -118,21 +120,33 @@ export default function NewEbookPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" asChild>
+      <div className="flex items-center gap-3">
+        <Button variant="ghost" size="icon" className="h-9 w-9" asChild>
           <Link href="/admin/ebooks">
-            <ArrowLeft className="h-4 w-4" />
+            <ChevronLeft className="h-4 w-4" />
           </Link>
         </Button>
-        <h2 className="text-2xl font-bold tracking-tight">Tambah Ebook</h2>
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10">
+          <BookPlus className="h-5 w-5 text-primary" />
+        </div>
+        <div>
+          <h2 className="text-2xl font-semibold tracking-tight">Tambah Ebook</h2>
+          <p className="text-sm text-muted-foreground">Upload ebook baru ke platform</p>
+        </div>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Detail Ebook</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
+        <div className={cardCls}>
+          <div className="flex items-center gap-2 border-b border-border/60 px-5 py-4">
+            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+              <BookPlus className="h-3.5 w-3.5 text-primary" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold">Detail Ebook</p>
+              <p className="text-xs text-muted-foreground">Informasi dasar ebook</p>
+            </div>
+          </div>
+          <div className="space-y-4 p-5">
             <div className="space-y-2">
               <Label>Judul</Label>
               <Input
@@ -227,14 +241,20 @@ export default function NewEbookPage() {
                 placeholder="utbk, materi, ebook"
               />
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Konten</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
+        <div className={cardCls}>
+          <div className="flex items-center gap-2 border-b border-border/60 px-5 py-4">
+            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+              <FileText className="h-3.5 w-3.5 text-primary" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold">Konten</p>
+              <p className="text-xs text-muted-foreground">File PDF atau konten HTML</p>
+            </div>
+          </div>
+          <div className="space-y-4 p-5">
             <div className="space-y-2">
               <Label>Tipe Konten</Label>
               <div className="flex gap-2">
@@ -299,8 +319,8 @@ export default function NewEbookPage() {
                 />
               </div>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
         <div className="flex justify-end gap-3">
           <Button variant="outline" type="button" asChild>

@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Header } from "@/shared/components/layout/header";
 import { Footer } from "@/shared/components/layout/footer";
-import { Card, CardContent } from "@/shared/components/ui/card";
 import {
   FileText,
   UserCog,
@@ -20,6 +19,8 @@ export const metadata: Metadata = {
   title: "Syarat & Ketentuan — Toutopia",
   description: "Syarat dan ketentuan penggunaan platform try out online Toutopia.",
 };
+
+const cardCls = "rounded-2xl bg-card shadow-[0_2px_8px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.05]";
 
 const sections = [
   {
@@ -127,8 +128,8 @@ export default function TermsPage() {
         <section className="mx-auto max-w-3xl px-4 pb-20 sm:px-6">
           <div className="space-y-4">
             {sections.map((section) => (
-              <Card key={section.title}>
-                <CardContent className="pt-6">
+              <div key={section.title} className={cardCls}>
+                <div className="pt-6 px-6 pb-6">
                   <div className="flex items-start gap-4">
                     <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-muted">
                       <section.icon className="h-5 w-5 text-muted-foreground" />
@@ -163,8 +164,8 @@ export default function TermsPage() {
                       )}
                     </div>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             ))}
           </div>
         </section>

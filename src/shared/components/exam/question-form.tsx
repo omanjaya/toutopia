@@ -1,15 +1,24 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2, Plus, Trash2, GripVertical } from "lucide-react";
+import {
+  Loader2,
+  Plus,
+  Trash2,
+  GripVertical,
+  Tags,
+  Settings,
+  AlignLeft,
+  ListChecks,
+  MessageSquare,
+} from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
-import { Textarea } from "@/shared/components/ui/textarea";
 import { ImageUpload } from "@/shared/components/shared/image-upload";
 import {
   Select,
@@ -18,13 +27,42 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/shared/components/ui/select";
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { Separator } from "@/shared/components/ui/separator";
 import { LazyRichTextEditor as RichTextEditor } from "@/shared/components/shared/lazy-rich-text-editor";
 import {
   createQuestionSchema,
   type CreateQuestionInput,
 } from "@/shared/lib/validators/question.validators";
+
+const cardCls =
+  "rounded-2xl bg-card shadow-[0_2px_8px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.05]";
+
+function SectionHeader({
+  icon: Icon,
+  title,
+  description,
+  actions,
+}: {
+  icon: React.ElementType;
+  title: string;
+  description?: string;
+  actions?: React.ReactNode;
+}) {
+  return (
+    <div className="flex items-center gap-2 border-b border-border/60 px-5 py-4">
+      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+        <Icon className="h-3.5 w-3.5 text-primary" />
+      </div>
+      <div className="flex-1">
+        <p className="text-sm font-semibold">{title}</p>
+        {description && (
+          <p className="text-xs text-muted-foreground">{description}</p>
+        )}
+      </div>
+      {actions && <div>{actions}</div>}
+    </div>
+  );
+}
 
 interface Category {
   id: string;
@@ -159,11 +197,13 @@ export function QuestionForm({
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
       {/* Topic Selection */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Klasifikasi Soal</CardTitle>
-        </CardHeader>
-        <CardContent className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className={cardCls}>
+        <SectionHeader
+          icon={Tags}
+          title="Klasifikasi Soal"
+          description="Tentukan kategori dan topik untuk soal ini"
+        />
+        <div className="grid gap-4 p-5 sm:grid-cols-2 lg:grid-cols-4">
           <div className="space-y-2">
             <Label>Kategori</Label>
             <Select value={selectedCategory} onValueChange={setSelectedCategory}>
@@ -244,24 +284,23 @@ export function QuestionForm({
               </p>
             )}
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Question Properties */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Detail Soal</CardTitle>
-        </CardHeader>
-        <CardContent className="grid gap-4 sm:grid-cols-3">
+      <div className={cardCls}>
+        <SectionHeader
+          icon={Settings}
+          title="Detail Soal"
+          description="Tipe, tingkat kesulitan, dan tahun soal"
+        />
+        <div className="grid gap-4 p-5 sm:grid-cols-3">
           <div className="space-y-2">
             <Label>Tipe Soal</Label>
             <Select
               value={watch("type")}
               onValueChange={(v) =>
-                setValue(
-                  "type",
-                  v as CreateQuestionInput["type"]
-                )
+                setValue("type", v as CreateQuestionInput["type"])
               }
             >
               <SelectTrigger>
@@ -309,15 +348,17 @@ export function QuestionForm({
               {...register("year", { valueAsNumber: true })}
             />
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Question Content */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Konten Soal</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
+      <div className={cardCls}>
+        <SectionHeader
+          icon={AlignLeft}
+          title="Konten Soal"
+          description="Teks pertanyaan, sumber, dan gambar pendukung"
+        />
+        <div className="space-y-4 p-5">
           <div className="space-y-2">
             <Label>Pertanyaan</Label>
             <RichTextEditor
@@ -347,32 +388,36 @@ export function QuestionForm({
               onChange={(url) => setValue("imageUrl", url)}
             />
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Answer Options */}
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>Opsi Jawaban</CardTitle>
-          {fields.length < 6 && (
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() =>
-                append({
-                  ...defaultOption,
-                  label: String.fromCharCode(65 + fields.length),
-                  order: fields.length,
-                })
-              }
-            >
-              <Plus className="mr-2 h-4 w-4" />
-              Tambah Opsi
-            </Button>
-          )}
-        </CardHeader>
-        <CardContent className="space-y-4">
+      <div className={cardCls}>
+        <SectionHeader
+          icon={ListChecks}
+          title="Opsi Jawaban"
+          description="Klik huruf opsi untuk menandai jawaban yang benar"
+          actions={
+            fields.length < 6 ? (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() =>
+                  append({
+                    ...defaultOption,
+                    label: String.fromCharCode(65 + fields.length),
+                    order: fields.length,
+                  })
+                }
+              >
+                <Plus className="mr-2 h-4 w-4" />
+                Tambah Opsi
+              </Button>
+            ) : undefined
+          }
+        />
+        <div className="space-y-4 p-5">
           {fields.map((field, index) => (
             <div
               key={field.id}
@@ -401,7 +446,9 @@ export function QuestionForm({
                 />
                 <ImageUpload
                   value={watch(`options.${index}.imageUrl`)}
-                  onChange={(url) => setValue(`options.${index}.imageUrl`, url)}
+                  onChange={(url) =>
+                    setValue(`options.${index}.imageUrl`, url)
+                  }
                 />
                 <input type="hidden" {...register(`options.${index}.label`)} />
                 <input
@@ -433,24 +480,26 @@ export function QuestionForm({
             </p>
           )}
           <p className="text-xs text-muted-foreground">
-            Klik huruf opsi untuk menandai jawaban yang benar (hijau = benar)
+            Hijau = jawaban benar. Klik huruf opsi untuk mengubah status.
           </p>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Explanation */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Pembahasan</CardTitle>
-        </CardHeader>
-        <CardContent>
+      <div className={cardCls}>
+        <SectionHeader
+          icon={MessageSquare}
+          title="Pembahasan"
+          description="Penjelasan lengkap jawaban yang benar"
+        />
+        <div className="p-5">
           <RichTextEditor
             content={watch("explanation") ?? ""}
             onChange={(v) => setValue("explanation", v)}
             placeholder="Tulis pembahasan soal di sini..."
           />
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       <Separator />
 

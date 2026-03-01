@@ -13,8 +13,9 @@ import {
   X,
 } from "lucide-react";
 import { Button } from "@/shared/components/ui/button";
-import { Card, CardContent } from "@/shared/components/ui/card";
 import { Badge } from "@/shared/components/ui/badge";
+
+const cardCls = "rounded-2xl bg-card shadow-[0_2px_8px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.05]";
 import { Input } from "@/shared/components/ui/input";
 import { formatCurrency } from "@/shared/lib/utils";
 import { cn } from "@/shared/lib/utils";
@@ -158,7 +159,7 @@ export function MobilePaymentCheckout({
           bundleSize: "bundleSize" in plan ? plan.bundleSize : undefined,
           subscriptionPlan:
             "subscriptionPlan" in plan ? plan.subscriptionPlan : undefined,
-          promoId: appliedPromo?.promoId,
+          promoCodeId: appliedPromo?.promoId,
         }),
       });
 
@@ -230,15 +231,16 @@ export function MobilePaymentCheckout({
               onClick={() => handlePlanSelect(plan.id)}
               className="w-full text-left"
             >
-              <Card
+              <div
                 className={cn(
+                  cardCls,
                   "border transition-colors",
                   selectedPlan === plan.id
                     ? "border-primary ring-2 ring-primary/20"
                     : "border-border"
                 )}
               >
-                <CardContent className="flex items-center justify-between p-4">
+                <div className="flex items-center justify-between p-4">
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
                       <p className="text-sm font-semibold">{plan.name}</p>
@@ -262,16 +264,16 @@ export function MobilePaymentCheckout({
                       </div>
                     )}
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             </button>
           ))}
         </div>
       </div>
 
       {/* Promo Code */}
-      <Card className="border-0 shadow-sm">
-        <CardContent className="p-4">
+      <div className={cardCls}>
+        <div className="p-4">
           <button
             type="button"
             onClick={() => setShowPromo(!showPromo)}
@@ -334,8 +336,8 @@ export function MobilePaymentCheckout({
               </div>
             </div>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Sticky Bottom Checkout */}
       <div className="fixed inset-x-0 bottom-0 z-30 border-t bg-background p-4 pb-[calc(1rem+env(safe-area-inset-bottom))]">

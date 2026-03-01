@@ -3,11 +3,12 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { auth } from "@/shared/lib/auth";
 import { prisma } from "@/shared/lib/prisma";
-import { Card, CardContent } from "@/shared/components/ui/card";
 import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
 import { Clock, FileText, ArrowLeft } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
+
+const cardCls = "rounded-2xl bg-card shadow-[0_2px_8px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.05]";
 
 export const dynamic = "force-dynamic";
 
@@ -110,8 +111,8 @@ export default async function MobileTryoutPage({
       {packages.length > 0 ? (
         <div className="space-y-3">
           {packages.map((pkg) => (
-            <Card key={pkg.id} className="border-0 shadow-sm">
-              <CardContent className="p-4">
+            <div key={pkg.id} className={cardCls}>
+              <div className="p-4">
                 <div className="mb-3 flex items-start justify-between">
                   <div className="min-w-0 flex-1">
                     <Badge variant="outline" className="mb-2 text-[10px]">
@@ -155,8 +156,8 @@ export default async function MobileTryoutPage({
                     </Link>
                   </Button>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           ))}
         </div>
       ) : (

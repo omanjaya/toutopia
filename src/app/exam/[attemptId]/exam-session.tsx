@@ -17,11 +17,12 @@ import {
   Check,
 } from "lucide-react";
 import { Button } from "@/shared/components/ui/button";
-import { Card, CardContent } from "@/shared/components/ui/card";
 import { Badge } from "@/shared/components/ui/badge";
 import { LazyMathRenderer as MathRenderer } from "@/shared/components/shared/lazy-math-renderer";
 import { useAntiCheat } from "@/shared/hooks/use-anti-cheat";
 import { cn } from "@/shared/lib/utils";
+
+const cardCls = "rounded-2xl bg-card shadow-[0_2px_8px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.05]";
 
 interface Option {
   id: string;
@@ -641,8 +642,8 @@ export function ExamSession({ attemptId }: ExamSessionProps) {
             </div>
 
             {/* Question Content */}
-            <Card>
-              <CardContent className="pt-6">
+            <div className={cardCls}>
+              <div className="p-6">
                 <MathRenderer
                   content={currentQuestion.content}
                   className="prose prose-sm max-w-none dark:prose-invert"
@@ -654,8 +655,8 @@ export function ExamSession({ attemptId }: ExamSessionProps) {
                     className="mt-4 max-h-64 rounded-lg"
                   />
                 )}
-              </CardContent>
-            </Card>
+              </div>
+            </div>
 
             {/* Options */}
             <div className="space-y-3">
@@ -748,8 +749,8 @@ export function ExamSession({ attemptId }: ExamSessionProps) {
       {/* Anti-Cheat Warning Overlay */}
       {showWarning && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60">
-          <Card className="w-full max-w-md border-destructive">
-            <CardContent className="space-y-4 pt-6">
+          <div className={`${cardCls} w-full max-w-md border border-destructive`}>
+            <div className="space-y-4 p-6">
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-3">
                   <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-destructive/10">
@@ -778,8 +779,8 @@ export function ExamSession({ attemptId }: ExamSessionProps) {
               >
                 Saya Mengerti
               </Button>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </div>
       )}
 
@@ -832,8 +833,8 @@ export function ExamSession({ attemptId }: ExamSessionProps) {
       {/* Submit Confirmation Modal */}
       {showConfirmSubmit && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <Card className="w-full max-w-md">
-            <CardContent className="space-y-4 pt-6">
+          <div className={`${cardCls} w-full max-w-md`}>
+            <div className="space-y-4 p-6">
               <div className="flex items-center gap-3">
                 <AlertTriangle className="h-6 w-6 text-amber-500" />
                 <h3 className="text-lg font-semibold">Selesaikan Ujian?</h3>
@@ -934,8 +935,8 @@ export function ExamSession({ attemptId }: ExamSessionProps) {
                   Selesaikan
                 </Button>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </div>
       )}
     </div>

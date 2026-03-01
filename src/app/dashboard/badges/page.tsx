@@ -3,10 +3,11 @@
 import { useState, useEffect } from "react";
 import { Loader2, Trophy, Star, Lock } from "lucide-react";
 import * as LucideIcons from "lucide-react";
-import { Card, CardContent } from "@/shared/components/ui/card";
 import { Badge } from "@/shared/components/ui/badge";
 import { cn } from "@/shared/lib/utils";
 import { toast } from "sonner";
+
+const cardCls = "rounded-2xl bg-card shadow-[0_2px_8px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.05]";
 
 interface BadgeData {
   id: string;
@@ -94,8 +95,8 @@ export default function BadgesPage(): React.ReactElement {
       </div>
 
       {/* XP & Level Card */}
-      <Card className="border-0 bg-gradient-to-br from-amber-50 to-orange-50 shadow-sm">
-        <CardContent className="flex items-center gap-6 p-6">
+      <div className="rounded-2xl bg-gradient-to-br from-amber-50 to-orange-50 shadow-[0_2px_8px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.05]">
+        <div className="flex items-center gap-6 p-6">
           <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-amber-500/10">
             <Trophy className="h-8 w-8 text-amber-500" />
           </div>
@@ -114,8 +115,8 @@ export default function BadgesPage(): React.ReactElement {
               {xpForNextLevel - xpInLevel} XP lagi ke Level {level + 1}
             </p>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Badge Grid by Category */}
       {Object.entries(grouped).map(([category, badges]) => (
@@ -127,14 +128,15 @@ export default function BadgesPage(): React.ReactElement {
             {badges.map((badge) => {
               const Icon = getIcon(badge.icon);
               return (
-                <Card
+                <div
                   key={badge.id}
                   className={cn(
-                    "border-0 shadow-sm transition-all",
-                    badge.earned ? "bg-card" : "bg-muted/30 opacity-60"
+                    cardCls,
+                    "transition-all",
+                    badge.earned ? "" : "bg-muted/30 opacity-60"
                   )}
                 >
-                  <CardContent className="flex items-start gap-4 p-4">
+                  <div className="flex items-start gap-4 p-4">
                     <div
                       className={cn(
                         "flex h-12 w-12 shrink-0 items-center justify-center rounded-xl",
@@ -168,8 +170,8 @@ export default function BadgesPage(): React.ReactElement {
                         )}
                       </div>
                     </div>
-                  </CardContent>
-                </Card>
+                  </div>
+                </div>
               );
             })}
           </div>

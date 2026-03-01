@@ -13,10 +13,11 @@ import {
   BookmarkCheck,
 } from "lucide-react";
 import { Button } from "@/shared/components/ui/button";
-import { Card, CardContent } from "@/shared/components/ui/card";
 import { Badge } from "@/shared/components/ui/badge";
 import { LazyMathRenderer as MathRenderer } from "@/shared/components/shared/lazy-math-renderer";
 import { cn } from "@/shared/lib/utils";
+
+const cardCls = "rounded-2xl bg-card shadow-[0_2px_8px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.05]";
 
 interface PracticeOption {
   id: string;
@@ -139,8 +140,8 @@ export function PracticeSession({
       totalAnswered > 0 ? Math.round((totalCorrect / questions.length) * 100) : 0;
 
     return (
-      <Card>
-        <CardContent className="space-y-6 pt-6">
+      <div className={cardCls}>
+        <div className="space-y-6 p-6">
           <div className="flex flex-col items-center space-y-4 text-center">
             <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
               <Trophy className="h-8 w-8 text-primary" />
@@ -210,8 +211,8 @@ export function PracticeSession({
               Latihan Lagi
             </Button>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     );
   }
 
@@ -267,10 +268,10 @@ export function PracticeSession({
       </div>
 
       {/* Question Content */}
-      <Card>
-        <CardContent className="pt-6">
+      <div className={cardCls}>
+        <div className="p-6">
           <div className="mb-3 flex items-center justify-between">
-            <Badge variant="secondary" className="text-xs">
+            <Badge className="bg-muted text-foreground text-xs">
               Soal {currentIdx + 1}
             </Badge>
             <Button
@@ -302,8 +303,8 @@ export function PracticeSession({
               className="mt-4 max-h-64 rounded-lg"
             />
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Options */}
       <div className="space-y-3">
@@ -371,8 +372,8 @@ export function PracticeSession({
 
       {/* Explanation */}
       {isAnswered && currentQuestion.explanation && (
-        <Card className="border-blue-200 bg-blue-50/50">
-          <CardContent className="pt-6">
+        <div className="rounded-2xl bg-card border-blue-200 bg-blue-50/50 ring-1 ring-black/[0.05]">
+          <div className="p-6">
             <p className="mb-2 text-sm font-semibold text-blue-700">
               Pembahasan
             </p>
@@ -380,8 +381,8 @@ export function PracticeSession({
               content={currentQuestion.explanation}
               className="prose prose-sm max-w-none text-blue-900"
             />
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       )}
 
       {/* Navigation */}

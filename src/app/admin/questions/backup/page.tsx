@@ -3,7 +3,7 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import Link from "next/link";
 import {
-  ArrowLeft,
+  ChevronLeft,
   Download,
   Upload,
   FileText,
@@ -11,6 +11,9 @@ import {
   CheckCircle2,
   AlertCircle,
   HardDrive,
+  DatabaseBackup,
+  SlidersHorizontal,
+  RotateCcw,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/shared/components/ui/button";
@@ -31,6 +34,33 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/shared/components/ui/tabs";
+
+const cardCls =
+  "rounded-2xl bg-card shadow-[0_2px_8px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.05]";
+
+function SectionHeader({
+  icon: Icon,
+  title,
+  description,
+}: {
+  icon: React.ElementType;
+  title: string;
+  description?: string;
+}) {
+  return (
+    <div className="flex items-center gap-2 border-b border-border/60 px-5 py-4">
+      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+        <Icon className="h-3.5 w-3.5 text-primary" />
+      </div>
+      <div>
+        <p className="text-sm font-semibold">{title}</p>
+        {description && (
+          <p className="text-xs text-muted-foreground">{description}</p>
+        )}
+      </div>
+    </div>
+  );
+}
 
 interface Category {
   id: string;
@@ -198,146 +228,150 @@ function ExportSection(): React.ReactElement {
   return (
     <div className="space-y-6">
       {!jobId && (
-        <div className="rounded-lg border bg-card p-6 space-y-4">
-          <h3 className="font-semibold">Filter (opsional)</h3>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
-              <Label>Kategori</Label>
-              <Select
-                value={categoryId}
-                onValueChange={setCategoryId}
-                onOpenChange={() => loadCategories()}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Semua kategori" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Semua Kategori</SelectItem>
-                  {categories.map((c) => (
-                    <SelectItem key={c.id} value={c.id}>
-                      {c.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+        <div className={cardCls}>
+          <SectionHeader icon={SlidersHorizontal} title="Filter" description="Opsional — biarkan kosong untuk backup semua soal" />
+          <div className="space-y-4 p-5">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label>Kategori</Label>
+                <Select
+                  value={categoryId}
+                  onValueChange={setCategoryId}
+                  onOpenChange={() => loadCategories()}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Semua kategori" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Semua Kategori</SelectItem>
+                    {categories.map((c) => (
+                      <SelectItem key={c.id} value={c.id}>
+                        {c.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Topik</Label>
+                <Select
+                  value={topicId}
+                  onValueChange={setTopicId}
+                  onOpenChange={() => loadTopics()}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Semua topik" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Semua Topik</SelectItem>
+                    {topics.map((t) => (
+                      <SelectItem key={t.id} value={t.id}>
+                        {t.subject} — {t.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Status</Label>
+                <Select value={status} onValueChange={setStatus}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Semua status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Semua Status</SelectItem>
+                    <SelectItem value="APPROVED">Disetujui</SelectItem>
+                    <SelectItem value="PENDING_REVIEW">Menunggu Review</SelectItem>
+                    <SelectItem value="DRAFT">Draft</SelectItem>
+                    <SelectItem value="REJECTED">Ditolak</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Kesulitan</Label>
+                <Select value={difficulty} onValueChange={setDifficulty}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Semua kesulitan" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Semua Kesulitan</SelectItem>
+                    <SelectItem value="VERY_EASY">Sangat Mudah</SelectItem>
+                    <SelectItem value="EASY">Mudah</SelectItem>
+                    <SelectItem value="MEDIUM">Sedang</SelectItem>
+                    <SelectItem value="HARD">Sulit</SelectItem>
+                    <SelectItem value="VERY_HARD">Sangat Sulit</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
-            <div className="space-y-2">
-              <Label>Topik</Label>
-              <Select
-                value={topicId}
-                onValueChange={setTopicId}
-                onOpenChange={() => loadTopics()}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Semua topik" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Semua Topik</SelectItem>
-                  {topics.map((t) => (
-                    <SelectItem key={t.id} value={t.id}>
-                      {t.subject} — {t.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Status</Label>
-              <Select value={status} onValueChange={setStatus}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Semua status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Semua Status</SelectItem>
-                  <SelectItem value="APPROVED">Disetujui</SelectItem>
-                  <SelectItem value="PENDING_REVIEW">Menunggu Review</SelectItem>
-                  <SelectItem value="DRAFT">Draft</SelectItem>
-                  <SelectItem value="REJECTED">Ditolak</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Kesulitan</Label>
-              <Select value={difficulty} onValueChange={setDifficulty}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Semua kesulitan" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Semua Kesulitan</SelectItem>
-                  <SelectItem value="VERY_EASY">Sangat Mudah</SelectItem>
-                  <SelectItem value="EASY">Mudah</SelectItem>
-                  <SelectItem value="MEDIUM">Sedang</SelectItem>
-                  <SelectItem value="HARD">Sulit</SelectItem>
-                  <SelectItem value="VERY_HARD">Sangat Sulit</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            <Button onClick={startBackup} disabled={starting}>
+              {starting ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <Download className="mr-2 h-4 w-4" />
+              )}
+              Mulai Backup
+            </Button>
           </div>
-
-          <Button onClick={startBackup} disabled={starting}>
-            {starting ? (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            ) : (
-              <Download className="mr-2 h-4 w-4" />
-            )}
-            Mulai Backup
-          </Button>
         </div>
       )}
 
       {jobId && progress && (
-        <div className="rounded-lg border bg-card p-6 space-y-4">
-          {progress.status === "processing" && (
-            <>
-              <div className="flex items-center gap-3">
-                <Loader2 className="h-5 w-5 animate-spin text-primary" />
-                <span className="font-medium">Memproses backup...</span>
-              </div>
-              <Progress value={progress.progress} />
-              <p className="text-sm text-muted-foreground">
-                {progress.processed} / {progress.total} soal diproses
-              </p>
-            </>
-          )}
+        <div className={cardCls}>
+          <div className="space-y-4 p-5">
+            {progress.status === "processing" && (
+              <>
+                <div className="flex items-center gap-3">
+                  <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                  <span className="font-medium">Memproses backup...</span>
+                </div>
+                <Progress value={progress.progress} />
+                <p className="text-sm text-muted-foreground">
+                  {progress.processed} / {progress.total} soal diproses
+                </p>
+              </>
+            )}
 
-          {progress.status === "done" && (
-            <div className="text-center space-y-4">
-              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100">
-                <CheckCircle2 className="h-6 w-6 text-emerald-600" />
+            {progress.status === "done" && (
+              <div className="text-center space-y-4">
+                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100">
+                  <CheckCircle2 className="h-6 w-6 text-emerald-600" />
+                </div>
+                <h3 className="text-xl font-semibold">Backup Selesai</h3>
+                <p className="text-muted-foreground">
+                  {progress.total} soal berhasil di-export
+                </p>
+                <div className="flex justify-center gap-3">
+                  <Button onClick={handleDownload}>
+                    <Download className="mr-2 h-4 w-4" />
+                    Download JSON
+                  </Button>
+                  <Button variant="outline" onClick={handleReset}>
+                    Backup Lagi
+                  </Button>
+                </div>
               </div>
-              <h3 className="text-xl font-semibold">Backup Selesai</h3>
-              <p className="text-muted-foreground">
-                {progress.total} soal berhasil di-export
-              </p>
-              <div className="flex justify-center gap-3">
-                <Button onClick={handleDownload}>
-                  <Download className="mr-2 h-4 w-4" />
-                  Download JSON
-                </Button>
+            )}
+
+            {progress.status === "error" && (
+              <div className="text-center space-y-4">
+                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
+                  <AlertCircle className="h-6 w-6 text-red-600" />
+                </div>
+                <h3 className="text-xl font-semibold">Backup Gagal</h3>
+                <p className="text-sm text-muted-foreground">
+                  {progress.error ?? "Terjadi kesalahan saat memproses backup"}
+                </p>
                 <Button variant="outline" onClick={handleReset}>
-                  Backup Lagi
+                  Coba Lagi
                 </Button>
               </div>
-            </div>
-          )}
-
-          {progress.status === "error" && (
-            <div className="text-center space-y-4">
-              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
-                <AlertCircle className="h-6 w-6 text-red-600" />
-              </div>
-              <h3 className="text-xl font-semibold">Backup Gagal</h3>
-              <p className="text-sm text-muted-foreground">
-                {progress.error ?? "Terjadi kesalahan saat memproses backup"}
-              </p>
-              <Button variant="outline" onClick={handleReset}>
-                Coba Lagi
-              </Button>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       )}
     </div>
@@ -435,61 +469,64 @@ function RestoreSection(): React.ReactElement {
     <div className="space-y-6">
       {!jobId && (
         <>
-          <div className="rounded-lg border bg-card p-6 space-y-4">
-            <div className="space-y-2">
-              <Label>File Backup (JSON)</Label>
-              <Input
-                ref={fileRef}
-                type="file"
-                accept=".json"
-                onChange={handleFileChange}
-              />
-              {file && (
-                <p className="text-xs text-muted-foreground flex items-center gap-1">
-                  <FileText className="h-3 w-3" />
-                  {file.name} ({(file.size / 1024).toFixed(1)} KB)
-                </p>
-              )}
-            </div>
+          <div className={cardCls}>
+            <SectionHeader icon={Upload} title="File Backup" description="Upload file JSON hasil backup sebelumnya" />
+            <div className="space-y-4 p-5">
+              <div className="space-y-2">
+                <Label>File Backup (JSON)</Label>
+                <Input
+                  ref={fileRef}
+                  type="file"
+                  accept=".json"
+                  onChange={handleFileChange}
+                />
+                {file && (
+                  <p className="text-xs text-muted-foreground flex items-center gap-1">
+                    <FileText className="h-3 w-3" />
+                    {file.name} ({(file.size / 1024).toFixed(1)} KB)
+                  </p>
+                )}
+              </div>
 
-            <Button onClick={handlePreview} disabled={!file || loading}>
-              {loading ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              ) : (
-                <Upload className="mr-2 h-4 w-4" />
-              )}
-              Preview Restore
-            </Button>
+              <Button onClick={handlePreview} disabled={!file || loading}>
+                {loading ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <Upload className="mr-2 h-4 w-4" />
+                )}
+                Preview Restore
+              </Button>
+            </div>
           </div>
 
           {preview && (
             <div className="space-y-4">
               <div className="flex flex-wrap items-center gap-3">
                 <Badge>{preview.totalInFile} soal dalam file</Badge>
-                <Badge variant="default">{preview.valid} siap diimport</Badge>
+                <Badge>{preview.valid} siap diimport</Badge>
                 {preview.duplicates > 0 && (
-                  <Badge variant="secondary">
+                  <Badge className="bg-slate-500/10 text-slate-700 border-slate-200">
                     {preview.duplicates} duplikat (skip)
                   </Badge>
                 )}
                 {preview.invalidTopics > 0 && (
-                  <Badge variant="destructive">
+                  <Badge className="bg-red-500/10 text-red-700 border-red-200">
                     {preview.invalidTopics} topik tidak ditemukan
                   </Badge>
                 )}
               </div>
 
               {Object.keys(preview.perTopic).length > 0 && (
-                <div className="rounded-lg border bg-card p-4 space-y-2">
-                  <h4 className="text-sm font-medium">Per Topik:</h4>
-                  <div className="grid gap-1 sm:grid-cols-2">
+                <div className={cardCls}>
+                  <SectionHeader icon={FileText} title="Per Topik" />
+                  <div className="grid gap-1 p-5 sm:grid-cols-2">
                     {Object.entries(preview.perTopic).map(([topic, count]) => (
                       <div
                         key={topic}
                         className="flex items-center justify-between text-sm"
                       >
                         <span className="text-muted-foreground">{topic}</span>
-                        <Badge variant="outline">{count}</Badge>
+                        <Badge className="bg-slate-500/10 text-slate-700 border-slate-200">{count}</Badge>
                       </div>
                     ))}
                   </div>
@@ -527,61 +564,63 @@ function RestoreSection(): React.ReactElement {
       )}
 
       {jobId && progress && (
-        <div className="rounded-lg border bg-card p-6 space-y-4">
-          {isProcessing && (
-            <>
-              <div className="flex items-center gap-3">
-                <Loader2 className="h-5 w-5 animate-spin text-primary" />
-                <span className="font-medium">Memproses restore...</span>
-              </div>
-              <Progress value={progress.progress} />
-              <p className="text-sm text-muted-foreground">
-                {progress.processed} / {progress.total} soal diproses
-              </p>
-            </>
-          )}
-
-          {isDone && (
-            <div className="text-center space-y-4">
-              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100">
-                <CheckCircle2 className="h-6 w-6 text-emerald-600" />
-              </div>
-              <h3 className="text-xl font-semibold">Restore Selesai</h3>
-              {progress.result && (
-                <div className="flex justify-center gap-3">
-                  <Badge variant="default">
-                    {String(progress.result.imported ?? 0)} diimport
-                  </Badge>
-                  <Badge variant="secondary">
-                    {String(progress.result.skipped ?? 0)} diskip
-                  </Badge>
+        <div className={cardCls}>
+          <div className="space-y-4 p-5">
+            {isProcessing && (
+              <>
+                <div className="flex items-center gap-3">
+                  <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                  <span className="font-medium">Memproses restore...</span>
                 </div>
-              )}
-              <div className="flex justify-center gap-3">
-                <Button asChild>
-                  <Link href="/admin/questions">Lihat Daftar Soal</Link>
-                </Button>
-                <Button variant="outline" onClick={handleReset}>
-                  Restore Lagi
-                </Button>
-              </div>
-            </div>
-          )}
+                <Progress value={progress.progress} />
+                <p className="text-sm text-muted-foreground">
+                  {progress.processed} / {progress.total} soal diproses
+                </p>
+              </>
+            )}
 
-          {isError && (
-            <div className="text-center space-y-4">
-              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
-                <AlertCircle className="h-6 w-6 text-red-600" />
+            {isDone && (
+              <div className="text-center space-y-4">
+                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100">
+                  <CheckCircle2 className="h-6 w-6 text-emerald-600" />
+                </div>
+                <h3 className="text-xl font-semibold">Restore Selesai</h3>
+                {progress.result && (
+                  <div className="flex justify-center gap-3">
+                    <Badge>
+                      {String(progress.result.imported ?? 0)} diimport
+                    </Badge>
+                    <Badge className="bg-slate-500/10 text-slate-700 border-slate-200">
+                      {String(progress.result.skipped ?? 0)} diskip
+                    </Badge>
+                  </div>
+                )}
+                <div className="flex justify-center gap-3">
+                  <Button asChild>
+                    <Link href="/admin/questions">Lihat Daftar Soal</Link>
+                  </Button>
+                  <Button variant="outline" onClick={handleReset}>
+                    Restore Lagi
+                  </Button>
+                </div>
               </div>
-              <h3 className="text-xl font-semibold">Restore Gagal</h3>
-              <p className="text-sm text-muted-foreground">
-                {progress.error ?? "Terjadi kesalahan saat memproses restore"}
-              </p>
-              <Button variant="outline" onClick={handleReset}>
-                Coba Lagi
-              </Button>
-            </div>
-          )}
+            )}
+
+            {isError && (
+              <div className="text-center space-y-4">
+                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
+                  <AlertCircle className="h-6 w-6 text-red-600" />
+                </div>
+                <h3 className="text-xl font-semibold">Restore Gagal</h3>
+                <p className="text-sm text-muted-foreground">
+                  {progress.error ?? "Terjadi kesalahan saat memproses restore"}
+                </p>
+                <Button variant="outline" onClick={handleReset}>
+                  Coba Lagi
+                </Button>
+              </div>
+            )}
+          </div>
         </div>
       )}
     </div>
@@ -593,17 +632,20 @@ function RestoreSection(): React.ReactElement {
 export default function BackupRestorePage(): React.ReactElement {
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" asChild>
+      <div className="flex items-center gap-3">
+        <Button variant="ghost" size="icon" className="h-9 w-9" asChild>
           <Link href="/admin/questions">
-            <ArrowLeft className="h-4 w-4" />
+            <ChevronLeft className="h-4 w-4" />
           </Link>
         </Button>
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10">
+          <DatabaseBackup className="h-5 w-5 text-primary" />
+        </div>
         <div>
-          <h2 className="text-2xl font-bold tracking-tight">
-            Backup & Restore Soal
+          <h2 className="text-2xl font-semibold tracking-tight">
+            Backup &amp; Restore Soal
           </h2>
-          <p className="text-muted-foreground">
+          <p className="text-sm text-muted-foreground">
             Export soal ke JSON atau restore dari file backup
           </p>
         </div>
@@ -616,7 +658,7 @@ export default function BackupRestorePage(): React.ReactElement {
             Backup / Export
           </TabsTrigger>
           <TabsTrigger value="restore">
-            <Upload className="mr-2 h-4 w-4" />
+            <RotateCcw className="mr-2 h-4 w-4" />
             Restore / Import
           </TabsTrigger>
         </TabsList>

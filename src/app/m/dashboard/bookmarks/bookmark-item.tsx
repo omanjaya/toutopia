@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Card, CardContent } from "@/shared/components/ui/card";
 import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
 import {
@@ -54,6 +53,8 @@ const DIFFICULTY_MAP: Record<string, { label: string; color: string }> = {
   VERY_HARD: { label: "Sangat Sulit", color: "bg-red-500/10 text-red-700 border-red-500/20" },
 };
 
+const cardCls = "rounded-2xl bg-card shadow-[0_2px_8px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.05]";
+
 export function MobileBookmarkItem({ bookmark }: MobileBookmarkItemProps) {
   const [expanded, setExpanded] = useState(false);
   const [removing, setRemoving] = useState(false);
@@ -77,14 +78,14 @@ export function MobileBookmarkItem({ bookmark }: MobileBookmarkItemProps) {
   }
 
   return (
-    <Card className={cn("transition-all", expanded && "ring-1 ring-primary/20")}>
-      <CardContent className="p-4">
+    <div className={cn(cardCls, "transition-all", expanded && "ring-primary/20")}>
+      <div className="p-4">
         {/* Badges */}
         <div className="flex items-center gap-1.5 flex-wrap">
           <Badge variant="outline" className="text-[10px]">
             {q.topic.subject.name}
           </Badge>
-          <Badge variant="secondary" className="text-[10px]">
+          <Badge className="text-[10px] bg-muted text-foreground">
             {q.topic.name}
           </Badge>
           <span
@@ -216,7 +217,7 @@ export function MobileBookmarkItem({ bookmark }: MobileBookmarkItemProps) {
             )}
           </Button>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

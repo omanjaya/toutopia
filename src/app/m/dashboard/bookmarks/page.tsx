@@ -3,7 +3,6 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { auth } from "@/shared/lib/auth";
 import { prisma } from "@/shared/lib/prisma";
-import { Card, CardContent } from "@/shared/components/ui/card";
 import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
 import {
@@ -96,7 +95,7 @@ export default async function MobileBookmarksPage({
           </h1>
         </div>
         {total > 0 && (
-          <Badge variant="secondary" className="text-xs">
+          <Badge className="text-xs bg-muted text-foreground">
             {total} soal
           </Badge>
         )}

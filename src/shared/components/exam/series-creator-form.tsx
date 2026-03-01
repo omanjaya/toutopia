@@ -5,7 +5,16 @@ import { useRouter } from "next/navigation";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Loader2, Plus, Trash2, Wand2, Layers } from "lucide-react";
+import {
+  Loader2,
+  Plus,
+  Trash2,
+  Wand2,
+  Layers,
+  DollarSign,
+  ChevronLeft,
+  type LucideIcon,
+} from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
@@ -17,8 +26,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/shared/components/ui/select";
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
-import { Separator } from "@/shared/components/ui/separator";
 import { Switch } from "@/shared/components/ui/switch";
 import { Badge } from "@/shared/components/ui/badge";
 import {
@@ -32,6 +39,9 @@ import {
 import { type ExamType, EXAM_TEMPLATES } from "@/shared/lib/exam-templates";
 import { JABATAN_LIST } from "@/shared/lib/jabatan-data";
 import { formatCurrency } from "@/shared/lib/utils";
+
+const cardCls =
+  "rounded-2xl bg-card shadow-[0_2px_8px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.05]";
 
 const seriesSchema = z.object({
   seriesName: z.string().min(2, "Minimal 2 karakter"),
@@ -72,13 +82,67 @@ interface SeriesCreatorFormProps {
   }[];
 }
 
-const EXAM_TYPE_OPTIONS: { value: ExamType; label: string }[] = [
-  { value: "UTBK", label: "UTBK / SNBT" },
-  { value: "CPNS", label: "CPNS SKD" },
-  { value: "BUMN", label: "BUMN" },
-  { value: "PPPK", label: "PPPK" },
-  { value: "KEDINASAN", label: "Kedinasan" },
+const EXAM_TYPE_OPTIONS: { value: ExamType; label: string; color: string }[] = [
+  {
+    value: "UTBK",
+    label: "UTBK / SNBT",
+    color:
+      "border-blue-300 bg-blue-500/10 text-blue-700 hover:bg-blue-500/20 data-[active=true]:border-blue-400 data-[active=true]:bg-blue-500 data-[active=true]:text-white data-[active=true]:shadow-sm",
+  },
+  {
+    value: "CPNS",
+    label: "CPNS SKD",
+    color:
+      "border-red-300 bg-red-500/10 text-red-700 hover:bg-red-500/20 data-[active=true]:border-red-400 data-[active=true]:bg-red-500 data-[active=true]:text-white data-[active=true]:shadow-sm",
+  },
+  {
+    value: "BUMN",
+    label: "BUMN",
+    color:
+      "border-emerald-300 bg-emerald-500/10 text-emerald-700 hover:bg-emerald-500/20 data-[active=true]:border-emerald-400 data-[active=true]:bg-emerald-500 data-[active=true]:text-white data-[active=true]:shadow-sm",
+  },
+  {
+    value: "PPPK",
+    label: "PPPK",
+    color:
+      "border-orange-300 bg-orange-500/10 text-orange-700 hover:bg-orange-500/20 data-[active=true]:border-orange-400 data-[active=true]:bg-orange-500 data-[active=true]:text-white data-[active=true]:shadow-sm",
+  },
+  {
+    value: "KEDINASAN",
+    label: "Kedinasan",
+    color:
+      "border-violet-300 bg-violet-500/10 text-violet-700 hover:bg-violet-500/20 data-[active=true]:border-violet-400 data-[active=true]:bg-violet-500 data-[active=true]:text-white data-[active=true]:shadow-sm",
+  },
 ];
+
+function SectionHeader({
+  icon: Icon,
+  title,
+  description,
+  action,
+}: {
+  icon: LucideIcon;
+  title: string;
+  description?: string;
+  action?: React.ReactNode;
+}) {
+  return (
+    <div className="flex items-center justify-between gap-2 border-b border-border/60 px-5 py-4">
+      <div className="flex items-center gap-2">
+        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+          <Icon className="h-3.5 w-3.5 text-primary" />
+        </div>
+        <div>
+          <p className="text-sm font-semibold">{title}</p>
+          {description && (
+            <p className="text-xs text-muted-foreground">{description}</p>
+          )}
+        </div>
+      </div>
+      {action && <div className="flex shrink-0 items-center gap-2">{action}</div>}
+    </div>
+  );
+}
 
 export function SeriesCreatorForm({ categories }: SeriesCreatorFormProps) {
   const router = useRouter();
@@ -204,32 +268,25 @@ export function SeriesCreatorForm({ categories }: SeriesCreatorFormProps) {
   const remainingCount = packageNames.length - 3;
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       {/* Card 1: Konfigurasi Seri */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Layers className="h-5 w-5" />
-            Konfigurasi Seri
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
+      <div className={cardCls}>
+        <SectionHeader icon={Layers} title="Konfigurasi Seri" description="Nama seri, jumlah paket, dan tipe ujian" />
+        <div className="space-y-5 p-5">
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
-              <Label>Nama Seri</Label>
+              <Label className="text-xs font-medium">Nama Seri</Label>
               <Input
                 placeholder="SNBT, CPNS Kemenkeu, ..."
                 {...register("seriesName")}
               />
               {errors.seriesName && (
-                <p className="text-sm text-destructive">
-                  {errors.seriesName.message}
-                </p>
+                <p className="text-xs text-destructive">{errors.seriesName.message}</p>
               )}
             </div>
 
             <div className="space-y-2">
-              <Label>Jumlah Paket</Label>
+              <Label className="text-xs font-medium">Jumlah Paket</Label>
               <Input
                 type="number"
                 min={2}
@@ -237,21 +294,14 @@ export function SeriesCreatorForm({ categories }: SeriesCreatorFormProps) {
                 {...register("count", { valueAsNumber: true })}
               />
               {errors.count && (
-                <p className="text-sm text-destructive">
-                  {errors.count.message}
-                </p>
-              )}
-              {seriesName && count >= 2 && (
-                <p className="text-xs text-muted-foreground">
-                  Akan dibuat: Paket {seriesName} 1, Paket {seriesName} 2, ...
-                </p>
+                <p className="text-xs text-destructive">{errors.count.message}</p>
               )}
             </div>
           </div>
 
           {seriesName && count >= 2 && (
             <div className="space-y-2">
-              <Label className="text-xs text-muted-foreground">Preview nama paket</Label>
+              <p className="text-xs font-medium text-muted-foreground">Preview nama paket</p>
               <div className="flex flex-wrap gap-2">
                 {previewNames.map((name, i) => (
                   <Badge key={i} variant="secondary">
@@ -268,36 +318,32 @@ export function SeriesCreatorForm({ categories }: SeriesCreatorFormProps) {
           )}
 
           <div className="space-y-2">
-            <Label>Tipe Ujian</Label>
+            <Label className="text-xs font-medium">Tipe Ujian</Label>
             <div className="flex flex-wrap gap-2">
               {EXAM_TYPE_OPTIONS.map((opt) => (
                 <button
                   key={opt.value}
                   type="button"
+                  data-active={examType === opt.value}
                   onClick={() => {
                     setValue("examType", opt.value);
                     if (opt.value !== "CPNS" && opt.value !== "PPPK") {
                       setJabatan("");
                     }
                   }}
-                  className={[
-                    "rounded-md border px-4 py-2 text-sm font-medium transition-colors",
-                    examType === opt.value
-                      ? "border-primary bg-primary text-primary-foreground"
-                      : "border-input bg-background hover:bg-accent hover:text-accent-foreground",
-                  ].join(" ")}
+                  className={`rounded-lg border px-4 py-2 text-sm font-medium transition-colors ${opt.color}`}
                 >
                   {opt.label}
                 </button>
               ))}
             </div>
             {errors.examType && (
-              <p className="text-sm text-destructive">{errors.examType.message}</p>
+              <p className="text-xs text-destructive">{errors.examType.message}</p>
             )}
           </div>
 
           <div className="space-y-2">
-            <Label>Kategori Ujian</Label>
+            <Label className="text-xs font-medium">Kategori Ujian</Label>
             <Select
               value={selectedCategoryId}
               onValueChange={(v) => setValue("categoryId", v)}
@@ -314,13 +360,13 @@ export function SeriesCreatorForm({ categories }: SeriesCreatorFormProps) {
               </SelectContent>
             </Select>
             {errors.categoryId && (
-              <p className="text-sm text-destructive">{errors.categoryId.message}</p>
+              <p className="text-xs text-destructive">{errors.categoryId.message}</p>
             )}
           </div>
 
           {showJabatanField && (
             <div className="space-y-2">
-              <Label>
+              <Label className="text-xs font-medium">
                 Jabatan / Formasi{" "}
                 <span className="font-normal text-muted-foreground">(opsional)</span>
               </Label>
@@ -341,44 +387,50 @@ export function SeriesCreatorForm({ categories }: SeriesCreatorFormProps) {
               </p>
             </div>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Card 2: Harga & Pengaturan */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Harga &amp; Pengaturan</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center gap-3">
-            <Switch
-              checked={isFree}
-              onCheckedChange={(v) => {
-                setValue("isFree", v);
-                if (v) {
-                  setValue("price", 0);
-                  setValue("discountPrice", null);
-                }
-              }}
-            />
-            <Label>Paket Gratis</Label>
+      <div className={cardCls}>
+        <SectionHeader icon={DollarSign} title="Harga &amp; Pengaturan" description="Harga, percobaan, dan fitur keamanan" />
+        <div className="space-y-4 p-5">
+          <div className="rounded-xl border border-border/60 bg-muted/30 p-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium">Paket Gratis</p>
+                <p className="text-xs text-muted-foreground">Peserta tidak perlu membayar</p>
+              </div>
+              <Switch
+                checked={isFree}
+                onCheckedChange={(v) => {
+                  setValue("isFree", v);
+                  if (v) {
+                    setValue("price", 0);
+                    setValue("discountPrice", null);
+                  }
+                }}
+              />
+            </div>
           </div>
 
           {!isFree && (
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label>Harga per Paket (Rp)</Label>
+                <Label className="text-xs font-medium">Harga per Paket (Rp)</Label>
                 <Input
                   type="number"
                   placeholder="25000"
                   {...register("price", { valueAsNumber: true })}
                 />
                 {errors.price && (
-                  <p className="text-sm text-destructive">{errors.price.message}</p>
+                  <p className="text-xs text-destructive">{errors.price.message}</p>
                 )}
               </div>
               <div className="space-y-2">
-                <Label>Harga Diskon (opsional)</Label>
+                <Label className="text-xs font-medium">
+                  Harga Diskon{" "}
+                  <span className="font-normal text-muted-foreground">(opsional)</span>
+                </Label>
                 <Input
                   type="number"
                   placeholder="20000"
@@ -388,9 +440,9 @@ export function SeriesCreatorForm({ categories }: SeriesCreatorFormProps) {
             </div>
           )}
 
-          <div className="grid gap-4 sm:grid-cols-3">
+          <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
-              <Label>Maks. Percobaan</Label>
+              <Label className="text-xs font-medium">Maks. Percobaan</Label>
               <Input
                 type="number"
                 min={1}
@@ -398,90 +450,111 @@ export function SeriesCreatorForm({ categories }: SeriesCreatorFormProps) {
               />
             </div>
             <div className="space-y-2">
-              <Label>Passing Score (opsional)</Label>
+              <Label className="text-xs font-medium">
+                Passing Score{" "}
+                <span className="font-normal text-muted-foreground">(opsional)</span>
+              </Label>
               <Input
                 type="number"
                 placeholder="600"
                 {...register("passingScore", { valueAsNumber: true })}
               />
             </div>
-            <div className="flex items-end gap-3 pb-1">
+          </div>
+
+          <div className="rounded-xl border border-border/60 bg-muted/30 p-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium">Anti-Cheat</p>
+                <p className="text-xs text-muted-foreground">Deteksi pindah tab dan pelanggaran ujian</p>
+              </div>
               <Switch
                 checked={watch("isAntiCheat")}
                 onCheckedChange={(v) => setValue("isAntiCheat", v)}
               />
-              <Label>Anti-Cheat</Label>
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Card 3: Struktur Seksi */}
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>Struktur Seksi</CardTitle>
-          <div className="flex gap-2">
-            <Button
-              type="button"
-              variant="secondary"
-              size="sm"
-              onClick={handleApplyTemplate}
-            >
-              <Wand2 className="mr-2 h-4 w-4" />
-              Gunakan Template {examType}
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                append({
-                  subjectId: "",
-                  title: "",
-                  durationMinutes: 30,
-                  totalQuestions: 10,
-                  order: fields.length,
-                });
-              }}
-            >
-              <Plus className="mr-2 h-4 w-4" />
-              Tambah Seksi
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-4">
+      <div className={cardCls}>
+        <SectionHeader
+          icon={Wand2}
+          title="Struktur Seksi"
+          description="Seksi ini akan diterapkan ke semua paket dalam seri"
+          action={
+            <>
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                onClick={handleApplyTemplate}
+              >
+                <Wand2 className="mr-1.5 h-3.5 w-3.5" />
+                Template {examType}
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  append({
+                    subjectId: "",
+                    title: "",
+                    durationMinutes: 30,
+                    totalQuestions: 10,
+                    order: fields.length,
+                  });
+                }}
+              >
+                <Plus className="mr-1.5 h-3.5 w-3.5" />
+                Tambah Seksi
+              </Button>
+            </>
+          }
+        />
+        <div className="space-y-3 p-5">
           {fields.map((field, index) => (
-            <div key={field.id} className="rounded-lg border p-4 space-y-3">
+            <div
+              key={field.id}
+              className="rounded-xl ring-1 ring-black/[0.06] bg-muted/20 p-4 space-y-3"
+            >
               <div className="flex items-center justify-between">
-                <p className="text-sm font-semibold">Seksi {index + 1}</p>
+                <div className="flex items-center gap-2">
+                  <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
+                    {index + 1}
+                  </div>
+                  <p className="text-sm font-semibold">Seksi {index + 1}</p>
+                </div>
                 {fields.length > 1 && (
                   <Button
                     type="button"
                     variant="ghost"
                     size="icon"
-                    className="h-8 w-8 text-destructive"
+                    className="h-7 w-7 text-muted-foreground hover:text-destructive"
                     onClick={() => remove(index)}
                   >
-                    <Trash2 className="h-4 w-4" />
+                    <Trash2 className="h-3.5 w-3.5" />
                   </Button>
                 )}
               </div>
 
               <div className="grid gap-3 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label>Judul Seksi</Label>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-medium">Judul Seksi</Label>
                   <Input
                     placeholder="TPS - Penalaran Umum"
                     {...register(`sections.${index}.title`)}
                   />
                   {errors.sections?.[index]?.title && (
-                    <p className="text-sm text-destructive">
+                    <p className="text-xs text-destructive">
                       {errors.sections[index]?.title?.message}
                     </p>
                   )}
                 </div>
-                <div className="space-y-2">
-                  <Label>Mata Pelajaran</Label>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-medium">Mata Pelajaran</Label>
                   <Select
                     value={watch(`sections.${index}.subjectId`)}
                     onValueChange={(v) =>
@@ -501,7 +574,7 @@ export function SeriesCreatorForm({ categories }: SeriesCreatorFormProps) {
                     </SelectContent>
                   </Select>
                   {errors.sections?.[index]?.subjectId && (
-                    <p className="text-sm text-destructive">
+                    <p className="text-xs text-destructive">
                       {errors.sections[index]?.subjectId?.message}
                     </p>
                   )}
@@ -509,8 +582,8 @@ export function SeriesCreatorForm({ categories }: SeriesCreatorFormProps) {
               </div>
 
               <div className="grid gap-3 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label>Jumlah Soal</Label>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-medium">Jumlah Soal</Label>
                   <Input
                     type="number"
                     min={1}
@@ -519,8 +592,8 @@ export function SeriesCreatorForm({ categories }: SeriesCreatorFormProps) {
                     })}
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label>Durasi (menit)</Label>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-medium">Durasi (menit)</Label>
                   <Input
                     type="number"
                     min={1}
@@ -540,46 +613,44 @@ export function SeriesCreatorForm({ categories }: SeriesCreatorFormProps) {
           ))}
 
           {errors.sections && typeof errors.sections.message === "string" && (
-            <p className="text-sm text-destructive">{errors.sections.message}</p>
+            <p className="text-xs text-destructive">{errors.sections.message}</p>
           )}
 
-          <div className="flex gap-6 rounded-lg bg-muted p-3 text-sm">
-            <div>
-              Total Soal: <span className="font-semibold">{totalQuestions}</span>
+          <div className="flex gap-6 rounded-xl bg-muted/60 ring-1 ring-black/[0.04] p-3 text-sm">
+            <div className="text-muted-foreground">
+              Total Soal: <span className="font-semibold text-foreground">{totalQuestions}</span>
             </div>
-            <div>
-              Total Durasi: <span className="font-semibold">{totalDuration} menit</span>
+            <div className="text-muted-foreground">
+              Total Durasi: <span className="font-semibold text-foreground">{totalDuration} menit</span>
             </div>
-            <div>
-              Seksi: <span className="font-semibold">{fields.length} seksi per paket</span>
+            <div className="text-muted-foreground">
+              Seksi: <span className="font-semibold text-foreground">{fields.length} per paket</span>
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Card 4: Preview Paket yang Akan Dibuat */}
       {seriesName && count >= 2 && sections.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Preview Paket yang Akan Dibuat</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="max-h-64 overflow-y-auto rounded-md border">
+        <div className={cardCls}>
+          <SectionHeader icon={Layers} title="Preview Paket yang Akan Dibuat" />
+          <div className="p-5">
+            <div className="max-h-64 overflow-y-auto rounded-xl ring-1 ring-black/[0.06]">
               <Table>
                 <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-10">#</TableHead>
+                  <TableRow className="hover:bg-transparent">
+                    <TableHead className="w-10 pl-4">#</TableHead>
                     <TableHead>Nama Paket</TableHead>
                     <TableHead>Seksi</TableHead>
                     <TableHead>Total Soal</TableHead>
                     <TableHead>Durasi</TableHead>
-                    <TableHead>Harga</TableHead>
+                    <TableHead className="pr-4">Harga</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {packageNames.map((name, i) => (
-                    <TableRow key={i}>
-                      <TableCell className="tabular-nums text-muted-foreground">
+                    <TableRow key={i} className="hover:bg-muted/40">
+                      <TableCell className="pl-4 tabular-nums text-muted-foreground">
                         {i + 1}
                       </TableCell>
                       <TableCell className="font-medium">{name}</TableCell>
@@ -592,11 +663,11 @@ export function SeriesCreatorForm({ categories }: SeriesCreatorFormProps) {
                       <TableCell className="tabular-nums text-muted-foreground">
                         {totalDuration} menit
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="pr-4">
                         {isFree ? (
                           <Badge
                             variant="outline"
-                            className="bg-emerald-500/10 text-emerald-700 border-emerald-200"
+                            className="bg-emerald-500/10 text-emerald-700 border-emerald-200 text-xs"
                           >
                             Gratis
                           </Badge>
@@ -611,18 +682,17 @@ export function SeriesCreatorForm({ categories }: SeriesCreatorFormProps) {
                 </TableBody>
               </Table>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       )}
 
-      <Separator />
-
-      <div className="flex justify-end gap-3">
+      <div className="flex items-center justify-between pt-2">
         <Button
           type="button"
-          variant="outline"
+          variant="ghost"
           onClick={() => router.push("/admin/packages")}
         >
+          <ChevronLeft className="mr-1.5 h-4 w-4" />
           Batal
         </Button>
         <Button type="submit" disabled={isSubmitting}>

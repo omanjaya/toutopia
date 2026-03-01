@@ -13,9 +13,10 @@ import {
   AlertTriangle,
   ArrowLeft,
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { Badge } from "@/shared/components/ui/badge";
 import { cn } from "@/shared/lib/utils";
+
+const cardCls = "rounded-2xl bg-card shadow-[0_2px_8px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.05]";
 
 interface TopicStat {
   topicId: string;
@@ -154,14 +155,14 @@ export function MobileRecommendationsContent() {
         )}
 
         {/* Weak Topics */}
-        <Card className="border-0 shadow-sm">
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-base font-semibold text-destructive">
+        <div className={cardCls}>
+          <div className="px-5 pt-5 pb-2">
+            <h3 className="text-base font-semibold tracking-tight flex items-center gap-2 text-destructive">
               <TrendingDown className="h-5 w-5" />
               Topik yang Perlu Ditingkatkan
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
+            </h3>
+          </div>
+          <div className="p-5 pt-2 space-y-2">
             {data.weakTopics.length === 0 ? (
               <p className="text-sm text-muted-foreground">
                 Belum cukup data untuk analisis
@@ -198,18 +199,18 @@ export function MobileRecommendationsContent() {
                 </div>
               ))
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
         {/* Strong Topics */}
-        <Card className="border-0 shadow-sm">
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-base font-semibold text-emerald-600">
+        <div className={cardCls}>
+          <div className="px-5 pt-5 pb-2">
+            <h3 className="text-base font-semibold tracking-tight flex items-center gap-2 text-emerald-600">
               <TrendingUp className="h-5 w-5" />
               Topik Terkuatmu
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
+            </h3>
+          </div>
+          <div className="p-5 pt-2 space-y-2">
             {data.strongTopics.length === 0 ? (
               <p className="text-sm text-muted-foreground">
                 Belum cukup data
@@ -239,22 +240,22 @@ export function MobileRecommendationsContent() {
                 </div>
               ))
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
         {/* Recommended Questions */}
         {data.recommendedQuestions.length > 0 && (
-          <Card className="border-0 shadow-sm">
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-base font-semibold">
+          <div className={cardCls}>
+            <div className="px-5 pt-5 pb-2">
+              <h3 className="text-base font-semibold tracking-tight flex items-center gap-2">
                 <Target className="h-5 w-5 text-primary" />
                 Soal yang Direkomendasikan
-              </CardTitle>
-              <p className="text-xs text-muted-foreground">
+              </h3>
+              <p className="mt-0.5 text-sm text-muted-foreground">
                 Berdasarkan topik yang masih lemah
               </p>
-            </CardHeader>
-            <CardContent className="space-y-2">
+            </div>
+            <div className="p-5 pt-2 space-y-2">
               {data.recommendedQuestions.map((q) => (
                 <div
                   key={q.id}
@@ -282,8 +283,8 @@ export function MobileRecommendationsContent() {
                   </div>
                 </div>
               ))}
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         )}
       </div>
     </div>

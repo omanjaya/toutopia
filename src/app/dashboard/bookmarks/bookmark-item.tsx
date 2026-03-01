@@ -1,13 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { Card, CardContent } from "@/shared/components/ui/card";
 import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
 import { ChevronDown, ChevronUp, CheckCircle2, X, Lightbulb } from "lucide-react";
 import { LazyMathRenderer as MathRenderer } from "@/shared/components/shared/lazy-math-renderer";
 import { cn } from "@/shared/lib/utils";
 import { BookmarkActions } from "./bookmark-actions";
+
+const cardCls = "rounded-2xl bg-card shadow-[0_2px_8px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.05]";
 
 export interface BookmarkData {
   id: string;
@@ -52,8 +53,8 @@ export function BookmarkItem({ bookmark }: BookmarkItemProps) {
   const diff = DIFFICULTY_MAP[q.difficulty] ?? { label: q.difficulty, color: "" };
 
   return (
-    <Card className={cn("transition-all", expanded && "ring-1 ring-primary/20")}>
-      <CardContent className="py-4">
+    <div className={cn(cardCls, "transition-all", expanded && "ring-primary/20")}>
+      <div className="py-4 px-6">
         <div className="flex items-start justify-between gap-4">
           <div className="flex-1 space-y-3">
             {/* Subject / topic / difficulty labels */}
@@ -61,7 +62,7 @@ export function BookmarkItem({ bookmark }: BookmarkItemProps) {
               <Badge className="bg-primary/10 text-primary border-primary/20 font-semibold">
                 {q.topic.subject.name}
               </Badge>
-              <Badge variant="secondary">{q.topic.name}</Badge>
+              <Badge className="bg-muted text-foreground">{q.topic.name}</Badge>
               <span className={cn("inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-medium", diff.color)}>
                 {diff.label}
               </span>
@@ -175,7 +176,7 @@ export function BookmarkItem({ bookmark }: BookmarkItemProps) {
           </div>
           <BookmarkActions bookmarkId={bookmark.id} />
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

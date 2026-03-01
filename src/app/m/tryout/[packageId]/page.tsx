@@ -4,7 +4,6 @@ import { notFound, redirect } from "next/navigation";
 import { prisma } from "@/shared/lib/prisma";
 import { auth } from "@/shared/lib/auth";
 import { StartExamButtonMobile } from "./start-exam-button-mobile";
-import { Card, CardContent } from "@/shared/components/ui/card";
 import { Badge } from "@/shared/components/ui/badge";
 import {
   ArrowLeft,
@@ -15,6 +14,8 @@ import {
   Users,
 } from "lucide-react";
 import { formatCurrency } from "@/shared/lib/utils";
+
+const cardCls = "rounded-2xl bg-card shadow-[0_2px_8px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.05]";
 
 export const dynamic = "force-dynamic";
 
@@ -93,8 +94,8 @@ export default async function MobilePackageDetailPage({
 
         {/* Stats Grid */}
         <div className="grid grid-cols-2 gap-2.5">
-          <Card className="border-0 shadow-sm">
-            <CardContent className="flex items-center gap-2.5 p-3">
+          <div className={cardCls}>
+            <div className="flex items-center gap-2.5 p-3">
               <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-blue-500/10">
                 <FileText className="h-4 w-4 text-blue-500" />
               </div>
@@ -104,10 +105,10 @@ export default async function MobilePackageDetailPage({
                 </p>
                 <p className="text-[11px] text-muted-foreground">Soal</p>
               </div>
-            </CardContent>
-          </Card>
-          <Card className="border-0 shadow-sm">
-            <CardContent className="flex items-center gap-2.5 p-3">
+            </div>
+          </div>
+          <div className={cardCls}>
+            <div className="flex items-center gap-2.5 p-3">
               <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-amber-500/10">
                 <Clock className="h-4 w-4 text-amber-500" />
               </div>
@@ -117,10 +118,10 @@ export default async function MobilePackageDetailPage({
                 </p>
                 <p className="text-[11px] text-muted-foreground">Menit</p>
               </div>
-            </CardContent>
-          </Card>
-          <Card className="border-0 shadow-sm">
-            <CardContent className="flex items-center gap-2.5 p-3">
+            </div>
+          </div>
+          <div className={cardCls}>
+            <div className="flex items-center gap-2.5 p-3">
               <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-violet-500/10">
                 <RotateCcw className="h-4 w-4 text-violet-500" />
               </div>
@@ -130,10 +131,10 @@ export default async function MobilePackageDetailPage({
                 </p>
                 <p className="text-[11px] text-muted-foreground">Percobaan</p>
               </div>
-            </CardContent>
-          </Card>
-          <Card className="border-0 shadow-sm">
-            <CardContent className="flex items-center gap-2.5 p-3">
+            </div>
+          </div>
+          <div className={cardCls}>
+            <div className="flex items-center gap-2.5 p-3">
               <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-emerald-500/10">
                 <Shield className="h-4 w-4 text-emerald-500" />
               </div>
@@ -143,13 +144,13 @@ export default async function MobilePackageDetailPage({
                 </p>
                 <p className="text-[11px] text-muted-foreground">Anti-Cheat</p>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </div>
 
         {/* Price & Participants */}
-        <Card className="border-0 shadow-sm">
-          <CardContent className="flex items-center justify-between p-4">
+        <div className={cardCls}>
+          <div className="flex items-center justify-between p-4">
             <div>
               <p className="text-xs text-muted-foreground">Harga</p>
               {pkg.isFree ? (
@@ -174,8 +175,8 @@ export default async function MobilePackageDetailPage({
               <Users className="h-4 w-4" />
               <span>{pkg._count.attempts} peserta</span>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
         {/* Sections */}
         {pkg.sections.length > 0 && (
@@ -183,8 +184,8 @@ export default async function MobilePackageDetailPage({
             <h3 className="mb-2.5 text-sm font-semibold">Struktur Ujian</h3>
             <div className="space-y-2">
               {pkg.sections.map((section, idx) => (
-                <Card key={section.id} className="border-0 shadow-sm">
-                  <CardContent className="flex items-center justify-between p-3">
+                <div key={section.id} className={cardCls}>
+                  <div className="flex items-center justify-between p-3">
                     <div className="min-w-0 flex-1">
                       <p className="text-sm font-medium">
                         {idx + 1}. {section.title}
@@ -197,8 +198,8 @@ export default async function MobilePackageDetailPage({
                       <p>{section.totalQuestions} soal</p>
                       <p>{section.durationMinutes} menit</p>
                     </div>
-                  </CardContent>
-                </Card>
+                  </div>
+                </div>
               ))}
             </div>
           </div>
@@ -210,8 +211,8 @@ export default async function MobilePackageDetailPage({
             <h3 className="mb-2.5 text-sm font-semibold">Riwayat Percobaan</h3>
             <div className="space-y-2">
               {userAttempts.map((attempt, idx) => (
-                <Card key={attempt.id} className="border-0 shadow-sm">
-                  <CardContent className="flex items-center justify-between p-3">
+                <div key={attempt.id} className={cardCls}>
+                  <div className="flex items-center justify-between p-3">
                     <div>
                       <p className="text-sm font-medium">
                         Percobaan {userAttempts.length - idx}
@@ -237,13 +238,13 @@ export default async function MobilePackageDetailPage({
                           {Math.round(attempt.score)}
                         </p>
                       ) : (
-                        <Badge variant="secondary" className="text-[10px]">
+                        <Badge className="text-[10px] bg-muted text-foreground">
                           {attempt.status}
                         </Badge>
                       )}
                     </div>
-                  </CardContent>
-                </Card>
+                  </div>
+                </div>
               ))}
             </div>
           </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { signOut } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
 import {
   LayoutDashboard,
@@ -29,6 +29,8 @@ interface UserMenuProps {
 }
 
 export function UserMenu({ user }: UserMenuProps) {
+  const { data: session } = useSession();
+  const avatarSrc = session?.user?.image ?? user.avatar ?? undefined;
   const isAdmin = user.role === "SUPER_ADMIN" || user.role === "ADMIN";
   const isTeacher = user.role === "TEACHER";
 
@@ -37,7 +39,7 @@ export function UserMenu({ user }: UserMenuProps) {
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-9 w-9 rounded-full">
           <Avatar className="h-9 w-9 ring-2 ring-background shadow-sm">
-            <AvatarImage src={user.avatar ?? undefined} alt={user.name} />
+            <AvatarImage src={avatarSrc} alt={user.name} />
             <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
           </Avatar>
         </Button>

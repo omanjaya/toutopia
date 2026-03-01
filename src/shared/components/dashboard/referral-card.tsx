@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
 import { Gift, Copy, Check, Users, Share2 } from "lucide-react";
@@ -49,14 +48,14 @@ export function ReferralCard() {
   }
 
   return (
-    <Card className="border-0 bg-gradient-to-br from-primary/5 to-primary/10 shadow-sm">
-      <CardHeader className="pb-3">
-        <CardTitle className="flex items-center gap-2 text-base">
+    <div className="rounded-2xl bg-gradient-to-br from-primary/5 to-primary/10">
+      <div className="px-6 pt-6 pb-3">
+        <h3 className="text-base font-semibold tracking-tight flex items-center gap-2">
           <Gift className="h-5 w-5 text-primary" />
           Ajak Teman, Dapat Kredit!
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-3">
+        </h3>
+      </div>
+      <div className="px-6 pb-6 space-y-3">
         <p className="text-sm text-muted-foreground">
           Bagikan kode referralmu. Setiap teman yang mendaftar, kamu dapat <strong className="text-foreground">5 kredit gratis</strong>.
         </p>
@@ -79,7 +78,7 @@ export function ReferralCard() {
           <Users className="h-4 w-4" />
           <span>{data.totalReferrals} orang sudah bergabung</span>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

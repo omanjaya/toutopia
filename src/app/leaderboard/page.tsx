@@ -3,7 +3,6 @@ import Link from "next/link";
 import { prisma } from "@/shared/lib/prisma";
 import { Header } from "@/shared/components/layout/header";
 import { Footer } from "@/shared/components/layout/footer";
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { Badge } from "@/shared/components/ui/badge";
 import {
   Avatar,
@@ -24,6 +23,8 @@ export const metadata: Metadata = {
     description: "Peringkat peserta terbaik di setiap paket try out.",
   },
 };
+
+const cardCls = "rounded-2xl bg-card shadow-[0_2px_8px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.05]";
 
 function getInitials(name: string | null): string {
   if (!name) return "?";
@@ -118,8 +119,8 @@ export default async function PublicLeaderboardPage() {
 
                 return (
                   <Link key={pkg.id} href={`/leaderboard/${pkg.id}`}>
-                    <Card className="group h-full transition-all duration-200 hover:border-primary/40 hover:shadow-lg hover:shadow-primary/5 hover:-translate-y-0.5">
-                      <CardHeader className="pb-3">
+                    <div className={`${cardCls} group h-full transition-all duration-200 hover:border-primary/40 hover:shadow-lg hover:shadow-primary/5 hover:-translate-y-0.5`}>
+                      <div className="px-6 pt-6 pb-3">
                         <div className="flex items-start justify-between">
                           <Badge variant="outline">{pkg.category.name}</Badge>
                           <span className="flex items-center gap-1 text-xs text-muted-foreground">
@@ -127,11 +128,11 @@ export default async function PublicLeaderboardPage() {
                             {pkg._count.leaderboard}
                           </span>
                         </div>
-                        <CardTitle className="mt-2 text-base leading-snug">
+                        <h3 className="text-lg font-semibold tracking-tight mt-2 leading-snug">
                           {pkg.title}
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
+                        </h3>
+                      </div>
+                      <div className="px-6 pb-6">
                         {top.length > 0 ? (
                           <div className="space-y-3">
                             {/* Top 3 entries */}
@@ -195,8 +196,8 @@ export default async function PublicLeaderboardPage() {
                           Lihat selengkapnya
                           <ArrowRight className="ml-1 h-3 w-3 transition-transform group-hover:translate-x-0.5" />
                         </div>
-                      </CardContent>
-                    </Card>
+                      </div>
+                    </div>
                   </Link>
                 );
               })}

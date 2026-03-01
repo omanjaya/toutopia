@@ -19,13 +19,6 @@ import { Textarea } from "@/shared/components/ui/textarea";
 import { Label } from "@/shared/components/ui/label";
 import { Switch } from "@/shared/components/ui/switch";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/shared/components/ui/card";
-import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -35,6 +28,8 @@ import {
   DialogTrigger,
 } from "@/shared/components/ui/dialog";
 import { ThemePicker } from "@/shared/components/theme/theme-picker";
+
+const cardCls = "rounded-2xl bg-card shadow-[0_2px_8px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.05]";
 
 interface MobileSettingsContentProps {
   hasPassword: boolean;
@@ -255,17 +250,17 @@ export function MobileSettingsContent({
 
       <div className="space-y-4 px-4 pb-24 pt-4">
         {/* Profile Section */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-base">
+        <div className={cardCls}>
+          <div className="px-5 pt-5 pb-2">
+            <h3 className="text-base font-semibold tracking-tight flex items-center gap-2">
               <UserCircle className="h-5 w-5" />
               Profil
-            </CardTitle>
-            <CardDescription className="text-xs">
+            </h3>
+            <p className="mt-0.5 text-sm text-muted-foreground">
               Informasi profil kamu yang ditampilkan di platform
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
+            </p>
+          </div>
+          <div className="p-5 pt-2">
             {profileLoading ? (
               <div className="flex items-center justify-center py-8">
                 <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
@@ -355,37 +350,37 @@ export function MobileSettingsContent({
                 </Button>
               </div>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
         {/* Theme Section */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-base">
+        <div className={cardCls}>
+          <div className="px-5 pt-5 pb-2">
+            <h3 className="text-base font-semibold tracking-tight flex items-center gap-2">
               <Palette className="h-5 w-5" />
               Tema Tampilan
-            </CardTitle>
-            <CardDescription className="text-xs">
+            </h3>
+            <p className="mt-0.5 text-sm text-muted-foreground">
               Pilih tema yang sesuai dengan gaya belajar kamu
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
+            </p>
+          </div>
+          <div className="p-5 pt-2">
             <ThemePicker />
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
         {/* Notification Section */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-base">
+        <div className={cardCls}>
+          <div className="px-5 pt-5 pb-2">
+            <h3 className="text-base font-semibold tracking-tight flex items-center gap-2">
               <Bell className="h-5 w-5" />
               Preferensi Notifikasi
-            </CardTitle>
-            <CardDescription className="text-xs">
+            </h3>
+            <p className="mt-0.5 text-sm text-muted-foreground">
               Atur jenis notifikasi yang ingin kamu terima
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
+            </p>
+          </div>
+          <div className="p-5 pt-2">
             {notifLoading ? (
               <div className="flex items-center justify-center py-8">
                 <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
@@ -414,8 +409,8 @@ export function MobileSettingsContent({
                 ))}
               </div>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
         {/* Delete Account Section */}
         <div className="rounded-2xl border border-destructive/30 p-4">

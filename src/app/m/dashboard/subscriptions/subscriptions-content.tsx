@@ -13,9 +13,10 @@ import {
   ArrowLeft,
 } from "lucide-react";
 import { Button } from "@/shared/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { Badge } from "@/shared/components/ui/badge";
 import { cn } from "@/shared/lib/utils";
+
+const cardCls = "rounded-2xl bg-card shadow-[0_2px_8px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.05]";
 
 interface BundlePackage {
   id: string;
@@ -170,14 +171,14 @@ export function MobileSubscriptionsContent() {
       <div className="space-y-4">
         {/* Active Subscriptions */}
         {data?.userSubscriptions && data.userSubscriptions.length > 0 && (
-          <Card className="border-2 border-emerald-500/50 bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-950/20 dark:to-teal-950/20">
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-base text-emerald-700 dark:text-emerald-400">
+          <div className="rounded-2xl border-2 border-emerald-500/50 bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-950/20 dark:to-teal-950/20">
+            <div className="px-5 pt-5 pb-2">
+              <h3 className="text-base font-semibold tracking-tight flex items-center gap-2 text-emerald-700 dark:text-emerald-400">
                 <Sparkles className="h-5 w-5" />
                 Langganan Aktif
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
+              </h3>
+            </div>
+            <div className="p-5 pt-2 space-y-2">
               {data.userSubscriptions.map((sub) => (
                 <div
                   key={sub.id}
@@ -197,8 +198,8 @@ export function MobileSubscriptionsContent() {
                   </Badge>
                 </div>
               ))}
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         )}
 
         {/* Plan Selector */}
@@ -240,19 +241,19 @@ export function MobileSubscriptionsContent() {
           );
 
           return (
-            <Card
+            <div
               key={bundle.id}
               className={cn(
-                "border-0 shadow-md",
+                cardCls,
                 isSubscribed && "ring-2 ring-emerald-500/50",
               )}
             >
-              <CardHeader className="pb-3">
+              <div className="px-5 pt-5 pb-2">
                 <div className="flex items-start justify-between">
                   <div className="min-w-0 flex-1">
-                    <CardTitle className="text-lg font-bold">
+                    <h3 className="text-base font-semibold tracking-tight text-lg font-bold">
                       {bundle.name}
-                    </CardTitle>
+                    </h3>
                     {bundle.description && (
                       <p className="mt-1 text-sm text-muted-foreground">
                         {bundle.description}
@@ -265,8 +266,8 @@ export function MobileSubscriptionsContent() {
                     </Badge>
                   )}
                 </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
+              </div>
+              <div className="p-5 pt-2 space-y-4">
                 <div>
                   <p className="text-2xl font-bold">{formatPrice(price)}</p>
                   {monthlyEq && (
@@ -316,8 +317,8 @@ export function MobileSubscriptionsContent() {
                     </>
                   )}
                 </Button>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           );
         })}
 

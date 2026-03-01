@@ -3,13 +3,12 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Loader2, Save } from "lucide-react";
+import { Loader2, Save, Tag, Percent, Banknote, Calendar, ToggleRight } from "lucide-react";
 import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
 import { Textarea } from "@/shared/components/ui/textarea";
 import { Switch } from "@/shared/components/ui/switch";
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { cn } from "@/shared/lib/utils";
 
 interface PromoFormData {
@@ -28,6 +27,27 @@ interface PromoFormData {
 interface PromoFormProps {
   initialData?: PromoFormData;
   mode: "create" | "edit";
+}
+
+const cardCls =
+  "rounded-2xl bg-card shadow-[0_2px_8px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.05]";
+
+function SectionHeader({ icon: Icon, title, description }: {
+  icon: React.ElementType;
+  title: string;
+  description?: string;
+}) {
+  return (
+    <div className="flex items-center gap-2 border-b border-border/60 px-5 py-4">
+      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+        <Icon className="h-3.5 w-3.5 text-primary" />
+      </div>
+      <div>
+        <p className="text-sm font-semibold">{title}</p>
+        {description && <p className="text-xs text-muted-foreground">{description}</p>}
+      </div>
+    </div>
+  );
 }
 
 function toDatetimeLocal(isoString: string): string {
@@ -115,15 +135,13 @@ export function PromoForm({ initialData, mode }: PromoFormProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>Informasi Promo</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {/* Code */}
-          <div className="space-y-2">
-            <Label htmlFor="code">Kode Promo</Label>
+    <form onSubmit={handleSubmit} className="space-y-4">
+      {/* Informasi Promo */}
+      <div className={cardCls}>
+        <SectionHeader icon={Tag} title="Informasi Promo" description="Kode dan deskripsi promo" />
+        <div className="space-y-4 p-5">
+          <div className="space-y-1.5">
+            <Label htmlFor="code" className="text-xs font-medium">Kode Promo</Label>
             <Input
               id="code"
               placeholder="DISKON50"
@@ -139,9 +157,10 @@ export function PromoForm({ initialData, mode }: PromoFormProps) {
             </p>
           </div>
 
-          {/* Description */}
-          <div className="space-y-2">
-            <Label htmlFor="description">Deskripsi (opsional)</Label>
+          <div className="space-y-1.5">
+            <Label htmlFor="description" className="text-xs font-medium">
+              Deskripsi <span className="font-normal text-muted-foreground">(opsional)</span>
+            </Label>
             <Textarea
               id="description"
               placeholder="Promo spesial untuk pengguna baru..."
@@ -149,89 +168,88 @@ export function PromoForm({ initialData, mode }: PromoFormProps) {
               onChange={(e) => setDescription(e.target.value)}
               maxLength={200}
               rows={2}
+              className="resize-none"
             />
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Diskon</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {/* Discount Type */}
-          <div className="space-y-2">
-            <Label>Tipe Diskon</Label>
+      {/* Diskon */}
+      <div className={cardCls}>
+        <SectionHeader icon={Percent} title="Diskon" description="Tipe dan nilai potongan harga" />
+        <div className="space-y-4 p-5">
+          <div className="space-y-1.5">
+            <Label className="text-xs font-medium">Tipe Diskon</Label>
             <div className="flex gap-2">
               <button
                 type="button"
                 onClick={() => setDiscountType("PERCENTAGE")}
                 className={cn(
-                  "rounded-lg border px-4 py-2 text-sm font-medium transition-colors",
+                  "flex items-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-medium transition-colors",
                   discountType === "PERCENTAGE"
                     ? "border-primary bg-primary/10 text-primary"
                     : "border-border text-muted-foreground hover:bg-muted"
                 )}
               >
+                <Percent className="h-3.5 w-3.5" />
                 Persentase (%)
               </button>
               <button
                 type="button"
                 onClick={() => setDiscountType("FIXED")}
                 className={cn(
-                  "rounded-lg border px-4 py-2 text-sm font-medium transition-colors",
+                  "flex items-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-medium transition-colors",
                   discountType === "FIXED"
                     ? "border-primary bg-primary/10 text-primary"
                     : "border-border text-muted-foreground hover:bg-muted"
                 )}
               >
+                <Banknote className="h-3.5 w-3.5" />
                 Nominal (Rp)
               </button>
             </div>
           </div>
 
-          {/* Discount Value */}
-          <div className="space-y-2">
-            <Label htmlFor="discountValue">
-              Nilai Diskon{" "}
-              {discountType === "PERCENTAGE" ? "(%)" : "(Rp)"}
-            </Label>
-            <Input
-              id="discountValue"
-              type="number"
-              placeholder={discountType === "PERCENTAGE" ? "50" : "25000"}
-              value={discountValue || ""}
-              onChange={(e) => setDiscountValue(Number(e.target.value))}
-              required
-              min={1}
-              max={discountType === "PERCENTAGE" ? 100 : undefined}
-            />
-            {discountType === "PERCENTAGE" && (
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-1.5">
+              <Label htmlFor="discountValue" className="text-xs font-medium">
+                Nilai Diskon {discountType === "PERCENTAGE" ? "(%)" : "(Rp)"}
+              </Label>
+              <Input
+                id="discountValue"
+                type="number"
+                placeholder={discountType === "PERCENTAGE" ? "50" : "25000"}
+                value={discountValue || ""}
+                onChange={(e) => setDiscountValue(Number(e.target.value))}
+                required
+                min={1}
+                max={discountType === "PERCENTAGE" ? 100 : undefined}
+              />
+              {discountType === "PERCENTAGE" && (
+                <p className="text-xs text-muted-foreground">Maksimal 100%</p>
+              )}
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="minPurchase" className="text-xs font-medium">Minimum Pembelian (Rp)</Label>
+              <Input
+                id="minPurchase"
+                type="number"
+                placeholder="0"
+                value={minPurchase || ""}
+                onChange={(e) => setMinPurchase(Number(e.target.value))}
+                min={0}
+              />
               <p className="text-xs text-muted-foreground">
-                Maksimal 100%
+                Isi 0 jika tidak ada minimum
               </p>
-            )}
+            </div>
           </div>
 
-          {/* Min Purchase */}
-          <div className="space-y-2">
-            <Label htmlFor="minPurchase">Minimum Pembelian (Rp)</Label>
-            <Input
-              id="minPurchase"
-              type="number"
-              placeholder="0"
-              value={minPurchase || ""}
-              onChange={(e) => setMinPurchase(Number(e.target.value))}
-              min={0}
-            />
-            <p className="text-xs text-muted-foreground">
-              Kosongkan atau 0 jika tidak ada minimum pembelian
-            </p>
-          </div>
-
-          {/* Max Uses */}
-          <div className="space-y-2">
-            <Label htmlFor="maxUses">Maks Penggunaan (opsional)</Label>
+          <div className="space-y-1.5">
+            <Label htmlFor="maxUses" className="text-xs font-medium">
+              Maks Penggunaan <span className="font-normal text-muted-foreground">(opsional)</span>
+            </Label>
             <Input
               id="maxUses"
               type="number"
@@ -239,22 +257,22 @@ export function PromoForm({ initialData, mode }: PromoFormProps) {
               value={maxUses}
               onChange={(e) => setMaxUses(e.target.value)}
               min={1}
+              className="max-w-xs"
             />
-            <p className="text-xs text-muted-foreground">
-              Kosongkan jika tidak dibatasi
-            </p>
+            <p className="text-xs text-muted-foreground">Kosongkan jika tidak dibatasi</p>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Masa Berlaku</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
+      {/* Masa Berlaku & Status */}
+      <div className={cardCls}>
+        <SectionHeader icon={Calendar} title="Masa Berlaku & Status" description="Periode aktif dan toggle promo" />
+        <div className="space-y-4 p-5">
           <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="validFrom">Berlaku Dari (opsional)</Label>
+            <div className="space-y-1.5">
+              <Label htmlFor="validFrom" className="text-xs font-medium">
+                Berlaku Dari <span className="font-normal text-muted-foreground">(opsional)</span>
+              </Label>
               <Input
                 id="validFrom"
                 type="datetime-local"
@@ -262,8 +280,10 @@ export function PromoForm({ initialData, mode }: PromoFormProps) {
                 onChange={(e) => setValidFrom(e.target.value)}
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="validUntil">Berlaku Sampai (opsional)</Label>
+            <div className="space-y-1.5">
+              <Label htmlFor="validUntil" className="text-xs font-medium">
+                Berlaku Sampai <span className="font-normal text-muted-foreground">(opsional)</span>
+              </Label>
               <Input
                 id="validUntil"
                 type="datetime-local"
@@ -273,24 +293,27 @@ export function PromoForm({ initialData, mode }: PromoFormProps) {
             </div>
           </div>
 
-          {/* Active toggle */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 rounded-xl border border-border/60 bg-muted/30 p-3">
+            <ToggleRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+            <div className="flex-1">
+              <p className="text-sm font-medium">Aktifkan promo</p>
+              <p className="text-xs text-muted-foreground">Promo yang aktif dapat digunakan oleh pengguna</p>
+            </div>
             <Switch
               id="isActive"
               checked={isActive}
               onCheckedChange={setIsActive}
             />
-            <Label htmlFor="isActive">Aktifkan promo</Label>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       <div className="flex gap-3">
         <Button type="submit" disabled={isSubmitting}>
           {isSubmitting ? (
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
           ) : (
-            <Save className="mr-2 h-4 w-4" />
+            <Save className="mr-1.5 h-4 w-4" />
           )}
           {mode === "create" ? "Buat Promo" : "Simpan Perubahan"}
         </Button>

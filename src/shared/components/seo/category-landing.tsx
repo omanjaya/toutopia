@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { prisma } from "@/shared/lib/prisma";
 import { Button } from "@/shared/components/ui/button";
-import { Card, CardContent } from "@/shared/components/ui/card";
 import { Badge } from "@/shared/components/ui/badge";
+
+const cardCls = "rounded-2xl bg-card shadow-[0_2px_8px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.05]";
 import { ArrowRight, CheckCircle2 } from "lucide-react";
 import { formatCurrency } from "@/shared/lib/utils";
 import { siteConfig } from "@/config/site.config";
@@ -64,7 +65,7 @@ export async function CategoryLanding({
       />
       <div className="mx-auto max-w-5xl px-4 py-12">
         <section className="text-center mb-16">
-          <Badge variant="secondary" className="mb-4">{badge}</Badge>
+          <Badge className="mb-4 bg-muted text-foreground">{badge}</Badge>
           <h1 className="text-4xl font-bold tracking-tight lg:text-5xl">
             {title}
           </h1>
@@ -108,8 +109,8 @@ export async function CategoryLanding({
             </h2>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {packages.map((pkg) => (
-                <Card key={pkg.id}>
-                  <CardContent className="pt-6">
+                <div key={pkg.id} className={cardCls}>
+                  <div className="p-6">
                     <h3 className="font-semibold">{pkg.title}</h3>
                     <p className="text-sm text-muted-foreground mt-1">
                       {pkg.durationMinutes} menit &middot; {pkg._count.attempts} peserta
@@ -124,8 +125,8 @@ export async function CategoryLanding({
                         Lihat Detail
                       </Link>
                     </Button>
-                  </CardContent>
-                </Card>
+                  </div>
+                </div>
               ))}
             </div>
           </section>

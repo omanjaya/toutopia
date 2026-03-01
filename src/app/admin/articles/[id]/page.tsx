@@ -3,12 +3,11 @@
 import { useState, useEffect, use } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Loader2, ArrowLeft } from "lucide-react";
+import { Loader2, ChevronLeft, FileEdit, AlignLeft } from "lucide-react";
 import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
 import { Textarea } from "@/shared/components/ui/textarea";
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import {
   Select,
   SelectContent,
@@ -17,6 +16,9 @@ import {
   SelectValue,
 } from "@/shared/components/ui/select";
 import Link from "next/link";
+
+const cardCls =
+  "rounded-2xl bg-card shadow-[0_2px_8px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.05]";
 
 const CATEGORIES = ["Tips Belajar", "Jadwal Ujian", "Strategi", "Pengumuman", "Lainnya"];
 
@@ -119,21 +121,33 @@ export default function EditArticlePage({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" asChild>
+      <div className="flex items-center gap-3">
+        <Button variant="ghost" size="icon" className="h-9 w-9" asChild>
           <Link href="/admin/articles">
-            <ArrowLeft className="h-4 w-4" />
+            <ChevronLeft className="h-4 w-4" />
           </Link>
         </Button>
-        <h2 className="text-2xl font-bold tracking-tight">Edit Artikel</h2>
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10">
+          <FileEdit className="h-5 w-5 text-primary" />
+        </div>
+        <div>
+          <h2 className="text-2xl font-semibold tracking-tight">Edit Artikel</h2>
+          <p className="text-sm text-muted-foreground">Perbarui konten dan metadata artikel</p>
+        </div>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Detail Artikel</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
+        <div className={cardCls}>
+          <div className="flex items-center gap-2 border-b border-border/60 px-5 py-4">
+            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+              <FileEdit className="h-3.5 w-3.5 text-primary" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold">Detail Artikel</p>
+              <p className="text-xs text-muted-foreground">Judul, slug, kategori, dan metadata</p>
+            </div>
+          </div>
+          <div className="space-y-4 p-5">
             <div className="space-y-2">
               <Label>Judul</Label>
               <Input
@@ -208,14 +222,20 @@ export default function EditArticlePage({
                 onChange={(e) => setTags(e.target.value)}
               />
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Konten</CardTitle>
-          </CardHeader>
-          <CardContent>
+        <div className={cardCls}>
+          <div className="flex items-center gap-2 border-b border-border/60 px-5 py-4">
+            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+              <AlignLeft className="h-3.5 w-3.5 text-primary" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold">Konten</p>
+              <p className="text-xs text-muted-foreground">Mendukung HTML</p>
+            </div>
+          </div>
+          <div className="p-5">
             <Textarea
               value={content}
               onChange={(e) => setContent(e.target.value)}
@@ -223,8 +243,8 @@ export default function EditArticlePage({
               className="font-mono text-sm"
               required
             />
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
         <div className="flex justify-end gap-3">
           <Button variant="outline" type="button" asChild>

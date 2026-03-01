@@ -2,7 +2,6 @@
 
 import { useState, useRef } from "react";
 import { Upload, FileText, Download, CheckCircle2, AlertTriangle, Loader2 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { Button } from "@/shared/components/ui/button";
 import { toast } from "sonner";
 import { cn } from "@/shared/lib/utils";
@@ -12,6 +11,8 @@ interface ImportResult {
   errors?: string[];
   total: number;
 }
+
+const cardCls = "rounded-2xl bg-card shadow-[0_2px_8px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.05]";
 
 export default function ImportQuestionsPage() {
   const [file, setFile] = useState<File | null>(null);
@@ -79,8 +80,8 @@ export default function ImportQuestionsPage() {
       </div>
 
       {/* Template Download */}
-      <Card className="border-0 bg-card shadow-sm">
-        <CardContent className="flex items-center justify-between p-4">
+      <div className="rounded-2xl bg-card">
+        <div className="flex items-center justify-between p-4">
           <div className="flex items-center gap-3">
             <FileText className="h-5 w-5 text-muted-foreground" />
             <div>
@@ -94,15 +95,15 @@ export default function ImportQuestionsPage() {
             <Download className="mr-2 h-4 w-4" />
             Download
           </Button>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Upload Area */}
-      <Card className="border-0 bg-card shadow-sm">
-        <CardHeader>
-          <CardTitle className="text-base">Upload File</CardTitle>
-        </CardHeader>
-        <CardContent>
+      <div className={cardCls}>
+        <div className="px-6 pt-6 pb-2">
+          <h3 className="text-base font-semibold tracking-tight">Upload File</h3>
+        </div>
+        <div className="p-6">
           <div
             onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
             onDragLeave={() => setDragOver(false)}
@@ -139,15 +140,15 @@ export default function ImportQuestionsPage() {
               Import {file.name}
             </Button>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Format Guide */}
-      <Card className="border-0 bg-card shadow-sm">
-        <CardHeader>
-          <CardTitle className="text-base">Format CSV</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3 text-sm text-muted-foreground">
+      <div className={cardCls}>
+        <div className="px-6 pt-6 pb-2">
+          <h3 className="text-base font-semibold tracking-tight">Format CSV</h3>
+        </div>
+        <div className="p-6 space-y-3 text-sm text-muted-foreground">
           <p>Kolom yang diperlukan:</p>
           <ul className="list-inside list-disc space-y-1">
             <li><strong>topicId</strong> -- ID topik (wajib)</li>
@@ -158,13 +159,13 @@ export default function ImportQuestionsPage() {
             <li><strong>optionA</strong> - <strong>optionE</strong> -- Pilihan jawaban (minimal A dan B)</li>
             <li><strong>correctOption</strong> -- Jawaban benar: A, B, C, D, atau E</li>
           </ul>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Results */}
       {result && (
-        <Card className="border-0 bg-card shadow-sm">
-          <CardContent className="p-4 space-y-3">
+        <div className={cardCls}>
+          <div className="p-4 space-y-3">
             {result.imported > 0 && (
               <div className="flex items-center gap-2 text-emerald-600">
                 <CheckCircle2 className="h-5 w-5" />
@@ -184,8 +185,8 @@ export default function ImportQuestionsPage() {
                 </ul>
               </div>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       )}
     </div>
   );

@@ -17,9 +17,10 @@ import {
   ArrowLeft,
 } from "lucide-react";
 import { Button } from "@/shared/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { Badge } from "@/shared/components/ui/badge";
 import { cn } from "@/shared/lib/utils";
+
+const cardCls = "rounded-2xl bg-card shadow-[0_2px_8px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.05]";
 
 interface ReportSummary {
   totalAttempts: number;
@@ -232,47 +233,39 @@ export function MobileReportContent() {
       <div ref={reportRef} className="space-y-4">
         {/* Summary Stats */}
         <div className="grid grid-cols-2 gap-3">
-          <Card className="border-0 bg-card shadow-sm">
-            <CardContent className="flex flex-col items-center p-4">
-              <Trophy className="mb-1 h-5 w-5 text-amber-500" />
-              <p className="text-2xl font-bold tabular-nums">
-                {data.summary.avgScore}
-              </p>
-              <p className="text-xs text-muted-foreground">Rata-rata Skor</p>
-            </CardContent>
-          </Card>
-          <Card className="border-0 bg-card shadow-sm">
-            <CardContent className="flex flex-col items-center p-4">
-              <Target className="mb-1 h-5 w-5 text-emerald-500" />
-              <p className="text-2xl font-bold tabular-nums">
-                {data.summary.passingRate}%
-              </p>
-              <p className="text-xs text-muted-foreground">Tingkat Lulus</p>
-            </CardContent>
-          </Card>
-          <Card className="border-0 bg-card shadow-sm">
-            <CardContent className="flex flex-col items-center p-4">
-              <Clock className="mb-1 h-5 w-5 text-blue-500" />
-              <p className="text-2xl font-bold tabular-nums">
-                {data.summary.totalStudyTimeMinutes}m
-              </p>
-              <p className="text-xs text-muted-foreground">Waktu Belajar</p>
-            </CardContent>
-          </Card>
-          <Card className="border-0 bg-card shadow-sm">
-            <CardContent className="flex flex-col items-center p-4">
-              <Flame className="mb-1 h-5 w-5 text-orange-500" />
-              <p className="text-2xl font-bold tabular-nums">
-                {data.summary.currentStreak}
-              </p>
-              <p className="text-xs text-muted-foreground">Streak</p>
-            </CardContent>
-          </Card>
+          <div className="rounded-2xl bg-card flex flex-col items-center p-4">
+            <Trophy className="mb-1 h-5 w-5 text-amber-500" />
+            <p className="text-2xl font-bold tabular-nums">
+              {data.summary.avgScore}
+            </p>
+            <p className="text-xs text-muted-foreground">Rata-rata Skor</p>
+          </div>
+          <div className="rounded-2xl bg-card flex flex-col items-center p-4">
+            <Target className="mb-1 h-5 w-5 text-emerald-500" />
+            <p className="text-2xl font-bold tabular-nums">
+              {data.summary.passingRate}%
+            </p>
+            <p className="text-xs text-muted-foreground">Tingkat Lulus</p>
+          </div>
+          <div className="rounded-2xl bg-card flex flex-col items-center p-4">
+            <Clock className="mb-1 h-5 w-5 text-blue-500" />
+            <p className="text-2xl font-bold tabular-nums">
+              {data.summary.totalStudyTimeMinutes}m
+            </p>
+            <p className="text-xs text-muted-foreground">Waktu Belajar</p>
+          </div>
+          <div className="rounded-2xl bg-card flex flex-col items-center p-4">
+            <Flame className="mb-1 h-5 w-5 text-orange-500" />
+            <p className="text-2xl font-bold tabular-nums">
+              {data.summary.currentStreak}
+            </p>
+            <p className="text-xs text-muted-foreground">Streak</p>
+          </div>
         </div>
 
         {/* Accuracy Summary */}
-        <Card className="border-0 shadow-sm">
-          <CardContent className="p-4">
+        <div className={cardCls}>
+          <div className="p-4">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs text-muted-foreground">
@@ -310,19 +303,19 @@ export function MobileReportContent() {
                 {data.summary.totalQuestions - data.summary.totalCorrect} salah
               </span>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
         {/* Category Breakdown */}
         {data.categoryBreakdown.length > 0 && (
-          <Card className="border-0 shadow-sm">
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-base">
+          <div className={cardCls}>
+            <div className="px-5 pt-5 pb-2">
+              <h3 className="text-base font-semibold tracking-tight flex items-center gap-2">
                 <BarChart3 className="h-5 w-5 text-primary" />
                 Breakdown per Kategori
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
+              </h3>
+            </div>
+            <div className="p-5 pt-2 space-y-3">
               {data.categoryBreakdown.map((cat) => (
                 <div key={cat.category} className="space-y-1.5">
                   <div className="flex items-center justify-between">
@@ -352,20 +345,20 @@ export function MobileReportContent() {
                   </p>
                 </div>
               ))}
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         )}
 
         {/* Recent Attempts */}
         {data.recentAttempts.length > 0 && (
-          <Card className="border-0 shadow-sm">
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-base">
+          <div className={cardCls}>
+            <div className="px-5 pt-5 pb-2">
+              <h3 className="text-base font-semibold tracking-tight flex items-center gap-2">
                 <TrendingUp className="h-5 w-5 text-primary" />
                 Riwayat Terakhir
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
+              </h3>
+            </div>
+            <div className="p-5 pt-2 space-y-2">
               {data.recentAttempts.map((attempt, idx) => (
                 <div
                   key={idx}
@@ -399,20 +392,20 @@ export function MobileReportContent() {
                   </div>
                 </div>
               ))}
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         )}
 
         {/* Badges */}
         {data.badges.length > 0 && (
-          <Card className="border-0 shadow-sm">
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-base">
+          <div className={cardCls}>
+            <div className="px-5 pt-5 pb-2">
+              <h3 className="text-base font-semibold tracking-tight flex items-center gap-2">
                 <Award className="h-5 w-5 text-amber-500" />
                 Badge yang Diperoleh
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
+              </h3>
+            </div>
+            <div className="p-5 pt-2">
               <div className="flex flex-wrap gap-2">
                 {data.badges.map((badge, idx) => (
                   <Badge
@@ -425,8 +418,8 @@ export function MobileReportContent() {
                   </Badge>
                 ))}
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         )}
 
         {/* Footer */}

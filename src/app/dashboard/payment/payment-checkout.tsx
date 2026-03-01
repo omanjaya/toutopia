@@ -13,8 +13,9 @@ import {
   X,
 } from "lucide-react";
 import { Button } from "@/shared/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { Badge } from "@/shared/components/ui/badge";
+
+const cardCls = "rounded-2xl bg-card shadow-[0_2px_8px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.05]";
 import { Input } from "@/shared/components/ui/input";
 import { formatCurrency } from "@/shared/lib/utils";
 import { cn } from "@/shared/lib/utils";
@@ -157,7 +158,7 @@ export function PaymentCheckout({ currentBalance }: PaymentCheckoutProps) {
           bundleSize: "bundleSize" in plan ? plan.bundleSize : undefined,
           subscriptionPlan:
             "subscriptionPlan" in plan ? plan.subscriptionPlan : undefined,
-          promoId: appliedPromo?.promoId,
+          promoCodeId: appliedPromo?.promoId,
         }),
       });
 
@@ -211,21 +212,22 @@ export function PaymentCheckout({ currentBalance }: PaymentCheckoutProps) {
             onClick={() => handlePlanSelect(plan.id)}
             className="text-left"
           >
-            <Card
+            <div
               className={cn(
-                "transition-colors",
+                cardCls,
+                "transition-all",
                 selectedPlan === plan.id
-                  ? "border-primary ring-2 ring-primary/20"
-                  : "hover:border-muted-foreground/30"
+                  ? "ring-primary ring-2"
+                  : "hover:ring-muted-foreground/30"
               )}
             >
-              <CardHeader className="pb-2">
+              <div className="px-6 pt-6 pb-2">
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-base">{plan.name}</CardTitle>
+                  <h3 className="text-base font-semibold tracking-tight">{plan.name}</h3>
                   {plan.popular && <Badge>Populer</Badge>}
                 </div>
-              </CardHeader>
-              <CardContent>
+              </div>
+              <div className="p-6">
                 <p className="text-2xl font-bold">
                   {formatCurrency(plan.price)}
                 </p>
@@ -240,15 +242,15 @@ export function PaymentCheckout({ currentBalance }: PaymentCheckoutProps) {
                     Dipilih
                   </div>
                 )}
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           </button>
         ))}
       </div>
 
       {/* Promo Code */}
-      <Card className="border-0 bg-card shadow-sm">
-        <CardContent className="p-4">
+      <div className={cardCls}>
+        <div className="p-4">
           <button
             type="button"
             onClick={() => setShowPromo(!showPromo)}
@@ -308,12 +310,12 @@ export function PaymentCheckout({ currentBalance }: PaymentCheckoutProps) {
               </div>
             </div>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Checkout */}
-      <Card>
-        <CardContent className="flex items-center justify-between pt-6">
+      <div className={cardCls}>
+        <div className="flex items-center justify-between p-6">
           <div>
             <p className="text-sm text-muted-foreground">
               Saldo saat ini: {currentBalance} kredit
@@ -349,8 +351,8 @@ export function PaymentCheckout({ currentBalance }: PaymentCheckoutProps) {
             )}
             Bayar Sekarang
           </Button>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 }

@@ -3,7 +3,6 @@ import Link from "next/link";
 import { Header } from "@/shared/components/layout/header";
 import { Footer } from "@/shared/components/layout/footer";
 import { Button } from "@/shared/components/ui/button";
-import { Card, CardContent } from "@/shared/components/ui/card";
 import {
   Target,
   Users,
@@ -18,6 +17,8 @@ export const metadata: Metadata = {
   description:
     "Toutopia adalah platform try out online terpercaya untuk persiapan UTBK, CPNS, BUMN, Kedinasan, dan PPPK.",
 };
+
+const cardCls = "rounded-2xl bg-card shadow-[0_2px_8px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.05]";
 
 const values = [
   {
@@ -90,8 +91,8 @@ export default function AboutPage() {
           </h2>
           <div className="grid gap-6 sm:grid-cols-2">
             {values.map((v) => (
-              <Card key={v.title}>
-                <CardContent className="flex gap-4 pt-6">
+              <div key={v.title} className={cardCls}>
+                <div className="flex gap-4 p-6">
                   <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
                     <v.icon className="h-5 w-5 text-primary" />
                   </div>
@@ -101,8 +102,8 @@ export default function AboutPage() {
                       {v.description}
                     </p>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             ))}
           </div>
         </section>

@@ -3,7 +3,6 @@ import Link from "next/link";
 import Image from "next/image";
 import { prisma } from "@/shared/lib/prisma";
 import { Button } from "@/shared/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { Badge } from "@/shared/components/ui/badge";
 import { Separator } from "@/shared/components/ui/separator";
 import {
@@ -28,6 +27,9 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Ebook — Admin" };
 
 const ITEMS_PER_PAGE = 24;
+
+const cardCls =
+  "rounded-2xl bg-card shadow-[0_2px_8px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.05]";
 
 const STATUS_CONFIG: Record<string, { label: string; className: string }> = {
   PUBLISHED: {
@@ -232,11 +234,16 @@ export default async function AdminEbooksPage({ searchParams }: Props) {
     <div className="space-y-6">
       {/* Page Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h2 className="text-2xl font-bold tracking-tight">Ebook</h2>
-          <p className="text-sm text-muted-foreground">
-            Kelola ebook dan materi belajar platform
-          </p>
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10">
+            <BookOpen className="h-5 w-5 text-primary" />
+          </div>
+          <div>
+            <h2 className="text-2xl font-semibold tracking-tight">Ebook</h2>
+            <p className="text-sm text-muted-foreground">
+              Kelola ebook dan materi belajar platform
+            </p>
+          </div>
         </div>
         <Button size="sm" asChild>
           <Link href="/admin/ebooks/new">
@@ -249,28 +256,26 @@ export default async function AdminEbooksPage({ searchParams }: Props) {
       {/* Stat Cards */}
       <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 xl:grid-cols-6">
         {statCards.map((stat) => (
-          <Card key={stat.title} className="border-0 shadow-sm ring-1 ring-border/60">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 p-4 pb-2">
-              <CardTitle className="text-xs font-medium text-muted-foreground">
-                {stat.title}
-              </CardTitle>
-              <div
-                className={`flex h-7 w-7 items-center justify-center rounded-lg ${stat.color}`}
-              >
-                <stat.icon className="h-3.5 w-3.5" />
+          <div key={stat.title} className={cardCls}>
+            <div className="flex items-center justify-between p-5">
+              <div>
+                <p className="text-xs font-medium text-muted-foreground">{stat.title}</p>
+                <p className="mt-1.5 text-2xl font-bold tabular-nums">
+                  {stat.value.toLocaleString("id-ID")}
+                </p>
               </div>
-            </CardHeader>
-            <CardContent className="px-4 pb-4 pt-0">
-              <p className="text-2xl font-bold tabular-nums">
-                {stat.value.toLocaleString("id-ID")}
-              </p>
-            </CardContent>
-          </Card>
+              <div
+                className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${stat.color}`}
+              >
+                <stat.icon className="h-5 w-5" />
+              </div>
+            </div>
+          </div>
         ))}
       </div>
 
       {/* Filter Bar */}
-      <div className="rounded-xl border bg-card p-4">
+      <div className={`${cardCls} p-4`}>
         <div className="flex flex-wrap items-center gap-3">
           {/* Search */}
           <form method="GET" action="/admin/ebooks" className="flex items-center gap-2">
@@ -437,44 +442,42 @@ export default async function AdminEbooksPage({ searchParams }: Props) {
 
       {/* Content */}
       {ebooks.length === 0 ? (
-        <Card className="border-dashed">
-          <CardContent className="py-20">
-            <div className="flex flex-col items-center gap-3 text-center">
-              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-muted">
-                <BookText className="h-7 w-7 text-muted-foreground/50" />
-              </div>
-              <div>
-                <p className="font-medium">
-                  {q || statusFilter || categoryFilter
-                    ? "Tidak ada ebook yang cocok"
-                    : "Belum ada ebook"}
-                </p>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  {q || statusFilter || categoryFilter
-                    ? "Coba ubah atau hapus filter yang aktif"
-                    : "Upload ebook pertama untuk mulai"}
-                </p>
-              </div>
-              {!q && !statusFilter && !categoryFilter && (
-                <Button size="sm" asChild>
-                  <Link href="/admin/ebooks/new">
-                    <Plus className="mr-1.5 h-3.5 w-3.5" />
-                    Upload Ebook
-                  </Link>
-                </Button>
-              )}
+        <div className={`${cardCls} py-16 text-center`}>
+          <div className="flex flex-col items-center gap-3">
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-muted">
+              <BookText className="h-7 w-7 text-muted-foreground/40" />
             </div>
-          </CardContent>
-        </Card>
+            <div>
+              <p className="font-medium">
+                {q || statusFilter || categoryFilter
+                  ? "Tidak ada ebook yang cocok"
+                  : "Belum ada ebook"}
+              </p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                {q || statusFilter || categoryFilter
+                  ? "Coba ubah atau hapus filter yang aktif"
+                  : "Upload ebook pertama untuk mulai"}
+              </p>
+            </div>
+            {!q && !statusFilter && !categoryFilter && (
+              <Button size="sm" asChild>
+                <Link href="/admin/ebooks/new">
+                  <Plus className="mr-1.5 h-3.5 w-3.5" />
+                  Upload Ebook
+                </Link>
+              </Button>
+            )}
+          </div>
+        </div>
       ) : viewMode === "grid" ? (
         /* Grid */
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
           {ebooks.map((ebook) => {
             const statusCfg = STATUS_CONFIG[ebook.status];
             return (
-              <Card
+              <div
                 key={ebook.id}
-                className="group overflow-hidden border-0 shadow-[3px_4px_16px_rgba(0,0,0,0.10)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[4px_8px_24px_rgba(0,0,0,0.16)]"
+                className={`${cardCls} group overflow-hidden hover:shadow-md transition-shadow cursor-pointer`}
               >
                 {/* Book cover — portrait */}
                 <div className="relative aspect-[3/4] w-full overflow-hidden bg-gradient-to-br from-muted to-muted/60">
@@ -532,7 +535,7 @@ export default async function AdminEbooksPage({ searchParams }: Props) {
                   </div>
                 </div>
 
-                <CardContent className="p-3">
+                <div className="p-3">
                   <p
                     className="line-clamp-2 text-xs font-semibold leading-snug"
                     title={ebook.title}
@@ -565,8 +568,8 @@ export default async function AdminEbooksPage({ searchParams }: Props) {
                       status={ebook.status}
                     />
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             );
           })}
         </div>

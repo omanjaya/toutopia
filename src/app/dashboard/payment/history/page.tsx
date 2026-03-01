@@ -11,8 +11,9 @@ import {
   TableRow,
 } from "@/shared/components/ui/table";
 import { Badge } from "@/shared/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { formatCurrency } from "@/shared/lib/utils";
+
+const cardCls = "rounded-2xl bg-card shadow-[0_2px_8px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.05]";
 
 export const dynamic = "force-dynamic";
 
@@ -75,11 +76,11 @@ export default async function PaymentHistoryPage() {
       </div>
 
       {/* Credit History */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Riwayat Kredit</CardTitle>
-        </CardHeader>
-        <CardContent>
+      <div className={cardCls}>
+        <div className="px-6 pt-6 pb-2">
+          <h3 className="text-lg font-semibold tracking-tight">Riwayat Kredit</h3>
+        </div>
+        <div className="p-6">
           {creditHistory.length > 0 ? (
             <div className="space-y-2">
               {creditHistory.map((h) => (
@@ -111,15 +112,15 @@ export default async function PaymentHistoryPage() {
               Belum ada riwayat kredit.
             </p>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Transaction History */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Riwayat Transaksi</CardTitle>
-        </CardHeader>
-        <CardContent>
+      <div className={cardCls}>
+        <div className="px-6 pt-6 pb-2">
+          <h3 className="text-lg font-semibold tracking-tight">Riwayat Transaksi</h3>
+        </div>
+        <div className="p-6">
           <div className="rounded-lg border">
             <Table>
               <TableHeader>
@@ -173,8 +174,8 @@ export default async function PaymentHistoryPage() {
               </TableBody>
             </Table>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 }

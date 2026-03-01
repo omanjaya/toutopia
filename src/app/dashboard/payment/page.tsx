@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
+import Script from "next/script";
 import { prisma } from "@/shared/lib/prisma";
 import { auth } from "@/shared/lib/auth";
 import { redirect } from "next/navigation";
+import { getMidtransClientKey } from "@/shared/lib/midtrans";
 import { PaymentCheckout } from "./payment-checkout";
 
 export const dynamic = "force-dynamic";
@@ -19,18 +21,30 @@ export default async function PaymentPage() {
     where: { userId: session.user.id },
   });
 
-  return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold tracking-tight">Pembayaran</h2>
-        <p className="text-muted-foreground">
-          Saldo kredit: <span className="font-semibold">{credit?.balance ?? 0}</span> kredit
-        </p>
-      </div>
+  const isProduction = process.env.MIDTRANS_IS_PRODUCTION === "true";
+  const snapScriptUrl = isProduction
+    ? "https://app.midtrans.com/snap/snap.js"
+    : "https://app.sandbox.midtrans.com/snap/snap.js";
 
-      <Suspense>
-        <PaymentCheckout currentBalance={credit?.balance ?? 0} />
-      </Suspense>
-    </div>
+  return (
+    <>
+      <Script
+        src={snapScriptUrl}
+        data-client-key={getMidtransClientKey()}
+        strategy="afterInteractive"
+      />
+      <div className="space-y-6">
+        <div>
+          <h2 className="text-2xl font-bold tracking-tight">Pembayaran</h2>
+          <p className="text-muted-foreground">
+            Saldo kredit: <span className="font-semibold">{credit?.balance ?? 0}</span> kredit
+          </p>
+        </div>
+
+        <Suspense>
+          <PaymentCheckout currentBalance={credit?.balance ?? 0} />
+        </Suspense>
+      </div>
+    </>
   );
 }

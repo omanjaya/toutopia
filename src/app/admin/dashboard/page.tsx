@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { prisma } from "@/shared/lib/prisma";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/shared/components/ui/card";
 import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
 import {
@@ -10,7 +9,6 @@ import {
   FileText,
   BarChart3,
   GraduationCap,
-  TrendingUp,
   ArrowRight,
   Package,
   FilePlus,
@@ -82,6 +80,9 @@ async function getStats() {
   };
 }
 
+const cardCls =
+  "rounded-2xl bg-card shadow-[0_2px_8px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.05]";
+
 const iconColors: Record<string, string> = {
   users: "bg-blue-500/10 text-blue-600 dark:text-blue-400",
   revenue: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
@@ -122,9 +123,10 @@ export default async function AdminDashboardPage() {
     {
       title: "Bank Soal",
       value: stats.questionCount.toLocaleString("id-ID"),
-      subtitle: stats.pendingQuestions > 0
-        ? `${stats.pendingQuestions} menunggu review`
-        : "Semua soal ter-review",
+      subtitle:
+        stats.pendingQuestions > 0
+          ? `${stats.pendingQuestions} menunggu review`
+          : "Semua soal ter-review",
       icon: FileText,
       color: iconColors.questions,
       href: "/admin/questions",
@@ -140,9 +142,10 @@ export default async function AdminDashboardPage() {
     {
       title: "Pengajar Aktif",
       value: stats.teacherCount.toString(),
-      subtitle: stats.pendingTeachers > 0
-        ? `${stats.pendingTeachers} menunggu verifikasi`
-        : "Semua terverifikasi",
+      subtitle:
+        stats.pendingTeachers > 0
+          ? `${stats.pendingTeachers} menunggu verifikasi`
+          : "Semua terverifikasi",
       icon: GraduationCap,
       color: iconColors.teachers,
       href: "/admin/teachers",
@@ -162,11 +165,16 @@ export default async function AdminDashboardPage() {
     <div className="space-y-8">
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <h2 className="text-2xl font-bold tracking-tight">Dashboard</h2>
-          <p className="text-muted-foreground">
-            Ringkasan platform Toutopia
-          </p>
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10">
+            <BarChart3 className="h-5 w-5 text-primary" />
+          </div>
+          <div>
+            <h2 className="text-2xl font-semibold tracking-tight">Dashboard</h2>
+            <p className="text-sm text-muted-foreground">
+              Ringkasan platform Toutopia
+            </p>
+          </div>
         </div>
         <div className="flex items-center gap-2">
           {quickActions.map((action) => (
@@ -190,7 +198,8 @@ export default async function AdminDashboardPage() {
             >
               <AlertCircle className="h-4 w-4 text-amber-600 dark:text-amber-400" />
               <span className="text-amber-800 dark:text-amber-300">
-                <span className="font-semibold">{stats.pendingQuestions}</span> soal menunggu review
+                <span className="font-semibold">{stats.pendingQuestions}</span>{" "}
+                soal menunggu review
               </span>
               <ArrowRight className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400" />
             </Link>
@@ -202,7 +211,8 @@ export default async function AdminDashboardPage() {
             >
               <Clock className="h-4 w-4 text-blue-600 dark:text-blue-400" />
               <span className="text-blue-800 dark:text-blue-300">
-                <span className="font-semibold">{stats.pendingTeachers}</span> pengajar menunggu verifikasi
+                <span className="font-semibold">{stats.pendingTeachers}</span>{" "}
+                pengajar menunggu verifikasi
               </span>
               <ArrowRight className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
             </Link>
@@ -214,22 +224,18 @@ export default async function AdminDashboardPage() {
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {statCards.map((stat) => (
           <Link key={stat.title} href={stat.href}>
-            <Card className="transition-colors transition-shadow hover:bg-muted/50 hover:shadow-md cursor-pointer">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
-                  {stat.title}
-                </CardTitle>
+            <div className={`${cardCls} cursor-pointer transition-shadow hover:shadow-md`}>
+              <div className="flex items-center justify-between p-5">
+                <div>
+                  <p className="text-xs font-medium text-muted-foreground">{stat.title}</p>
+                  <p className="mt-1.5 text-2xl font-bold tabular-nums">{stat.value}</p>
+                  <p className="mt-0.5 text-xs text-muted-foreground">{stat.subtitle}</p>
+                </div>
                 <div className={`flex h-8 w-8 items-center justify-center rounded-lg ${stat.color}`}>
                   <stat.icon className="h-4 w-4" />
                 </div>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{stat.value}</div>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  {stat.subtitle}
-                </p>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           </Link>
         ))}
       </div>

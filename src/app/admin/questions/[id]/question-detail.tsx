@@ -4,22 +4,23 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import {
-  ArrowLeft,
   CheckCircle2,
   XCircle,
   Pencil,
   Trash2,
   Loader2,
+  ChevronLeft,
+  FileText,
+  Info,
+  AlignLeft,
+  ListChecks,
+  BookOpen,
+  MessageSquare,
+  ClipboardCheck,
 } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/shared/components/ui/button";
 import { Badge } from "@/shared/components/ui/badge";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/shared/components/ui/card";
 import { Separator } from "@/shared/components/ui/separator";
 import { Textarea } from "@/shared/components/ui/textarea";
 import { Label } from "@/shared/components/ui/label";
@@ -27,6 +28,33 @@ import { LazyMathRenderer as MathRenderer } from "@/shared/components/shared/laz
 import { QuestionForm } from "@/shared/components/exam/question-form";
 import type { CreateQuestionInput } from "@/shared/lib/validators/question.validators";
 import { Breadcrumb } from "@/shared/components/layout/breadcrumb";
+
+const cardCls =
+  "rounded-2xl bg-card shadow-[0_2px_8px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.05]";
+
+function SectionHeader({
+  icon: Icon,
+  title,
+  description,
+}: {
+  icon: React.ElementType;
+  title: string;
+  description?: string;
+}) {
+  return (
+    <div className="flex items-center gap-2 border-b border-border/60 px-5 py-4">
+      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+        <Icon className="h-3.5 w-3.5 text-primary" />
+      </div>
+      <div>
+        <p className="text-sm font-semibold">{title}</p>
+        {description && (
+          <p className="text-xs text-muted-foreground">{description}</p>
+        )}
+      </div>
+    </div>
+  );
+}
 
 interface QuestionData {
   id: string;
@@ -80,14 +108,18 @@ interface QuestionDetailProps {
   categories: Category[];
 }
 
-const statusConfig: Record<
-  string,
-  { label: string; variant: "default" | "secondary" | "outline" | "destructive" }
-> = {
-  APPROVED: { label: "Disetujui", variant: "default" },
-  PENDING_REVIEW: { label: "Menunggu Review", variant: "outline" },
-  DRAFT: { label: "Draft", variant: "secondary" },
-  REJECTED: { label: "Ditolak", variant: "destructive" },
+const statusBadgeClass: Record<string, string> = {
+  APPROVED: "bg-emerald-500/10 text-emerald-700 border-emerald-200",
+  PENDING_REVIEW: "bg-amber-500/10 text-amber-700 border-amber-200",
+  DRAFT: "bg-slate-500/10 text-slate-700 border-slate-200",
+  REJECTED: "bg-red-500/10 text-red-700 border-red-200",
+};
+
+const statusLabel: Record<string, string> = {
+  APPROVED: "Disetujui",
+  PENDING_REVIEW: "Menunggu Review",
+  DRAFT: "Draft",
+  REJECTED: "Ditolak",
 };
 
 const difficultyLabel: Record<string, string> = {
@@ -111,11 +143,6 @@ export function QuestionDetail({ question, categories }: QuestionDetailProps) {
   const [reviewNote, setReviewNote] = useState("");
   const [isReviewing, setIsReviewing] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-
-  const status = statusConfig[question.status] ?? {
-    label: question.status,
-    variant: "secondary" as const,
-  };
 
   async function handleReview(action: "APPROVED" | "REJECTED") {
     setIsReviewing(true);
@@ -192,9 +219,17 @@ export function QuestionDetail({ question, categories }: QuestionDetailProps) {
     return (
       <div className="space-y-6">
         <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-2xl font-bold tracking-tight">Edit Soal</h2>
-            <p className="text-muted-foreground">Perbarui konten soal</p>
+          <div className="flex items-center gap-3">
+            <Button variant="ghost" size="icon" className="h-9 w-9" onClick={() => setMode("view")}>
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10">
+              <FileText className="h-5 w-5 text-primary" />
+            </div>
+            <div>
+              <h2 className="text-2xl font-semibold tracking-tight">Edit Soal</h2>
+              <p className="text-sm text-muted-foreground">Perbarui konten soal</p>
+            </div>
           </div>
           <Button variant="outline" onClick={() => setMode("view")}>
             Batal Edit
@@ -221,15 +256,18 @@ export function QuestionDetail({ question, categories }: QuestionDetailProps) {
       />
       {/* Header */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" asChild>
+        <div className="flex items-center gap-3">
+          <Button variant="ghost" size="icon" className="h-9 w-9" asChild>
             <Link href="/admin/questions">
-              <ArrowLeft className="h-4 w-4" />
+              <ChevronLeft className="h-4 w-4" />
             </Link>
           </Button>
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10">
+            <FileText className="h-5 w-5 text-primary" />
+          </div>
           <div>
-            <h2 className="text-2xl font-bold tracking-tight">Detail Soal</h2>
-            <p className="text-muted-foreground">
+            <h2 className="text-2xl font-semibold tracking-tight">Detail Soal</h2>
+            <p className="text-sm text-muted-foreground">
               {question.topic.subject.subCategory.category.name} &gt;{" "}
               {question.topic.subject.subCategory.name} &gt;{" "}
               {question.topic.subject.name} &gt; {question.topic.name}
@@ -237,7 +275,9 @@ export function QuestionDetail({ question, categories }: QuestionDetailProps) {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <Badge variant={status.variant}>{status.label}</Badge>
+          <Badge className={statusBadgeClass[question.status] ?? ""}>
+            {statusLabel[question.status] ?? question.status}
+          </Badge>
           <Button
             variant="outline"
             size="sm"
@@ -263,11 +303,9 @@ export function QuestionDetail({ question, categories }: QuestionDetailProps) {
       </div>
 
       {/* Question Info */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Informasi Soal</CardTitle>
-        </CardHeader>
-        <CardContent>
+      <div className={cardCls}>
+        <SectionHeader icon={Info} title="Informasi Soal" />
+        <div className="p-5">
           <div className="grid gap-4 sm:grid-cols-4">
             <div>
               <p className="text-sm font-medium text-muted-foreground">Tipe</p>
@@ -288,28 +326,24 @@ export function QuestionDetail({ question, categories }: QuestionDetailProps) {
               <p className="text-sm">{question.year ?? "-"}</p>
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Question Content */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Pertanyaan</CardTitle>
-        </CardHeader>
-        <CardContent>
+      <div className={cardCls}>
+        <SectionHeader icon={AlignLeft} title="Pertanyaan" />
+        <div className="p-5">
           <MathRenderer
             content={question.content}
             className="prose prose-sm max-w-none dark:prose-invert"
           />
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Options */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Opsi Jawaban</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
+      <div className={cardCls}>
+        <SectionHeader icon={ListChecks} title="Opsi Jawaban" />
+        <div className="space-y-3 p-5">
           {question.options.map((option) => (
             <div
               key={option.id}
@@ -337,45 +371,39 @@ export function QuestionDetail({ question, categories }: QuestionDetailProps) {
               )}
             </div>
           ))}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Explanation */}
       {question.explanation && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Pembahasan</CardTitle>
-          </CardHeader>
-          <CardContent>
+        <div className={cardCls}>
+          <SectionHeader icon={BookOpen} title="Pembahasan" />
+          <div className="p-5">
             <MathRenderer
               content={question.explanation}
               className="prose prose-sm max-w-none dark:prose-invert"
             />
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       )}
 
       {/* Review Note */}
       {question.reviewNote && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Catatan Review</CardTitle>
-          </CardHeader>
-          <CardContent>
+        <div className={cardCls}>
+          <SectionHeader icon={MessageSquare} title="Catatan Review" />
+          <div className="p-5">
             <p className="text-sm">{question.reviewNote}</p>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       )}
 
       {/* Review Actions */}
       {(question.status === "PENDING_REVIEW" || question.status === "DRAFT") && (
         <>
           <Separator />
-          <Card>
-            <CardHeader>
-              <CardTitle>Review Soal</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
+          <div className={cardCls}>
+            <SectionHeader icon={ClipboardCheck} title="Review Soal" />
+            <div className="space-y-4 p-5">
               <div className="space-y-2">
                 <Label>Catatan Review (opsional)</Label>
                 <Textarea
@@ -410,8 +438,8 @@ export function QuestionDetail({ question, categories }: QuestionDetailProps) {
                   Tolak
                 </Button>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </>
       )}
     </div>

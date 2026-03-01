@@ -2,7 +2,16 @@
 
 import { useState, useRef } from "react";
 import Link from "next/link";
-import { ArrowLeft, Upload, FileText, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
+import {
+  ChevronLeft,
+  Upload,
+  FileText,
+  Loader2,
+  CheckCircle2,
+  AlertCircle,
+  FileUp,
+  SlidersHorizontal,
+} from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
@@ -23,6 +32,33 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/shared/components/ui/select";
+
+const cardCls =
+  "rounded-2xl bg-card shadow-[0_2px_8px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.05]";
+
+function SectionHeader({
+  icon: Icon,
+  title,
+  description,
+}: {
+  icon: React.ElementType;
+  title: string;
+  description?: string;
+}) {
+  return (
+    <div className="flex items-center gap-2 border-b border-border/60 px-5 py-4">
+      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+        <Icon className="h-3.5 w-3.5 text-primary" />
+      </div>
+      <div>
+        <p className="text-sm font-semibold">{title}</p>
+        {description && (
+          <p className="text-xs text-muted-foreground">{description}</p>
+        )}
+      </div>
+    </div>
+  );
+}
 
 interface ParsedQuestion {
   content: string;
@@ -131,22 +167,25 @@ export default function ImportQuestionsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" asChild>
+      <div className="flex items-center gap-3">
+        <Button variant="ghost" size="icon" className="h-9 w-9" asChild>
           <Link href="/admin/questions">
-            <ArrowLeft className="h-4 w-4" />
+            <ChevronLeft className="h-4 w-4" />
           </Link>
         </Button>
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10">
+          <FileUp className="h-5 w-5 text-primary" />
+        </div>
         <div>
-          <h2 className="text-2xl font-bold tracking-tight">Import Soal</h2>
-          <p className="text-muted-foreground">
+          <h2 className="text-2xl font-semibold tracking-tight">Import Soal</h2>
+          <p className="text-sm text-muted-foreground">
             Upload file JSON atau Markdown untuk import soal secara massal
           </p>
         </div>
       </div>
 
       {savedCount !== null ? (
-        <div className="rounded-2xl border bg-card p-8 text-center space-y-4">
+        <div className={`${cardCls} p-8 text-center space-y-4`}>
           <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-900/30">
             <CheckCircle2 className="h-6 w-6 text-emerald-600" />
           </div>
@@ -162,71 +201,78 @@ export default function ImportQuestionsPage() {
         </div>
       ) : (
         <>
-          <div className="rounded-lg border bg-card p-6 space-y-4">
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-2">
-                <Label>File (JSON / Markdown)</Label>
-                <div className="flex items-center gap-2">
-                  <Input
-                    ref={fileRef}
-                    type="file"
-                    accept=".json,.md,.markdown,.txt"
-                    onChange={(e) => {
-                      setFile(e.target.files?.[0] ?? null);
-                      setPreview(null);
-                    }}
-                  />
+          <div className={cardCls}>
+            <SectionHeader
+              icon={SlidersHorizontal}
+              title="Konfigurasi Import"
+              description="Pilih file dan topik tujuan import"
+            />
+            <div className="space-y-4 p-5">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label>File (JSON / Markdown)</Label>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      ref={fileRef}
+                      type="file"
+                      accept=".json,.md,.markdown,.txt"
+                      onChange={(e) => {
+                        setFile(e.target.files?.[0] ?? null);
+                        setPreview(null);
+                      }}
+                    />
+                  </div>
+                  {file && (
+                    <p className="text-xs text-muted-foreground flex items-center gap-1">
+                      <FileText className="h-3 w-3" />
+                      {file.name} ({(file.size / 1024).toFixed(1)} KB)
+                    </p>
+                  )}
                 </div>
-                {file && (
-                  <p className="text-xs text-muted-foreground flex items-center gap-1">
-                    <FileText className="h-3 w-3" />
-                    {file.name} ({(file.size / 1024).toFixed(1)} KB)
-                  </p>
-                )}
+
+                <div className="space-y-2">
+                  <Label>Topik</Label>
+                  <Select value={topicId} onValueChange={setTopicId} onOpenChange={() => loadTopics()}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Pilih topik..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {topics.map((t) => (
+                        <SelectItem key={t.id} value={t.id}>
+                          {t.subject} — {t.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
 
               <div className="space-y-2">
-                <Label>Topik</Label>
-                <Select value={topicId} onValueChange={setTopicId} onOpenChange={() => loadTopics()}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Pilih topik..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {topics.map((t) => (
-                      <SelectItem key={t.id} value={t.id}>
-                        {t.subject} — {t.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Label>Sumber (opsional)</Label>
+                <Input
+                  value={source}
+                  onChange={(e) => setSource(e.target.value)}
+                  placeholder="Contoh: UTBK 2025, Buku Fisika Kelas 12"
+                />
               </div>
-            </div>
 
-            <div className="space-y-2">
-              <Label>Sumber (opsional)</Label>
-              <Input
-                value={source}
-                onChange={(e) => setSource(e.target.value)}
-                placeholder="Contoh: UTBK 2025, Buku Fisika Kelas 12"
-              />
+              <Button onClick={handlePreview} disabled={!file || !topicId || loading}>
+                {loading ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <Upload className="mr-2 h-4 w-4" />
+                )}
+                Preview Import
+              </Button>
             </div>
-
-            <Button onClick={handlePreview} disabled={!file || !topicId || loading}>
-              {loading ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              ) : (
-                <Upload className="mr-2 h-4 w-4" />
-              )}
-              Preview Import
-            </Button>
           </div>
 
           {preview && (
             <div className="space-y-4">
               <div className="flex items-center gap-4">
-                <Badge variant="default">{preview.totalParsed} soal valid</Badge>
+                <Badge>{preview.totalParsed} soal valid</Badge>
                 {preview.totalErrors > 0 && (
-                  <Badge variant="destructive">{preview.totalErrors} error</Badge>
+                  <Badge className="bg-red-500/10 text-red-700 border-red-200">{preview.totalErrors} error</Badge>
                 )}
               </div>
 
@@ -243,7 +289,7 @@ export default function ImportQuestionsPage() {
 
               {preview.questions.length > 0 && (
                 <>
-                  <div className="rounded-lg border">
+                  <div className="rounded-2xl bg-card shadow-[0_2px_8px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.05] overflow-hidden">
                     <Table>
                       <TableHeader>
                         <TableRow>

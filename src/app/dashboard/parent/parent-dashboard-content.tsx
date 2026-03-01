@@ -17,8 +17,9 @@ import {
     GraduationCap,
 } from "lucide-react";
 import { Button } from "@/shared/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { Badge } from "@/shared/components/ui/badge";
+
+const cardCls = "rounded-2xl bg-card shadow-[0_2px_8px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.05]";
 import { cn } from "@/shared/lib/utils";
 
 interface ChildProfile {
@@ -148,14 +149,14 @@ export function ParentDashboardContent() {
             </div>
 
             {/* Link Child */}
-            <Card className="border-0 shadow-sm">
-                <CardHeader className="pb-3">
-                    <CardTitle className="flex items-center gap-2 text-base">
+            <div className={cardCls}>
+                <div className="px-6 pt-6 pb-2">
+                    <h3 className="text-lg font-semibold tracking-tight flex items-center gap-2">
                         <UserPlus className="h-5 w-5 text-primary" />
                         Tambahkan Anak
-                    </CardTitle>
-                </CardHeader>
-                <CardContent>
+                    </h3>
+                </div>
+                <div className="p-6">
                     <div className="flex gap-2">
                         <div className="relative flex-1">
                             <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -186,8 +187,8 @@ export function ParentDashboardContent() {
                             ))}
                         </div>
                     )}
-                </CardContent>
-            </Card>
+                </div>
+            </div>
 
             {/* Child Tabs */}
             {data?.children && data.children.length > 0 && (
@@ -215,8 +216,8 @@ export function ParentDashboardContent() {
                     {activeChild && (
                         <div className="space-y-4">
                             {/* Child Profile Card */}
-                            <Card className="border-0 bg-gradient-to-br from-violet-50 to-purple-50 shadow-sm dark:from-violet-950/20 dark:to-purple-950/20">
-                                <CardContent className="p-6">
+                            <div className="rounded-2xl bg-gradient-to-br from-violet-50 to-purple-50 dark:from-violet-950/20 dark:to-purple-950/20">
+                                <div className="p-6">
                                     <div className="flex items-center gap-4">
                                         <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-2xl font-bold text-primary">
                                             {activeChild.child.name.charAt(0)}
@@ -235,52 +236,52 @@ export function ParentDashboardContent() {
                                             </p>
                                         </div>
                                     </div>
-                                </CardContent>
-                            </Card>
+                                </div>
+                            </div>
 
                             {/* Stats */}
                             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                                <Card className="border-0 bg-card shadow-sm">
-                                    <CardContent className="flex flex-col items-center p-4">
+                                <div className={cardCls}>
+                                    <div className="flex flex-col items-center p-4">
                                         <Trophy className="mb-1 h-5 w-5 text-amber-500" />
                                         <p className="text-2xl font-bold tabular-nums">{activeChild.stats.avgScore}</p>
                                         <p className="text-xs text-muted-foreground">Rata-rata</p>
-                                    </CardContent>
-                                </Card>
-                                <Card className="border-0 bg-card shadow-sm">
-                                    <CardContent className="flex flex-col items-center p-4">
+                                    </div>
+                                </div>
+                                <div className={cardCls}>
+                                    <div className="flex flex-col items-center p-4">
                                         <BookOpen className="mb-1 h-5 w-5 text-blue-500" />
                                         <p className="text-2xl font-bold tabular-nums">{activeChild.stats.totalAttempts}</p>
                                         <p className="text-xs text-muted-foreground">Percobaan</p>
-                                    </CardContent>
-                                </Card>
-                                <Card className="border-0 bg-card shadow-sm">
-                                    <CardContent className="flex flex-col items-center p-4">
+                                    </div>
+                                </div>
+                                <div className={cardCls}>
+                                    <div className="flex flex-col items-center p-4">
                                         <Flame className="mb-1 h-5 w-5 text-orange-500" />
                                         <p className="text-2xl font-bold tabular-nums">
                                             {activeChild.child.profile?.currentStreak ?? 0}
                                         </p>
                                         <p className="text-xs text-muted-foreground">Streak</p>
-                                    </CardContent>
-                                </Card>
-                                <Card className="border-0 bg-card shadow-sm">
-                                    <CardContent className="flex flex-col items-center p-4">
+                                    </div>
+                                </div>
+                                <div className={cardCls}>
+                                    <div className="flex flex-col items-center p-4">
                                         <Award className="mb-1 h-5 w-5 text-yellow-500" />
                                         <p className="text-2xl font-bold tabular-nums">{activeChild.badges.length}</p>
                                         <p className="text-xs text-muted-foreground">Badge</p>
-                                    </CardContent>
-                                </Card>
+                                    </div>
+                                </div>
                             </div>
 
                             {/* Recent Attempts */}
-                            <Card className="border-0 shadow-sm">
-                                <CardHeader className="pb-3">
-                                    <CardTitle className="flex items-center gap-2 text-base">
+                            <div className={cardCls}>
+                                <div className="px-6 pt-6 pb-2">
+                                    <h3 className="text-lg font-semibold tracking-tight flex items-center gap-2">
                                         <TrendingUp className="h-5 w-5 text-primary" />
                                         Riwayat Terakhir
-                                    </CardTitle>
-                                </CardHeader>
-                                <CardContent className="space-y-2">
+                                    </h3>
+                                </div>
+                                <div className="p-6 space-y-2">
                                     {activeChild.recentAttempts.length > 0 ? (
                                         activeChild.recentAttempts.map((att, idx) => (
                                             <div key={idx} className="flex items-center justify-between rounded-lg border p-3">
@@ -306,19 +307,19 @@ export function ParentDashboardContent() {
                                             Belum ada riwayat ujian
                                         </p>
                                     )}
-                                </CardContent>
-                            </Card>
+                                </div>
+                            </div>
 
                             {/* Badges */}
                             {activeChild.badges.length > 0 && (
-                                <Card className="border-0 shadow-sm">
-                                    <CardHeader className="pb-3">
-                                        <CardTitle className="flex items-center gap-2 text-base">
+                                <div className={cardCls}>
+                                    <div className="px-6 pt-6 pb-2">
+                                        <h3 className="text-lg font-semibold tracking-tight flex items-center gap-2">
                                             <Award className="h-5 w-5 text-amber-500" />
                                             Badge
-                                        </CardTitle>
-                                    </CardHeader>
-                                    <CardContent>
+                                        </h3>
+                                    </div>
+                                    <div className="p-6">
                                         <div className="flex flex-wrap gap-2">
                                             {activeChild.badges.map((badge, idx) => (
                                                 <Badge key={idx} variant="outline" className="gap-1 px-3 py-1.5">
@@ -327,8 +328,8 @@ export function ParentDashboardContent() {
                                                 </Badge>
                                             ))}
                                         </div>
-                                    </CardContent>
-                                </Card>
+                                    </div>
+                                </div>
                             )}
                         </div>
                     )}

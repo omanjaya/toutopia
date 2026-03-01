@@ -184,10 +184,64 @@ function extractJsonArray(text: string): string {
     return trimmed.slice(firstBracket, lastBracket + 1);
   }
 
+  // If only opening bracket found (truncated response), return from [ onwards for repair attempt
+  if (firstBracket !== -1) {
+    return trimmed.slice(firstBracket);
+  }
+
   // Log the problematic response for debugging
   console.error("Failed to extract JSON array from AI response:", trimmed.slice(0, 500));
 
   throw new Error("Tidak dapat menemukan JSON array dalam respons AI");
+}
+
+/**
+ * Attempts to recover complete JSON objects from a truncated JSON array string.
+ * Returns a repaired JSON array string containing only fully-closed objects,
+ * or null if no complete objects can be recovered.
+ */
+function repairTruncatedJsonArray(text: string): string | null {
+  let depth = 0;
+  let inString = false;
+  let escaping = false;
+  let lastCompleteObjectEnd = -1;
+  let arrayStarted = false;
+
+  for (let i = 0; i < text.length; i++) {
+    const char = text[i];
+
+    if (escaping) { escaping = false; continue; }
+
+    if (inString) {
+      if (char === "\\") escaping = true;
+      else if (char === '"') inString = false;
+      continue;
+    }
+
+    if (char === '"') {
+      inString = true;
+    } else if (char === "[" && depth === 0) {
+      arrayStarted = true;
+      depth++;
+    } else if (char === "{" || char === "[") {
+      depth++;
+    } else if (char === "}") {
+      depth--;
+      // A top-level object just closed (depth back to 1 = inside the outer array)
+      if (arrayStarted && depth === 1) {
+        lastCompleteObjectEnd = i;
+      }
+    } else if (char === "]") {
+      depth--;
+    }
+  }
+
+  if (lastCompleteObjectEnd > 0) {
+    // Build a valid array from everything up to the last complete object
+    return text.slice(0, lastCompleteObjectEnd + 1) + "]";
+  }
+
+  return null;
 }
 
 function validateGeneratedQuestions(questions: unknown[]): GeneratedQuestion[] {
@@ -318,7 +372,7 @@ export async function generateQuestions(
     params.model,
     "Kamu adalah pembuat soal ujian profesional. Output HANYA JSON array valid tanpa teks tambahan.",
     prompt,
-    Math.max(params.count * 1500, 4096),
+    Math.max(params.count * 1800, 4096),
     0.7
   );
 
@@ -334,7 +388,18 @@ export async function generateQuestions(
   try {
     parsed = JSON.parse(jsonStr) as unknown[];
   } catch {
-    throw new Error(`Gagal parse JSON dari AI: ${jsonStr.slice(0, 200)}...`);
+    // Respons AI mungkin terpotong (truncated) — coba selamatkan objek yang sudah lengkap
+    const repaired = repairTruncatedJsonArray(jsonStr);
+    if (repaired) {
+      try {
+        parsed = JSON.parse(repaired) as unknown[];
+        console.warn(`AI response was truncated. Recovered ${(parsed as unknown[]).length} complete objects.`);
+      } catch {
+        throw new Error(`Gagal parse JSON dari AI: ${jsonStr.slice(0, 200)}...`);
+      }
+    } else {
+      throw new Error(`Gagal parse JSON dari AI: ${jsonStr.slice(0, 200)}...`);
+    }
   }
 
   if (!Array.isArray(parsed)) {

@@ -15,9 +15,10 @@ import {
   ArrowLeft,
 } from "lucide-react";
 import { Button } from "@/shared/components/ui/button";
-import { Card, CardContent } from "@/shared/components/ui/card";
 import { Badge } from "@/shared/components/ui/badge";
 import { cn } from "@/shared/lib/utils";
+
+const cardCls = "rounded-2xl bg-card shadow-[0_2px_8px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.05]";
 
 interface LiveEventPackage {
   id: string;
@@ -187,11 +188,11 @@ export function MobileLiveEventsContent() {
               : false;
 
             return (
-              <Card
+              <div
                 key={event.id}
-                className="border-0 shadow-sm"
+                className={cardCls}
               >
-                <CardContent className="p-4 space-y-3">
+                <div className="p-4 space-y-3">
                   {/* Badges */}
                   <div className="flex items-center gap-2 flex-wrap">
                     <Badge
@@ -268,8 +269,8 @@ export function MobileLiveEventsContent() {
                       Leaderboard
                     </Button>
                   )}
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             );
           })}
         </div>

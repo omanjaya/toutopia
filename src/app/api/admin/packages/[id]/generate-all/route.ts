@@ -118,8 +118,8 @@ async function processBatchGenerateJob(
         continue;
       }
 
-      // Cap at 50 per call
-      const count = Math.min(needed, 50);
+      // Cap at 20 per call in batch mode to avoid response truncation
+      const count = Math.min(needed, 20);
 
       const customInstruction = data.jabatan
         ? `Jabatan: ${data.jabatan}. Soal harus relevan dengan kompetensi teknis jabatan ini.`

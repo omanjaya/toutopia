@@ -11,7 +11,6 @@ import {
   Target,
   Calendar,
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import {
   AreaChart,
   Area,
@@ -22,7 +21,6 @@ import {
   ResponsiveContainer,
   Line,
 } from "recharts";
-import { cn } from "@/shared/lib/utils";
 
 interface WeeklyProgress {
   week: string;
@@ -50,6 +48,8 @@ function getMilestoneIcon(type: string): typeof Trophy {
   if (type === "first_exam") return Award;
   return Trophy;
 }
+
+const cardCls = "rounded-2xl bg-card shadow-[0_2px_8px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.05]";
 
 export default function MobileProgressTab() {
   const [data, setData] = useState<ProgressData | null>(null);
@@ -108,41 +108,41 @@ export default function MobileProgressTab() {
     <div className="space-y-4">
       {/* Summary Stats */}
       <div className="grid grid-cols-3 gap-2">
-        <Card>
-          <CardContent className="p-3 text-center">
+        <div className={cardCls}>
+          <div className="p-3 text-center">
             <Calendar className="mx-auto h-4 w-4 text-muted-foreground" />
             <p className="mt-1 text-xl font-bold">{data.totalAttempts}</p>
             <p className="text-[10px] text-muted-foreground">Total Ujian</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-3 text-center">
+          </div>
+        </div>
+        <div className={cardCls}>
+          <div className="p-3 text-center">
             <Target className="mx-auto h-4 w-4 text-emerald-500" />
             <p className="mt-1 text-xl font-bold">{data.bestScore}</p>
             <p className="text-[10px] text-muted-foreground">Tertinggi</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-3 text-center">
+          </div>
+        </div>
+        <div className={cardCls}>
+          <div className="p-3 text-center">
             <Trophy className="mx-auto h-4 w-4 text-amber-500" />
             <p className="mt-1 text-xl font-bold">{achievedMilestones.length}</p>
             <p className="text-[10px] text-muted-foreground">
               /{data.milestones.length} milestone
             </p>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
 
       {/* Weekly Progress Chart */}
       {data.weeklyProgress.length > 0 && (
-        <Card>
-          <CardHeader className="px-4 pb-2 pt-4">
-            <CardTitle className="flex items-center gap-2 text-sm">
+        <div className={cardCls}>
+          <div className="px-5 pt-5 pb-2">
+            <h3 className="text-base font-semibold tracking-tight flex items-center gap-2">
               <TrendingUp className="h-4 w-4" />
               Progres Mingguan
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="px-2 pb-4">
+            </h3>
+          </div>
+          <div className="px-2 pb-4">
             <div className="h-48">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={data.weeklyProgress}>
@@ -233,20 +233,20 @@ export default function MobileProgressTab() {
                 <span>Tertinggi</span>
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       )}
 
       {/* Milestones */}
       {data.milestones.length > 0 && (
-        <Card>
-          <CardHeader className="px-4 pb-2 pt-4">
-            <CardTitle className="flex items-center gap-2 text-sm">
+        <div className={cardCls}>
+          <div className="px-5 pt-5 pb-2">
+            <h3 className="text-base font-semibold tracking-tight flex items-center gap-2">
               <Trophy className="h-4 w-4 text-amber-500" />
               Pencapaian
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="px-4 pb-4">
+            </h3>
+          </div>
+          <div className="px-4 pb-4">
             <div className="space-y-2.5">
               {achievedMilestones.map((milestone) => {
                 const Icon = getMilestoneIcon(milestone.type);
@@ -289,20 +289,20 @@ export default function MobileProgressTab() {
                 );
               })}
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       )}
 
       {/* Monthly Summary */}
       {data.weeklyProgress.length > 0 && (
-        <Card>
-          <CardHeader className="px-4 pb-2 pt-4">
-            <CardTitle className="flex items-center gap-2 text-sm">
+        <div className={cardCls}>
+          <div className="px-5 pt-5 pb-2">
+            <h3 className="text-base font-semibold tracking-tight flex items-center gap-2">
               <Calendar className="h-4 w-4" />
               Ringkasan per Bulan
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="px-4 pb-4">
+            </h3>
+          </div>
+          <div className="px-4 pb-4">
             <div className="space-y-2">
               {getMonthlyFromWeekly(data.weeklyProgress).map((month) => (
                 <div
@@ -324,8 +324,8 @@ export default function MobileProgressTab() {
                 </div>
               ))}
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       )}
     </div>
   );

@@ -4,10 +4,11 @@ import { prisma } from "@/shared/lib/prisma";
 import { auth } from "@/shared/lib/auth";
 import Link from "next/link";
 import { Button } from "@/shared/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { Badge } from "@/shared/components/ui/badge";
 import { ArrowLeft, Trophy, Medal, UserX } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
+
+const cardCls = "rounded-2xl bg-card shadow-[0_2px_8px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.05]";
 
 export const dynamic = "force-dynamic";
 
@@ -129,16 +130,17 @@ export default async function PackageLeaderboardPage({
             const isMe = entry.userId === currentUserId;
 
             return (
-              <Card
+              <div
                 key={entry.id}
                 className={cn(
+                  cardCls,
                   "text-center",
                   rank === 1 &&
-                    "border-amber-500 sm:col-start-2 sm:row-start-1",
-                  isMe && "border-primary/30 bg-primary/5"
+                    "sm:col-start-2 sm:row-start-1",
+                  isMe && "ring-primary/30 bg-primary/5"
                 )}
               >
-                <CardContent className="pt-6">
+                <div className="pt-6 pb-6 px-4">
                   <Trophy
                     className={cn(
                       "mx-auto mb-2 h-8 w-8",
@@ -157,19 +159,19 @@ export default async function PackageLeaderboardPage({
                   <p className="text-lg font-bold text-primary mt-1">
                     {Math.round(entry.score)}
                   </p>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             );
           })}
         </div>
       )}
 
       {/* Full Ranking */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Peringkat Lengkap</CardTitle>
-        </CardHeader>
-        <CardContent>
+      <div className={cardCls}>
+        <div className="px-6 pt-6 pb-2">
+          <h3 className="text-lg font-semibold tracking-tight">Peringkat Lengkap</h3>
+        </div>
+        <div className="p-6">
           {entries.length === 0 ? (
             <div className="flex flex-col items-center py-12 text-center">
               <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-muted">
@@ -266,8 +268,8 @@ export default async function PackageLeaderboardPage({
               )}
             </div>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 }

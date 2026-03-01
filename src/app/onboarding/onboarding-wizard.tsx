@@ -15,7 +15,6 @@ import {
   Sparkles,
 } from "lucide-react";
 import { Button } from "@/shared/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import {
   Select,
   SelectContent,
@@ -61,6 +60,8 @@ const FEATURES = [
     description: "Bandingkan skor dengan peserta lain dan raih peringkat terbaik",
   },
 ];
+
+const cardCls = "rounded-2xl bg-card shadow-[0_2px_8px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.05]";
 
 export function OnboardingWizard() {
   const router = useRouter();
@@ -155,19 +156,19 @@ export function OnboardingWizard() {
 
       {/* Step 1: Welcome / Feature Tour */}
       {step === 0 && (
-        <Card>
-          <CardHeader className="text-center pb-2">
+        <div className={cardCls}>
+          <div className="px-6 pt-6 pb-2 text-center">
             <div className="flex justify-center mb-3">
               <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10">
                 <Sparkles className="h-7 w-7 text-primary" />
               </div>
             </div>
-            <CardTitle className="text-2xl">Selamat datang di Toutopia!</CardTitle>
+            <h3 className="text-2xl font-semibold tracking-tight">Selamat datang di Toutopia!</h3>
             <p className="text-muted-foreground mt-1">
               Platform persiapan ujian terlengkap. Kenali fitur-fitur utama kami:
             </p>
-          </CardHeader>
-          <CardContent>
+          </div>
+          <div className="p-6">
             <div className="grid gap-4 sm:grid-cols-2 mt-4">
               {FEATURES.map((feature) => {
                 const Icon = feature.icon;
@@ -199,25 +200,25 @@ export function OnboardingWizard() {
                 <ChevronRight className="ml-1 h-4 w-4" />
               </Button>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       )}
 
       {/* Step 2: Target Exam */}
       {step === 1 && (
-        <Card>
-          <CardHeader className="text-center pb-2">
+        <div className={cardCls}>
+          <div className="px-6 pt-6 pb-2 text-center">
             <div className="flex justify-center mb-3">
               <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10">
                 <Target className="h-7 w-7 text-primary" />
               </div>
             </div>
-            <CardTitle className="text-2xl">Target Ujian Kamu</CardTitle>
+            <h3 className="text-2xl font-semibold tracking-tight">Target Ujian Kamu</h3>
             <p className="text-muted-foreground mt-1">
               Pilih ujian yang sedang kamu persiapkan (bisa diubah nanti)
             </p>
-          </CardHeader>
-          <CardContent>
+          </div>
+          <div className="p-6">
             <div className="mx-auto max-w-sm mt-4">
               {loadingCategories ? (
                 <div className="flex items-center justify-center gap-2 py-4 text-muted-foreground">
@@ -258,25 +259,25 @@ export function OnboardingWizard() {
                 </Button>
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       )}
 
       {/* Step 3: Theme Picker */}
       {step === 2 && (
-        <Card>
-          <CardHeader className="text-center pb-2">
+        <div className={cardCls}>
+          <div className="px-6 pt-6 pb-2 text-center">
             <div className="flex justify-center mb-3">
               <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10">
                 <Palette className="h-7 w-7 text-primary" />
               </div>
             </div>
-            <CardTitle className="text-2xl">Pilih Tema Tampilan</CardTitle>
+            <h3 className="text-2xl font-semibold tracking-tight">Pilih Tema Tampilan</h3>
             <p className="text-muted-foreground mt-1">
               Personalisasi tampilan sesuai selera kamu. Bisa diubah kapan saja di pengaturan.
             </p>
-          </CardHeader>
-          <CardContent>
+          </div>
+          <div className="p-6">
             <div className="mt-4">
               <ThemePicker
                 previewOnly
@@ -294,8 +295,8 @@ export function OnboardingWizard() {
                 Mulai Belajar
               </Button>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       )}
     </div>
   );

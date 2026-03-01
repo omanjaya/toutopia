@@ -49,6 +49,7 @@ export const adminNav: NavItem[] = [
   { title: "Dashboard", href: "/admin/dashboard", icon: "LayoutDashboard" },
   { title: "Pengguna", href: "/admin/users", icon: "Users" },
   { title: "Moderasi Soal", href: "/admin/questions", icon: "FileCheck" },
+  { title: "Mata Pelajaran", href: "/admin/subjects", icon: "BookOpen" },
   { title: "Paket Ujian", href: "/admin/packages", icon: "Package" },
   { title: "Bundling", href: "/admin/bundles", icon: "Crown" },
   { title: "Live Events", href: "/admin/live-events", icon: "Radio" },
@@ -59,6 +60,7 @@ export const adminNav: NavItem[] = [
   { title: "Artikel", href: "/admin/articles", icon: "Newspaper" },
   { title: "Ebook", href: "/admin/ebooks", icon: "BookText" },
   { title: "Promo", href: "/admin/promos", icon: "Tag" },
+  { title: "Notifikasi", href: "/admin/notifications", icon: "Bell" },
   { title: "Audit Log", href: "/admin/audit-logs", icon: "ScrollText" },
   { title: "Pengaturan", href: "/admin/settings", icon: "Settings" },
 ];

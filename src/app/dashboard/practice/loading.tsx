@@ -1,5 +1,3 @@
-import { Card, CardContent } from "@/shared/components/ui/card";
-
 function Skeleton({ className }: { className?: string }): React.JSX.Element {
   return (
     <div
@@ -8,6 +6,8 @@ function Skeleton({ className }: { className?: string }): React.JSX.Element {
   );
 }
 
+const cardCls = "rounded-2xl bg-card shadow-[0_2px_8px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.05]";
+
 export default function PracticeLoading(): React.JSX.Element {
   return (
     <div className="space-y-6">
@@ -15,8 +15,8 @@ export default function PracticeLoading(): React.JSX.Element {
         <Skeleton className="h-8 w-48" />
         <Skeleton className="mt-2 h-4 w-80" />
       </div>
-      <Card>
-        <CardContent className="space-y-6 pt-6">
+      <div className={cardCls}>
+        <div className="space-y-6 pt-6 p-6">
           {Array.from({ length: 4 }).map((_, i) => (
             <div key={i} className="space-y-2">
               <Skeleton className="h-4 w-32" />
@@ -32,8 +32,8 @@ export default function PracticeLoading(): React.JSX.Element {
             </div>
           </div>
           <Skeleton className="h-12 w-full" />
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 }

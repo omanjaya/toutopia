@@ -22,8 +22,9 @@ import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
 import { Textarea } from "@/shared/components/ui/textarea";
-import { Card, CardContent } from "@/shared/components/ui/card";
 import { Badge } from "@/shared/components/ui/badge";
+
+const cardCls = "rounded-2xl bg-card shadow-[0_2px_8px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.05]";
 import { Progress } from "@/shared/components/ui/progress";
 import {
   Dialog,
@@ -535,8 +536,8 @@ export default function MobilePlannerPage(): React.ReactElement {
 
       {/* Countdown Banner */}
       {nearestTarget && nearestTarget.daysLeft > 0 && (
-        <Card className="mb-4 border-primary/30 bg-primary/5">
-          <CardContent className="flex items-center justify-between p-4">
+        <div className="mb-4 rounded-2xl bg-primary/5 border border-primary/30">
+          <div className="flex items-center justify-between p-4">
             <div className="flex items-center gap-3 min-w-0">
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
                 <Target className="h-5 w-5 text-primary" />
@@ -559,13 +560,13 @@ export default function MobilePlannerPage(): React.ReactElement {
               </p>
               <p className="text-[10px] text-muted-foreground">hari lagi</p>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       )}
 
       {/* Weekly Progress */}
-      <Card className="mb-4 border-0 shadow-sm">
-        <CardContent className="p-4">
+      <div className={`${cardCls} mb-4`}>
+        <div className="p-4">
           <p className="mb-2 text-xs font-medium text-muted-foreground">
             Progres Minggu Ini
           </p>
@@ -575,12 +576,12 @@ export default function MobilePlannerPage(): React.ReactElement {
               {weekCompleted}/{weekTasks.length}
             </span>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Calendar */}
-      <Card className="mb-4 border-0 shadow-sm">
-        <CardContent className="p-4">
+      <div className={`${cardCls} mb-4`}>
+        <div className="p-4">
           <div className="mb-3 flex items-center justify-between">
             <button
               onClick={prevMonth}
@@ -674,13 +675,13 @@ export default function MobilePlannerPage(): React.ReactElement {
               );
             })}
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Selected Date Tasks */}
       {selectedDate && (
-        <Card className="mb-4 border-0 shadow-sm">
-          <CardContent className="p-4">
+        <div className={`${cardCls} mb-4`}>
+          <div className="p-4">
             <div className="mb-3 flex items-center justify-between">
               <div>
                 <p className="text-sm font-semibold">
@@ -805,8 +806,8 @@ export default function MobilePlannerPage(): React.ReactElement {
                   })}
               </div>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       )}
 
       {/* Study Plans */}
@@ -822,8 +823,8 @@ export default function MobilePlannerPage(): React.ReactElement {
               const daysLeft = plan.targetDate ? getDaysUntil(plan.targetDate) : null;
 
               return (
-                <Card key={plan.id} className="border-0 shadow-sm">
-                  <CardContent className="p-4">
+                <div key={plan.id} className={cardCls}>
+                  <div className="p-4">
                     <div className="mb-2 flex items-start justify-between">
                       <div className="min-w-0 flex-1">
                         <h4 className="truncate text-sm font-medium">{plan.title}</h4>
@@ -863,7 +864,7 @@ export default function MobilePlannerPage(): React.ReactElement {
                           })}
                         </div>
                         {daysLeft !== null && daysLeft > 0 && (
-                          <Badge variant="secondary" className="text-[10px]">
+                          <Badge className="bg-muted text-foreground text-[10px]">
                             H-{daysLeft}
                           </Badge>
                         )}
@@ -874,8 +875,8 @@ export default function MobilePlannerPage(): React.ReactElement {
                         )}
                       </div>
                     )}
-                  </CardContent>
-                </Card>
+                  </div>
+                </div>
               );
             })}
           </div>

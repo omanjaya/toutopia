@@ -11,7 +11,6 @@ import {
   Target,
   Calendar,
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import {
   AreaChart,
   Area,
@@ -23,6 +22,8 @@ import {
   Line,
 } from "recharts";
 import { cn } from "@/shared/lib/utils";
+
+const cardCls = "rounded-2xl bg-card shadow-[0_2px_8px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.05]";
 
 interface WeeklyProgress {
   week: string;
@@ -89,15 +90,15 @@ export default function ProgressTab() {
 
   if (data.totalAttempts === 0) {
     return (
-      <Card>
-        <CardContent className="py-12 text-center">
+      <div className={cardCls}>
+        <div className="p-6 py-12 text-center">
           <TrendingUp className="mx-auto h-12 w-12 text-muted-foreground/40" />
           <h3 className="mt-4 text-lg font-medium">Belum ada data</h3>
           <p className="mt-1 text-sm text-muted-foreground">
             Selesaikan minimal 1 ujian untuk melihat progres
           </p>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     );
   }
 
@@ -108,54 +109,54 @@ export default function ProgressTab() {
     <div className="space-y-6">
       {/* Summary Stats */}
       <div className="grid gap-4 sm:grid-cols-3">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
+        <div className={cardCls}>
+          <div className="flex flex-row items-center justify-between px-6 pt-6 pb-2">
+            <p className="text-sm font-medium text-muted-foreground">
               Total Ujian
-            </CardTitle>
+            </p>
             <Calendar className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
+          </div>
+          <div className="p-6 pt-2">
             <p className="text-2xl font-bold">{data.totalAttempts}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
+          </div>
+        </div>
+        <div className={cardCls}>
+          <div className="flex flex-row items-center justify-between px-6 pt-6 pb-2">
+            <p className="text-sm font-medium text-muted-foreground">
               Skor Tertinggi
-            </CardTitle>
+            </p>
             <Target className="h-4 w-4 text-emerald-500" />
-          </CardHeader>
-          <CardContent>
+          </div>
+          <div className="p-6 pt-2">
             <p className="text-2xl font-bold">{data.bestScore}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
+          </div>
+        </div>
+        <div className={cardCls}>
+          <div className="flex flex-row items-center justify-between px-6 pt-6 pb-2">
+            <p className="text-sm font-medium text-muted-foreground">
               Pencapaian
-            </CardTitle>
+            </p>
             <Trophy className="h-4 w-4 text-amber-500" />
-          </CardHeader>
-          <CardContent>
+          </div>
+          <div className="p-6 pt-2">
             <p className="text-2xl font-bold">{achievedMilestones.length}</p>
             <p className="text-xs text-muted-foreground">
               dari {data.milestones.length} milestone
             </p>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
 
       {/* Weekly Progress Chart */}
       {data.weeklyProgress.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+        <div className={cardCls}>
+          <div className="px-6 pt-6 pb-2">
+            <h3 className="text-lg font-semibold tracking-tight flex items-center gap-2">
               <TrendingUp className="h-5 w-5" />
               Progres Mingguan
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
+            </h3>
+          </div>
+          <div className="p-6 pt-2">
             <div className="h-72">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={data.weeklyProgress}>
@@ -232,20 +233,20 @@ export default function ProgressTab() {
                 <span>Skor Tertinggi</span>
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       )}
 
       {/* Milestones */}
       {data.milestones.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+        <div className={cardCls}>
+          <div className="px-6 pt-6 pb-2">
+            <h3 className="text-lg font-semibold tracking-tight flex items-center gap-2">
               <Trophy className="h-5 w-5 text-amber-500" />
               Pencapaian
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
+            </h3>
+          </div>
+          <div className="p-6 pt-2">
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {achievedMilestones.map((milestone) => {
                 const Icon = getMilestoneIcon(milestone.type);
@@ -282,20 +283,20 @@ export default function ProgressTab() {
                 );
               })}
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       )}
 
       {/* Monthly Summary */}
       {data.weeklyProgress.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+        <div className={cardCls}>
+          <div className="px-6 pt-6 pb-2">
+            <h3 className="text-lg font-semibold tracking-tight flex items-center gap-2">
               <Calendar className="h-5 w-5" />
               Ringkasan per Bulan
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
+            </h3>
+          </div>
+          <div className="p-6 pt-2">
             <div className="space-y-3">
               {getMonthlyFromWeekly(data.weeklyProgress).map((month) => (
                 <div
@@ -315,8 +316,8 @@ export default function ProgressTab() {
                 </div>
               ))}
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       )}
     </div>
   );

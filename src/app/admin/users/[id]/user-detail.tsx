@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { toast } from "sonner";
 import {
-  ArrowLeft,
   Loader2,
   Coins,
   FileText,
@@ -23,17 +22,14 @@ import {
   ExternalLink,
   Copy,
   RotateCcw,
+  ChevronLeft,
+  User,
+  ShieldCheck,
+  Info,
 } from "lucide-react";
 import { Button } from "@/shared/components/ui/button";
 import { Badge } from "@/shared/components/ui/badge";
 import { Input } from "@/shared/components/ui/input";
-import { Textarea } from "@/shared/components/ui/textarea";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/shared/components/ui/card";
 import {
   Select,
   SelectContent,
@@ -60,6 +56,33 @@ import { formatCurrency, getInitials } from "@/shared/lib/utils";
 import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
 import { Breadcrumb } from "@/shared/components/layout/breadcrumb";
+
+const cardCls =
+  "rounded-2xl bg-card shadow-[0_2px_8px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.05]";
+
+function SectionHeader({
+  icon: Icon,
+  title,
+  description,
+}: {
+  icon: React.ElementType;
+  title: string;
+  description?: string;
+}) {
+  return (
+    <div className="flex items-center gap-2 border-b border-border/60 px-5 py-4">
+      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+        <Icon className="h-3.5 w-3.5 text-primary" />
+      </div>
+      <div>
+        <p className="text-sm font-semibold">{title}</p>
+        {description && (
+          <p className="text-xs text-muted-foreground">{description}</p>
+        )}
+      </div>
+    </div>
+  );
+}
 
 export interface UserData {
   id: string;
@@ -120,40 +143,40 @@ interface UserDetailProps {
   transactionCount: number;
 }
 
-const roleBadgeVariant: Record<string, "default" | "secondary" | "outline" | "destructive"> = {
-  SUPER_ADMIN: "destructive",
-  ADMIN: "destructive",
-  TEACHER: "default",
-  STUDENT: "secondary",
+const roleBadgeClass: Record<string, string> = {
+  SUPER_ADMIN: "bg-red-500/10 text-red-700 border-red-200 text-xs",
+  ADMIN: "bg-red-500/10 text-red-700 border-red-200 text-xs",
+  TEACHER: "bg-blue-500/10 text-blue-700 border-blue-200 text-xs",
+  STUDENT: "bg-slate-500/10 text-slate-700 border-slate-200 text-xs",
 };
 
-const statusBadgeVariant: Record<string, "default" | "secondary" | "outline" | "destructive"> = {
-  ACTIVE: "default",
-  SUSPENDED: "outline",
-  BANNED: "destructive",
+const statusBadgeClass: Record<string, string> = {
+  ACTIVE: "bg-green-500/10 text-green-700 border-green-200 text-xs",
+  SUSPENDED: "bg-yellow-500/10 text-yellow-700 border-yellow-200 text-xs",
+  BANNED: "bg-red-500/10 text-red-700 border-red-200 text-xs",
 };
 
-const attemptStatusBadge: Record<string, "default" | "secondary" | "outline" | "destructive"> = {
-  COMPLETED: "default",
-  IN_PROGRESS: "secondary",
-  TIMED_OUT: "outline",
-  ABANDONED: "destructive",
+const attemptStatusBadgeClass: Record<string, string> = {
+  COMPLETED: "bg-green-500/10 text-green-700 border-green-200 text-xs",
+  IN_PROGRESS: "bg-blue-500/10 text-blue-700 border-blue-200 text-xs",
+  TIMED_OUT: "bg-yellow-500/10 text-yellow-700 border-yellow-200 text-xs",
+  ABANDONED: "bg-red-500/10 text-red-700 border-red-200 text-xs",
 };
 
-const txStatusBadge: Record<string, "default" | "secondary" | "outline" | "destructive"> = {
-  PAID: "default",
-  PENDING: "secondary",
-  EXPIRED: "outline",
-  FAILED: "destructive",
-  REFUNDED: "outline",
+const txStatusBadgeClass: Record<string, string> = {
+  PAID: "bg-green-500/10 text-green-700 border-green-200 text-xs",
+  PENDING: "bg-yellow-500/10 text-yellow-700 border-yellow-200 text-xs",
+  EXPIRED: "bg-slate-500/10 text-slate-700 border-slate-200 text-xs",
+  FAILED: "bg-red-500/10 text-red-700 border-red-200 text-xs",
+  REFUNDED: "bg-slate-500/10 text-slate-700 border-slate-200 text-xs",
 };
 
-const creditTypeBadge: Record<string, "default" | "secondary" | "outline" | "destructive"> = {
-  PURCHASE: "default",
-  BONUS: "default",
-  FREE_SIGNUP: "secondary",
-  REFUND: "outline",
-  USAGE: "destructive",
+const creditTypeBadgeClass: Record<string, string> = {
+  PURCHASE: "bg-blue-500/10 text-blue-700 border-blue-200 text-xs",
+  BONUS: "bg-green-500/10 text-green-700 border-green-200 text-xs",
+  FREE_SIGNUP: "bg-purple-500/10 text-purple-700 border-purple-200 text-xs",
+  REFUND: "bg-slate-500/10 text-slate-700 border-slate-200 text-xs",
+  USAGE: "bg-red-500/10 text-red-700 border-red-200 text-xs",
 };
 
 export function UserDetail({ user, packages, attemptCount, transactionCount }: UserDetailProps) {
@@ -341,34 +364,36 @@ export function UserDetail({ user, packages, attemptCount, transactionCount }: U
           { label: user.name },
         ]}
       />
-      {/* Header */}
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" asChild>
+
+      {/* Sub-page Header */}
+      <div className="flex items-center gap-3">
+        <Button variant="ghost" size="icon" className="h-9 w-9" asChild>
           <Link href="/admin/users">
-            <ArrowLeft className="h-4 w-4" />
+            <ChevronLeft className="h-4 w-4" />
           </Link>
         </Button>
-        <Avatar className="h-12 w-12">
+        <Avatar className="h-10 w-10 shrink-0">
           <AvatarImage src={user.avatar ?? undefined} />
           <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
         </Avatar>
         <div>
-          <h2 className="text-2xl font-bold tracking-tight">{user.name}</h2>
+          <h2 className="text-2xl font-semibold tracking-tight">{user.name}</h2>
           <p className="text-sm text-muted-foreground">{user.email}</p>
         </div>
         <div className="ml-auto flex gap-2">
-          <Badge variant={roleBadgeVariant[user.role] ?? "secondary"}>
+          <Badge className={roleBadgeClass[user.role] ?? "text-xs"}>
             {user.role}
           </Badge>
-          <Badge variant={statusBadgeVariant[user.status] ?? "secondary"}>
+          <Badge className={statusBadgeClass[user.status] ?? "text-xs"}>
             {user.status}
           </Badge>
         </div>
       </div>
 
       {/* User Info Card */}
-      <Card>
-        <CardContent className="pt-6">
+      <div className={cardCls}>
+        <SectionHeader icon={Info} title="Informasi Pengguna" />
+        <div className="p-5">
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <div className="flex items-center gap-2">
               <Phone className="h-4 w-4 text-muted-foreground" />
@@ -412,56 +437,66 @@ export function UserDetail({ user, packages, attemptCount, transactionCount }: U
               </span>
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
-      {/* Summary Cards */}
+      {/* Summary Stat Cards */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-2">
-              <Coins className="h-4 w-4 text-muted-foreground" />
-              <p className="text-sm text-muted-foreground">Kredit</p>
+        <div className={cardCls}>
+          <div className="flex items-center justify-between p-5">
+            <div>
+              <p className="text-xs font-medium text-muted-foreground">Kredit</p>
+              <p className="mt-1.5 text-2xl font-bold tabular-nums">{balance}</p>
             </div>
-            <p className="mt-1 text-2xl font-bold">{balance}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-2">
-              <FileText className="h-4 w-4 text-muted-foreground" />
-              <p className="text-sm text-muted-foreground">Total Ujian</p>
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-yellow-500/10">
+              <Coins className="h-5 w-5 text-yellow-600" />
             </div>
-            <p className="mt-1 text-2xl font-bold">{attemptCount}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-2">
-              <CreditCard className="h-4 w-4 text-muted-foreground" />
-              <p className="text-sm text-muted-foreground">Total Transaksi</p>
+          </div>
+        </div>
+        <div className={cardCls}>
+          <div className="flex items-center justify-between p-5">
+            <div>
+              <p className="text-xs font-medium text-muted-foreground">Total Ujian</p>
+              <p className="mt-1.5 text-2xl font-bold tabular-nums">{attemptCount}</p>
             </div>
-            <p className="mt-1 text-2xl font-bold">{transactionCount}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-2">
-              <Gift className="h-4 w-4 text-muted-foreground" />
-              <p className="text-sm text-muted-foreground">Free Credits</p>
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-500/10">
+              <FileText className="h-5 w-5 text-blue-600" />
             </div>
-            <p className="mt-1 text-2xl font-bold">{user.credits?.freeCredits ?? 0}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-2">
-              <Package className="h-4 w-4 text-muted-foreground" />
-              <p className="text-sm text-muted-foreground">Akses Paket</p>
+          </div>
+        </div>
+        <div className={cardCls}>
+          <div className="flex items-center justify-between p-5">
+            <div>
+              <p className="text-xs font-medium text-muted-foreground">Total Transaksi</p>
+              <p className="mt-1.5 text-2xl font-bold tabular-nums">{transactionCount}</p>
             </div>
-            <p className="mt-1 text-2xl font-bold">{user.packageAccesses.length}</p>
-          </CardContent>
-        </Card>
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-green-500/10">
+              <CreditCard className="h-5 w-5 text-green-600" />
+            </div>
+          </div>
+        </div>
+        <div className={cardCls}>
+          <div className="flex items-center justify-between p-5">
+            <div>
+              <p className="text-xs font-medium text-muted-foreground">Free Credits</p>
+              <p className="mt-1.5 text-2xl font-bold tabular-nums">{user.credits?.freeCredits ?? 0}</p>
+            </div>
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-purple-500/10">
+              <Gift className="h-5 w-5 text-purple-600" />
+            </div>
+          </div>
+        </div>
+        <div className={cardCls}>
+          <div className="flex items-center justify-between p-5">
+            <div>
+              <p className="text-xs font-medium text-muted-foreground">Akses Paket</p>
+              <p className="mt-1.5 text-2xl font-bold tabular-nums">{user.packageAccesses.length}</p>
+            </div>
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10">
+              <Package className="h-5 w-5 text-primary" />
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Tabs */}
@@ -490,12 +525,11 @@ export function UserDetail({ user, packages, attemptCount, transactionCount }: U
         </TabsList>
 
         {/* Settings Tab */}
-        <TabsContent value="settings" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Role</CardTitle>
-            </CardHeader>
-            <CardContent>
+        <TabsContent value="settings" className="space-y-4 pt-4">
+          {/* Role */}
+          <div className={cardCls}>
+            <SectionHeader icon={User} title="Role" description="Ubah role pengguna" />
+            <div className="p-5">
               <div className="flex items-center gap-3">
                 <Select value={role} onValueChange={setRole}>
                   <SelectTrigger className="w-48">
@@ -521,14 +555,13 @@ export function UserDetail({ user, packages, attemptCount, transactionCount }: U
                   Simpan
                 </Button>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Status</CardTitle>
-            </CardHeader>
-            <CardContent>
+          {/* Status */}
+          <div className={cardCls}>
+            <SectionHeader icon={ShieldCheck} title="Status" description="Ubah status akun pengguna" />
+            <div className="p-5">
               <div className="flex items-center gap-3">
                 <Select value={status} onValueChange={setStatus}>
                   <SelectTrigger className="w-48">
@@ -553,14 +586,13 @@ export function UserDetail({ user, packages, attemptCount, transactionCount }: U
                   Simpan
                 </Button>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Grant Kredit</CardTitle>
-            </CardHeader>
-            <CardContent>
+          {/* Grant Kredit */}
+          <div className={cardCls}>
+            <SectionHeader icon={Coins} title="Grant Kredit" description="Tambahkan kredit ke akun pengguna" />
+            <div className="p-5">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
                 <div className="space-y-1">
                   <label className="text-sm font-medium">Jumlah</label>
@@ -593,14 +625,13 @@ export function UserDetail({ user, packages, attemptCount, transactionCount }: U
                   Grant Kredit
                 </Button>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Grant Akses Paket</CardTitle>
-            </CardHeader>
-            <CardContent>
+          {/* Grant Akses Paket */}
+          <div className={cardCls}>
+            <SectionHeader icon={Package} title="Grant Akses Paket" description="Berikan akses paket ujian secara manual" />
+            <div className="p-5">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
                 <div className="space-y-1">
                   <label className="text-sm font-medium">Paket Ujian</label>
@@ -637,14 +668,13 @@ export function UserDetail({ user, packages, attemptCount, transactionCount }: U
                   Grant Akses
                 </Button>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Reset Password</CardTitle>
-            </CardHeader>
-            <CardContent>
+          {/* Reset Password */}
+          <div className={cardCls}>
+            <SectionHeader icon={Key} title="Reset Password" description="Reset password pengguna" />
+            <div className="p-5">
               <p className="mb-3 text-sm text-muted-foreground">
                 Mereset password user akan menghasilkan password sementara atau mengirim link reset.
               </p>
@@ -660,17 +690,15 @@ export function UserDetail({ user, packages, attemptCount, transactionCount }: U
                 )}
                 Reset Password
               </Button>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </TabsContent>
 
         {/* Package Access Tab */}
-        <TabsContent value="access">
-          <Card>
-            <CardHeader>
-              <CardTitle>Akses Paket ({user.packageAccesses.length})</CardTitle>
-            </CardHeader>
-            <CardContent>
+        <TabsContent value="access" className="pt-4">
+          <div className={cardCls}>
+            <SectionHeader icon={Package} title={`Akses Paket (${user.packageAccesses.length})`} />
+            <div className="p-5">
               {user.packageAccesses.length === 0 ? (
                 <p className="text-sm text-muted-foreground">
                   Belum ada akses paket yang diberikan
@@ -726,17 +754,15 @@ export function UserDetail({ user, packages, attemptCount, transactionCount }: U
                   </TableBody>
                 </Table>
               )}
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </TabsContent>
 
         {/* Credit History Tab */}
-        <TabsContent value="credits">
-          <Card>
-            <CardHeader>
-              <CardTitle>Riwayat Kredit</CardTitle>
-            </CardHeader>
-            <CardContent>
+        <TabsContent value="credits" className="pt-4">
+          <div className={cardCls}>
+            <SectionHeader icon={Coins} title="Riwayat Kredit" />
+            <div className="p-5">
               {user.creditHistory.length === 0 ? (
                 <p className="text-sm text-muted-foreground">
                   Belum ada riwayat kredit
@@ -765,9 +791,7 @@ export function UserDetail({ user, packages, attemptCount, transactionCount }: U
                           {ch.amount}
                         </TableCell>
                         <TableCell>
-                          <Badge
-                            variant={creditTypeBadge[ch.type] ?? "secondary"}
-                          >
+                          <Badge className={creditTypeBadgeClass[ch.type] ?? "text-xs"}>
                             {ch.type}
                           </Badge>
                         </TableCell>
@@ -784,17 +808,15 @@ export function UserDetail({ user, packages, attemptCount, transactionCount }: U
                   </TableBody>
                 </Table>
               )}
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </TabsContent>
 
         {/* Exam History Tab */}
-        <TabsContent value="exams">
-          <Card>
-            <CardHeader>
-              <CardTitle>Riwayat Ujian</CardTitle>
-            </CardHeader>
-            <CardContent>
+        <TabsContent value="exams" className="pt-4">
+          <div className={cardCls}>
+            <SectionHeader icon={FileText} title="Riwayat Ujian" />
+            <div className="p-5">
               {user.attempts.length === 0 ? (
                 <p className="text-sm text-muted-foreground">
                   Belum ada riwayat ujian
@@ -823,11 +845,7 @@ export function UserDetail({ user, packages, attemptCount, transactionCount }: U
                           </Link>
                         </TableCell>
                         <TableCell>
-                          <Badge
-                            variant={
-                              attemptStatusBadge[attempt.status] ?? "secondary"
-                            }
-                          >
+                          <Badge className={attemptStatusBadgeClass[attempt.status] ?? "text-xs"}>
                             {attempt.status}
                           </Badge>
                         </TableCell>
@@ -857,17 +875,15 @@ export function UserDetail({ user, packages, attemptCount, transactionCount }: U
                   </TableBody>
                 </Table>
               )}
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </TabsContent>
 
         {/* Transactions Tab */}
-        <TabsContent value="transactions">
-          <Card>
-            <CardHeader>
-              <CardTitle>Transaksi</CardTitle>
-            </CardHeader>
-            <CardContent>
+        <TabsContent value="transactions" className="pt-4">
+          <div className={cardCls}>
+            <SectionHeader icon={CreditCard} title="Transaksi" />
+            <div className="p-5">
               {user.transactions.length === 0 ? (
                 <p className="text-sm text-muted-foreground">
                   Belum ada transaksi
@@ -893,9 +909,7 @@ export function UserDetail({ user, packages, attemptCount, transactionCount }: U
                           {formatCurrency(tx.amount)}
                         </TableCell>
                         <TableCell>
-                          <Badge
-                            variant={txStatusBadge[tx.status] ?? "secondary"}
-                          >
+                          <Badge className={txStatusBadgeClass[tx.status] ?? "text-xs"}>
                             {tx.status}
                           </Badge>
                         </TableCell>
@@ -914,8 +928,8 @@ export function UserDetail({ user, packages, attemptCount, transactionCount }: U
                   </TableBody>
                 </Table>
               )}
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </TabsContent>
       </Tabs>
     </div>

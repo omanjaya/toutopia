@@ -2,12 +2,6 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/shared/components/ui/card";
 import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
 import {
@@ -23,6 +17,8 @@ import {
   Trophy,
 } from "lucide-react";
 import { formatCurrency, cn } from "@/shared/lib/utils";
+
+const cardCls = "rounded-2xl bg-card shadow-[0_2px_8px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.05]";
 
 // --- Data ---
 
@@ -219,10 +215,11 @@ const testimonials: Testimonial[] = [
 
 function MobilePricingCard({ plan }: { plan: PricingPlan }): React.ReactElement {
   return (
-    <Card
+    <div
       className={cn(
+        cardCls,
         "relative",
-        plan.popular && "border-primary shadow-lg shadow-primary/10"
+        plan.popular && "ring-2 ring-primary shadow-lg shadow-primary/10",
       )}
     >
       {plan.badge && (
@@ -230,10 +227,10 @@ function MobilePricingCard({ plan }: { plan: PricingPlan }): React.ReactElement 
           <Badge className="shadow-sm">{plan.badge}</Badge>
         </div>
       )}
-      <CardHeader className="pb-3 pt-5">
+      <div className="px-5 pt-5 pb-2">
         <div className="flex items-center gap-2 text-muted-foreground">
           {plan.icon}
-          <CardTitle className="text-base">{plan.name}</CardTitle>
+          <h3 className="text-base font-semibold tracking-tight">{plan.name}</h3>
         </div>
         <div className="mt-3">
           {plan.originalPrice && (
@@ -253,11 +250,11 @@ function MobilePricingCard({ plan }: { plan: PricingPlan }): React.ReactElement 
         {plan.perMonth && (
           <p className="text-sm font-medium text-primary">{plan.perMonth}</p>
         )}
-        <p className="mt-1 text-sm text-muted-foreground">
+        <p className="mt-0.5 text-sm text-muted-foreground">
           {plan.description}
         </p>
-      </CardHeader>
-      <CardContent className="space-y-4 pb-5">
+      </div>
+      <div className="p-5 pt-2 space-y-4 pb-5">
         <ul className="space-y-2">
           {plan.features.map((feature) => (
             <li key={feature} className="flex items-start gap-2 text-sm">
@@ -277,8 +274,8 @@ function MobilePricingCard({ plan }: { plan: PricingPlan }): React.ReactElement 
         >
           <Link href={plan.href}>{plan.cta}</Link>
         </Button>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }
 
@@ -295,7 +292,7 @@ export function MobilePricingContent(): React.ReactElement {
       <section className="relative px-4 pb-6 pt-8">
         <div className="absolute inset-0 -z-10 bg-gradient-to-b from-primary/5 to-transparent" />
         <div className="text-center">
-          <Badge variant="secondary" className="mb-3">
+          <Badge className="mb-3 bg-muted text-foreground">
             Investasi Masa Depanmu
           </Badge>
           <h2 className="text-xl font-bold tracking-tight">
@@ -388,8 +385,8 @@ export function MobilePricingContent(): React.ReactElement {
         </h3>
         <div className="space-y-3">
           {testimonials.map((t) => (
-            <Card key={t.name}>
-              <CardContent className="p-4">
+            <div key={t.name} className={cardCls}>
+              <div className="p-4">
                 <div className="mb-2 flex gap-0.5">
                   {Array.from({ length: t.rating }).map((_, i) => (
                     <Star
@@ -413,8 +410,8 @@ export function MobilePricingContent(): React.ReactElement {
                     </p>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           ))}
         </div>
       </section>

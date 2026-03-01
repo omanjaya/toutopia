@@ -3,8 +3,9 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { auth } from "@/shared/lib/auth";
 import { prisma } from "@/shared/lib/prisma";
-import { Card, CardContent } from "@/shared/components/ui/card";
 import { Badge } from "@/shared/components/ui/badge";
+
+const cardCls = "rounded-2xl bg-card shadow-[0_2px_8px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.05]";
 import { Button } from "@/shared/components/ui/button";
 import {
   ArrowLeft,
@@ -151,7 +152,7 @@ export default async function MobileHistoryPage({
           </h1>
         </div>
         {total > 0 && (
-          <Badge variant="secondary" className="text-xs">
+          <Badge className="bg-muted text-foreground text-xs">
             {total} total
           </Badge>
         )}
@@ -196,8 +197,8 @@ export default async function MobileHistoryPage({
                     : `/m/exam/${attempt.id}/result`
                 }
               >
-                <Card className="border-0 shadow-sm transition-colors active:bg-muted/30">
-                  <CardContent className="flex items-center gap-3 p-4">
+                <div className={`${cardCls} transition-colors active:bg-muted/30`}>
+                  <div className="flex items-center gap-3 p-4">
                     {/* Status Icon */}
                     <div
                       className={cn(
@@ -255,8 +256,8 @@ export default async function MobileHistoryPage({
                           </p>
                         </div>
                       )}
-                  </CardContent>
-                </Card>
+                  </div>
+                </div>
               </Link>
             );
           })}

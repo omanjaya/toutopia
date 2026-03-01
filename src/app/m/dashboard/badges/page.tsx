@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Loader2, Trophy, Star, Lock, ArrowLeft } from "lucide-react";
 import * as LucideIcons from "lucide-react";
-import { Card, CardContent } from "@/shared/components/ui/card";
 import { Badge } from "@/shared/components/ui/badge";
 import { cn } from "@/shared/lib/utils";
 import { toast } from "sonner";
@@ -43,6 +42,8 @@ function getIcon(name: string): React.ComponentType<{ className?: string }> {
   >;
   return icons[name] ?? Star;
 }
+
+const cardCls = "rounded-2xl bg-card shadow-[0_2px_8px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.05]";
 
 export default function MobileBadgesPage(): React.ReactElement {
   const [data, setData] = useState<BadgeResponse | null>(null);
@@ -110,8 +111,8 @@ export default function MobileBadgesPage(): React.ReactElement {
       </div>
 
       {/* XP & Level Card */}
-      <Card className="mb-5 border-0 bg-gradient-to-br from-amber-50 to-orange-50 shadow-sm">
-        <CardContent className="flex items-center gap-4 p-4">
+      <div className="mb-5 rounded-2xl bg-gradient-to-br from-amber-50 to-orange-50">
+        <div className="flex items-center gap-4 p-4">
           <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-amber-500/10">
             <Trophy className="h-7 w-7 text-amber-500" />
           </div>
@@ -134,31 +135,31 @@ export default function MobileBadgesPage(): React.ReactElement {
               {xpForNextLevel - xpInLevel} XP lagi ke Level {level + 1}
             </p>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Stats Summary */}
       <div className="mb-5 grid grid-cols-3 gap-2">
-        <Card className="border-0 shadow-sm">
-          <CardContent className="p-3 text-center">
+        <div className="rounded-2xl bg-card">
+          <div className="p-3 text-center">
             <p className="text-lg font-bold text-primary">{data.earnedCount}</p>
             <p className="text-[10px] text-muted-foreground">Diraih</p>
-          </CardContent>
-        </Card>
-        <Card className="border-0 shadow-sm">
-          <CardContent className="p-3 text-center">
+          </div>
+        </div>
+        <div className="rounded-2xl bg-card">
+          <div className="p-3 text-center">
             <p className="text-lg font-bold text-muted-foreground">
               {data.totalCount - data.earnedCount}
             </p>
             <p className="text-[10px] text-muted-foreground">Terkunci</p>
-          </CardContent>
-        </Card>
-        <Card className="border-0 shadow-sm">
-          <CardContent className="p-3 text-center">
+          </div>
+        </div>
+        <div className="rounded-2xl bg-card">
+          <div className="p-3 text-center">
             <p className="text-lg font-bold text-amber-600">{data.totalXp}</p>
             <p className="text-[10px] text-muted-foreground">Total XP</p>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
 
       {/* Badge Grid by Category */}
@@ -171,14 +172,14 @@ export default function MobileBadgesPage(): React.ReactElement {
             {badges.map((badge) => {
               const Icon = getIcon(badge.icon);
               return (
-                <Card
+                <div
                   key={badge.id}
                   className={cn(
-                    "border-0 shadow-sm transition-all",
+                    "rounded-2xl bg-card transition-all",
                     badge.earned ? "bg-card" : "bg-muted/30 opacity-60"
                   )}
                 >
-                  <CardContent className="p-3">
+                  <div className="p-3">
                     <div className="mb-2 flex items-start justify-between">
                       <div
                         className={cn(
@@ -217,8 +218,8 @@ export default function MobileBadgesPage(): React.ReactElement {
                         </span>
                       )}
                     </div>
-                  </CardContent>
-                </Card>
+                  </div>
+                </div>
               );
             })}
           </div>

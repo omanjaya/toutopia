@@ -11,7 +11,6 @@ import {
   BarChart3,
   AlertTriangle,
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import {
   LineChart,
   Line,
@@ -28,6 +27,8 @@ import {
   BarChart,
   Bar,
 } from "recharts";
+
+const cardCls = "rounded-2xl bg-card shadow-[0_2px_8px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.05]";
 
 interface AnalyticsData {
   summary: {
@@ -95,63 +96,63 @@ export default function AnalyticsSummary() {
     <div className="space-y-6">
       {/* Summary Stats */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
+        <div className={cardCls}>
+          <div className="flex flex-row items-center justify-between px-6 pt-6 pb-2">
+            <p className="text-sm font-medium text-muted-foreground">
               Total Ujian
-            </CardTitle>
+            </p>
             <BarChart3 className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
+          </div>
+          <div className="p-6 pt-2">
             <p className="text-2xl font-bold">{data.summary.totalAttempts}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
+          </div>
+        </div>
+        <div className={cardCls}>
+          <div className="flex flex-row items-center justify-between px-6 pt-6 pb-2">
+            <p className="text-sm font-medium text-muted-foreground">
               Rata-rata Skor
-            </CardTitle>
+            </p>
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
+          </div>
+          <div className="p-6 pt-2">
             <p className="text-2xl font-bold">{data.summary.avgScore}</p>
             <p className="text-xs text-muted-foreground">dari 1000</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
+          </div>
+        </div>
+        <div className={cardCls}>
+          <div className="flex flex-row items-center justify-between px-6 pt-6 pb-2">
+            <p className="text-sm font-medium text-muted-foreground">
               Skor Tertinggi
-            </CardTitle>
+            </p>
             <Target className="h-4 w-4 text-emerald-500" />
-          </CardHeader>
-          <CardContent>
+          </div>
+          <div className="p-6 pt-2">
             <p className="text-2xl font-bold">{data.summary.bestScore}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
+          </div>
+        </div>
+        <div className={cardCls}>
+          <div className="flex flex-row items-center justify-between px-6 pt-6 pb-2">
+            <p className="text-sm font-medium text-muted-foreground">
               Akurasi
-            </CardTitle>
+            </p>
             <CheckCircle2 className="h-4 w-4 text-primary" />
-          </CardHeader>
-          <CardContent>
+          </div>
+          <div className="p-6 pt-2">
             <p className="text-2xl font-bold">{data.summary.accuracy}%</p>
             <p className="text-xs text-muted-foreground">
               {data.summary.totalCorrect} benar / {data.summary.totalIncorrect} salah
             </p>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
 
       {/* Score Trend */}
       {data.scoreTrend.length > 1 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Tren Skor</CardTitle>
-          </CardHeader>
-          <CardContent>
+        <div className={cardCls}>
+          <div className="px-6 pt-6 pb-2">
+            <h3 className="text-lg font-semibold tracking-tight">Tren Skor</h3>
+          </div>
+          <div className="p-6 pt-2">
             <div className="h-72">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={data.scoreTrend}>
@@ -197,18 +198,18 @@ export default function AnalyticsSummary() {
                 </LineChart>
               </ResponsiveContainer>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       )}
 
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Category Radar */}
         {data.categoryPerformance.length > 2 && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Performa per Kategori</CardTitle>
-            </CardHeader>
-            <CardContent>
+          <div className={cardCls}>
+            <div className="px-6 pt-6 pb-2">
+              <h3 className="text-lg font-semibold tracking-tight">Performa per Kategori</h3>
+            </div>
+            <div className="p-6 pt-2">
               <div className="h-72">
                 <ResponsiveContainer width="100%" height="100%">
                   <RadarChart data={data.categoryPerformance}>
@@ -231,18 +232,18 @@ export default function AnalyticsSummary() {
                   </RadarChart>
                 </ResponsiveContainer>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         )}
 
         {/* Category Bar (fallback if less than 3 categories) */}
         {data.categoryPerformance.length > 0 &&
           data.categoryPerformance.length <= 2 && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Performa per Kategori</CardTitle>
-              </CardHeader>
-              <CardContent>
+            <div className={cardCls}>
+              <div className="px-6 pt-6 pb-2">
+                <h3 className="text-lg font-semibold tracking-tight">Performa per Kategori</h3>
+              </div>
+              <div className="p-6 pt-2">
                 <div className="h-72">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={data.categoryPerformance}>
@@ -261,20 +262,20 @@ export default function AnalyticsSummary() {
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           )}
 
         {/* Weakest Topics */}
         {data.weakestTopics.length > 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+          <div className={cardCls}>
+            <div className="px-6 pt-6 pb-2">
+              <h3 className="text-lg font-semibold tracking-tight flex items-center gap-2">
                 <AlertTriangle className="h-4 w-4 text-amber-500" />
                 Topik Terlemah
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
+              </h3>
+            </div>
+            <div className="p-6 pt-2">
               <div className="space-y-3">
                 {data.weakestTopics.map((topic, i) => (
                   <div
@@ -296,21 +297,21 @@ export default function AnalyticsSummary() {
                   </div>
                 ))}
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         )}
       </div>
 
       {data.scoreTrend.length === 0 && (
-        <Card>
-          <CardContent className="py-12 text-center">
+        <div className={cardCls}>
+          <div className="p-6 py-12 text-center">
             <BarChart3 className="mx-auto h-12 w-12 text-muted-foreground/40" />
             <h3 className="mt-4 text-lg font-medium">Belum ada data</h3>
             <p className="mt-1 text-sm text-muted-foreground">
               Selesaikan minimal 1 ujian untuk melihat analitik
             </p>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       )}
     </div>
   );

@@ -17,6 +17,8 @@ services:
       AUTH_TRUST_HOST: "true"
       AUTH_URL: ${AUTH_URL:-http://localhost:3002}
       WATCHPACK_POLLING: "false"
+      MINIO_ENDPOINT: minio
+      NEXT_PUBLIC_MINIO_URL: ${NEXT_PUBLIC_MINIO_URL:-http://localhost:9000}
     volumes:
       - ./src:/app/src
       - ./public:/app/public

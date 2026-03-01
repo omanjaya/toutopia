@@ -3,7 +3,6 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { auth } from "@/shared/lib/auth";
 import { prisma } from "@/shared/lib/prisma";
-import { Card, CardContent } from "@/shared/components/ui/card";
 import { Badge } from "@/shared/components/ui/badge";
 import {
   TrendingUp,
@@ -107,6 +106,8 @@ function getStatusVariant(
   }
 }
 
+const cardCls = "rounded-2xl bg-card shadow-[0_2px_8px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.05]";
+
 export default async function MobileDashboardPage() {
   const session = await auth();
   if (!session?.user) redirect("/m/login");
@@ -128,8 +129,8 @@ export default async function MobileDashboardPage() {
 
       {/* Stats Row — horizontal scroll */}
       <div className="-mx-4 mb-6 flex gap-3 overflow-x-auto px-4 pb-1 scrollbar-none [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        <Card className="min-w-[140px] shrink-0 border-0 shadow-sm">
-          <CardContent className="p-4">
+        <div className="rounded-2xl bg-card min-w-[140px] shrink-0">
+          <div className="p-4">
             <div className="mb-2 flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-50">
               <TrendingUp className="h-4 w-4 text-emerald-600" />
             </div>
@@ -137,11 +138,11 @@ export default async function MobileDashboardPage() {
             <p className="mt-0.5 text-2xl font-bold tabular-nums">
               {stats.avgScore ?? "-"}
             </p>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
-        <Card className="min-w-[140px] shrink-0 border-0 shadow-sm">
-          <CardContent className="p-4">
+        <div className="rounded-2xl bg-card min-w-[140px] shrink-0">
+          <div className="p-4">
             <div className="mb-2 flex h-8 w-8 items-center justify-center rounded-lg bg-blue-50">
               <BookOpen className="h-4 w-4 text-blue-600" />
             </div>
@@ -149,11 +150,11 @@ export default async function MobileDashboardPage() {
             <p className="mt-0.5 text-2xl font-bold tabular-nums">
               {stats.completedAttempts}
             </p>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
-        <Card className="min-w-[140px] shrink-0 border-0 shadow-sm">
-          <CardContent className="p-4">
+        <div className="rounded-2xl bg-card min-w-[140px] shrink-0">
+          <div className="p-4">
             <div className="mb-2 flex h-8 w-8 items-center justify-center rounded-lg bg-amber-50">
               <Coins className="h-4 w-4 text-amber-600" />
             </div>
@@ -161,15 +162,15 @@ export default async function MobileDashboardPage() {
             <p className="mt-0.5 text-2xl font-bold tabular-nums">
               {stats.creditBalance + stats.freeCredits}
             </p>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
 
       {/* Quick Actions */}
       <div className="mb-6 space-y-3">
         <Link href="/m/tryout">
-          <Card className="border-0 bg-primary text-primary-foreground shadow-md shadow-primary/20">
-            <CardContent className="flex items-center gap-4 p-4">
+          <div className="rounded-2xl bg-primary text-primary-foreground shadow-md shadow-primary/20">
+            <div className="flex items-center gap-4 p-4">
               <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/15">
                 <Target className="h-6 w-6" />
               </div>
@@ -180,13 +181,13 @@ export default async function MobileDashboardPage() {
                 </p>
               </div>
               <ArrowRight className="h-5 w-5 text-primary-foreground/70" />
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </Link>
 
         <Link href="/m/dashboard/practice">
-          <Card className="border-0 shadow-sm">
-            <CardContent className="flex items-center gap-4 p-4">
+          <div className="rounded-2xl bg-card">
+            <div className="flex items-center gap-4 p-4">
               <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-50">
                 <FileText className="h-6 w-6 text-emerald-600" />
               </div>
@@ -197,8 +198,8 @@ export default async function MobileDashboardPage() {
                 </p>
               </div>
               <ArrowRight className="h-5 w-5 text-muted-foreground" />
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </Link>
       </div>
 
@@ -225,8 +226,8 @@ export default async function MobileDashboardPage() {
                     : `/m/exam/${attempt.id}`
                 }
               >
-                <Card className="border-0 shadow-sm">
-                  <CardContent className="flex items-center gap-3 p-4">
+                <div className="rounded-2xl bg-card">
+                  <div className="flex items-center gap-3 p-4">
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-sm font-medium">
                         {attempt.package.title}
@@ -256,20 +257,20 @@ export default async function MobileDashboardPage() {
                           {Math.round(attempt.score)}
                         </span>
                       )}
-                  </CardContent>
-                </Card>
+                  </div>
+                </div>
               </Link>
             ))}
           </div>
         ) : (
-          <Card className="border-0 shadow-sm">
-            <CardContent className="flex flex-col items-center py-10 text-center">
+          <div className="rounded-2xl bg-card">
+            <div className="flex flex-col items-center py-10 text-center p-4">
               <BookOpen className="mb-3 h-8 w-8 text-muted-foreground/40" />
               <p className="text-sm text-muted-foreground">
                 Belum ada riwayat try out.
               </p>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         )}
       </div>
     </div>

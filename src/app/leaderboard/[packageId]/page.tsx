@@ -4,7 +4,6 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/shared/lib/prisma";
 import { Header } from "@/shared/components/layout/header";
 import { Footer } from "@/shared/components/layout/footer";
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
 import {
@@ -16,6 +15,8 @@ import { Trophy, Medal, Crown, ChevronLeft, ArrowRight, Users, Target, TrendingU
 import { cn } from "@/shared/lib/utils";
 
 export const dynamic = "force-dynamic";
+
+const cardCls = "rounded-2xl bg-card shadow-[0_2px_8px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.05]";
 
 interface PageProps {
   params: Promise<{ packageId: string }>;
@@ -137,31 +138,31 @@ export default async function PublicPackageLeaderboardPage({
 
           {/* Stats Summary */}
           <div className="grid grid-cols-3 gap-3">
-            <Card>
-              <CardContent className="flex flex-col items-center py-4">
+            <div className={cardCls}>
+              <div className="flex flex-col items-center py-4">
                 <Users className="mb-1.5 h-5 w-5 text-muted-foreground" />
                 <p className="text-2xl font-bold">{stats._count}</p>
                 <p className="text-xs text-muted-foreground">Peserta</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="flex flex-col items-center py-4">
+              </div>
+            </div>
+            <div className={cardCls}>
+              <div className="flex flex-col items-center py-4">
                 <Target className="mb-1.5 h-5 w-5 text-amber-500" />
                 <p className="text-2xl font-bold">
                   {stats._max.score ? Math.round(stats._max.score) : 0}
                 </p>
                 <p className="text-xs text-muted-foreground">Skor Tertinggi</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="flex flex-col items-center py-4">
+              </div>
+            </div>
+            <div className={cardCls}>
+              <div className="flex flex-col items-center py-4">
                 <TrendingUp className="mb-1.5 h-5 w-5 text-primary" />
                 <p className="text-2xl font-bold">
                   {stats._avg.score ? Math.round(stats._avg.score) : 0}
                 </p>
                 <p className="text-xs text-muted-foreground">Rata-rata</p>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           </div>
 
           {/* Top 3 Podium */}
@@ -175,15 +176,15 @@ export default async function PublicPackageLeaderboardPage({
                 const isFirst = rank === 1;
 
                 return (
-                  <Card
+                  <div
                     key={entry.id}
                     className={cn(
-                      "bg-gradient-to-b text-center transition-all",
+                      `${cardCls} bg-gradient-to-b text-center transition-all`,
                       podiumGradients[idx],
                       isFirst && "scale-[1.02]"
                     )}
                   >
-                    <CardContent className={cn("pt-6 pb-5", isFirst && "pt-8 pb-6")}>
+                    <div className={cn("pt-6 pb-5", isFirst && "pt-8 pb-6")}>
                       {isFirst && (
                         <Crown className="mx-auto mb-1 h-6 w-6 text-amber-500" />
                       )}
@@ -226,22 +227,22 @@ export default async function PublicPackageLeaderboardPage({
                           {entry.attempt.totalCorrect} benar
                         </p>
                       )}
-                    </CardContent>
-                  </Card>
+                    </div>
+                  </div>
                 );
               })}
             </div>
           )}
 
           {/* Full Ranking */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+          <div className={cardCls}>
+            <div className="px-6 pt-6 pb-2">
+              <h3 className="text-lg font-semibold tracking-tight flex items-center gap-2">
                 <Trophy className="h-5 w-5 text-amber-500" />
                 Peringkat Lengkap
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
+              </h3>
+            </div>
+            <div className="px-6 pb-6">
               {/* Table header */}
               <div className="mb-2 flex items-center gap-3 px-3 text-xs font-medium uppercase tracking-wider text-muted-foreground">
                 <span className="w-8 text-right">#</span>
@@ -331,12 +332,12 @@ export default async function PublicPackageLeaderboardPage({
                   </div>
                 )}
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
 
           {/* CTA */}
-          <Card className="bg-gradient-to-r from-primary/5 to-primary/10 border-primary/20">
-            <CardContent className="flex flex-col items-center py-8">
+          <div className={`${cardCls} bg-gradient-to-r from-primary/5 to-primary/10 border-primary/20`}>
+            <div className="flex flex-col items-center py-8">
               <Trophy className="mb-3 h-8 w-8 text-primary" />
               <p className="mb-1 font-semibold">Ingin masuk leaderboard ini?</p>
               <p className="mb-4 text-sm text-muted-foreground">
@@ -348,8 +349,8 @@ export default async function PublicPackageLeaderboardPage({
                   <ArrowRight className="ml-2 size-4" />
                 </Link>
               </Button>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </div>
       </main>
       <Footer />

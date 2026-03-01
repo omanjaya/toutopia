@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { Loader2, TrendingUp, ArrowUpRight, Wallet, Users, Package, ChevronRight } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/shared/components/ui/card";
 import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
 import { formatCurrency } from "@/shared/lib/utils";
@@ -20,6 +19,8 @@ import {
   Tooltip as RechartsTooltip,
   ResponsiveContainer,
 } from "recharts";
+
+const cardCls = "rounded-2xl bg-card shadow-[0_2px_8px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.05]";
 
 interface OverviewData {
   revenue: {
@@ -165,19 +166,17 @@ export function AdminCharts() {
       {/* Overview Charts */}
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Revenue Chart */}
-        <Card>
-          <CardHeader className="pb-2">
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="text-base font-semibold">Pendapatan Bulanan</CardTitle>
-                <CardDescription>6 bulan terakhir</CardDescription>
-              </div>
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-500/10">
-                <TrendingUp className="h-4 w-4 text-emerald-600" />
-              </div>
+        <div className={cardCls}>
+          <div className="flex items-center justify-between border-b border-border/60 px-5 py-4">
+            <div>
+              <p className="text-sm font-semibold">Pendapatan Bulanan</p>
+              <p className="text-xs text-muted-foreground">6 bulan terakhir</p>
             </div>
-          </CardHeader>
-          <CardContent>
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-500/10">
+              <TrendingUp className="h-4 w-4 text-emerald-600" />
+            </div>
+          </div>
+          <div className="p-5">
             {data.revenue.chart.length > 0 ? (
               <div className="h-64">
                 <ResponsiveContainer width="100%" height="100%">
@@ -222,23 +221,21 @@ export function AdminCharts() {
             ) : (
               <EmptyChart message="Belum ada data pendapatan" />
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
         {/* User Growth Chart */}
-        <Card>
-          <CardHeader className="pb-2">
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="text-base font-semibold">Pertumbuhan Pengguna</CardTitle>
-                <CardDescription>6 bulan terakhir</CardDescription>
-              </div>
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-500/10">
-                <Users className="h-4 w-4 text-blue-600" />
-              </div>
+        <div className={cardCls}>
+          <div className="flex items-center justify-between border-b border-border/60 px-5 py-4">
+            <div>
+              <p className="text-sm font-semibold">Pertumbuhan Pengguna</p>
+              <p className="text-xs text-muted-foreground">6 bulan terakhir</p>
             </div>
-          </CardHeader>
-          <CardContent>
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-500/10">
+              <Users className="h-4 w-4 text-blue-600" />
+            </div>
+          </div>
+          <div className="p-5">
             {data.userGrowth.length > 0 ? (
               <div className="h-64">
                 <ResponsiveContainer width="100%" height="100%">
@@ -285,29 +282,27 @@ export function AdminCharts() {
             ) : (
               <EmptyChart message="Belum ada data pengguna" />
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
 
       {/* Popular Packages + Latest Transactions */}
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Popular Packages */}
-        <Card>
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="text-base font-semibold">Paket Populer</CardTitle>
-                <CardDescription>Berdasarkan jumlah attempt</CardDescription>
-              </div>
-              <Button variant="ghost" size="sm" className="text-xs" asChild>
-                <Link href="/admin/packages">
-                  Lihat semua
-                  <ChevronRight className="ml-0.5 h-3.5 w-3.5" />
-                </Link>
-              </Button>
+        <div className={cardCls}>
+          <div className="flex items-center justify-between border-b border-border/60 px-5 py-4">
+            <div>
+              <p className="text-sm font-semibold">Paket Populer</p>
+              <p className="text-xs text-muted-foreground">Berdasarkan jumlah attempt</p>
             </div>
-          </CardHeader>
-          <CardContent>
+            <Button variant="ghost" size="sm" className="text-xs" asChild>
+              <Link href="/admin/packages">
+                Lihat semua
+                <ChevronRight className="ml-0.5 h-3.5 w-3.5" />
+              </Link>
+            </Button>
+          </div>
+          <div className="p-5">
             {data.popularPackages.length > 0 ? (
               <div className="space-y-3">
                 {data.popularPackages.map((pkg, i) => (
@@ -337,26 +332,24 @@ export function AdminCharts() {
                 Belum ada data paket
               </p>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
         {/* Latest Transactions */}
-        <Card>
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="text-base font-semibold">Transaksi Terbaru</CardTitle>
-                <CardDescription>5 transaksi terakhir</CardDescription>
-              </div>
-              <Button variant="ghost" size="sm" className="text-xs" asChild>
-                <Link href="/admin/transactions">
-                  Lihat semua
-                  <ChevronRight className="ml-0.5 h-3.5 w-3.5" />
-                </Link>
-              </Button>
+        <div className={cardCls}>
+          <div className="flex items-center justify-between border-b border-border/60 px-5 py-4">
+            <div>
+              <p className="text-sm font-semibold">Transaksi Terbaru</p>
+              <p className="text-xs text-muted-foreground">5 transaksi terakhir</p>
             </div>
-          </CardHeader>
-          <CardContent>
+            <Button variant="ghost" size="sm" className="text-xs" asChild>
+              <Link href="/admin/transactions">
+                Lihat semua
+                <ChevronRight className="ml-0.5 h-3.5 w-3.5" />
+              </Link>
+            </Button>
+          </div>
+          <div className="p-5">
             {data.latestTransactions.length > 0 ? (
               <div className="space-y-4">
                 {data.latestTransactions.map((tx) => (
@@ -389,8 +382,8 @@ export function AdminCharts() {
                 Belum ada transaksi
               </p>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
 
       {/* Daily Detail Section */}
@@ -424,16 +417,16 @@ export function AdminCharts() {
         <>
           <div className="grid gap-6 lg:grid-cols-2">
             {/* Daily Revenue */}
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-base font-semibold">Pendapatan Harian</CardTitle>
+            <div className={cardCls}>
+              <div className="border-b border-border/60 px-5 py-4">
+                <p className="text-sm font-semibold">Pendapatan Harian</p>
                 {revenueDetail && (
-                  <CardDescription>
+                  <p className="text-xs text-muted-foreground">
                     Total: {formatCurrency(revenueDetail.totalRevenue)} dari {revenueDetail.totalTransactions} transaksi
-                  </CardDescription>
+                  </p>
                 )}
-              </CardHeader>
-              <CardContent>
+              </div>
+              <div className="p-5">
                 {revenueDetail && revenueDetail.daily.length > 0 ? (
                   <div className="h-64">
                     <ResponsiveContainer width="100%" height="100%">
@@ -479,20 +472,20 @@ export function AdminCharts() {
                 ) : (
                   <EmptyChart message="Belum ada data pendapatan" />
                 )}
-              </CardContent>
-            </Card>
+              </div>
+            </div>
 
             {/* Daily Registrations */}
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-base font-semibold">Registrasi Harian</CardTitle>
+            <div className={cardCls}>
+              <div className="border-b border-border/60 px-5 py-4">
+                <p className="text-sm font-semibold">Registrasi Harian</p>
                 {usersDetail && (
-                  <CardDescription>
+                  <p className="text-xs text-muted-foreground">
                     {usersDetail.newUsersInPeriod} baru, {usersDetail.activeUsersInPeriod} aktif
-                  </CardDescription>
+                  </p>
                 )}
-              </CardHeader>
-              <CardContent>
+              </div>
+              <div className="p-5">
                 {usersDetail && usersDetail.dailyRegistrations.length > 0 ? (
                   <div className="h-64">
                     <ResponsiveContainer width="100%" height="100%">
@@ -531,26 +524,24 @@ export function AdminCharts() {
                 ) : (
                   <EmptyChart message="Belum ada data registrasi" />
                 )}
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           </div>
 
           {/* Method Distribution + Role Distribution */}
           <div className="grid gap-6 lg:grid-cols-2">
             {/* Payment Methods */}
-            <Card>
-              <CardHeader className="pb-3">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle className="text-base font-semibold">Metode Pembayaran</CardTitle>
-                    <CardDescription>{period} hari terakhir</CardDescription>
-                  </div>
-                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-violet-500/10">
-                    <Wallet className="h-4 w-4 text-violet-600" />
-                  </div>
+            <div className={cardCls}>
+              <div className="flex items-center justify-between border-b border-border/60 px-5 py-4">
+                <div>
+                  <p className="text-sm font-semibold">Metode Pembayaran</p>
+                  <p className="text-xs text-muted-foreground">{period} hari terakhir</p>
                 </div>
-              </CardHeader>
-              <CardContent>
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-violet-500/10">
+                  <Wallet className="h-4 w-4 text-violet-600" />
+                </div>
+              </div>
+              <div className="p-5">
                 {revenueDetail && revenueDetail.byMethod.length > 0 ? (
                   <div className="space-y-3">
                     {revenueDetail.byMethod.map((m) => {
@@ -580,25 +571,23 @@ export function AdminCharts() {
                     Belum ada data metode pembayaran
                   </p>
                 )}
-              </CardContent>
-            </Card>
+              </div>
+            </div>
 
             {/* Role Distribution */}
-            <Card>
-              <CardHeader className="pb-3">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle className="text-base font-semibold">Distribusi Role</CardTitle>
-                    <CardDescription>
-                      {usersDetail ? `${usersDetail.totalUsers.toLocaleString("id-ID")} total pengguna` : "Semua pengguna"}
-                    </CardDescription>
-                  </div>
-                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-500/10">
-                    <Users className="h-4 w-4 text-blue-600" />
-                  </div>
+            <div className={cardCls}>
+              <div className="flex items-center justify-between border-b border-border/60 px-5 py-4">
+                <div>
+                  <p className="text-sm font-semibold">Distribusi Role</p>
+                  <p className="text-xs text-muted-foreground">
+                    {usersDetail ? `${usersDetail.totalUsers.toLocaleString("id-ID")} total pengguna` : "Semua pengguna"}
+                  </p>
                 </div>
-              </CardHeader>
-              <CardContent>
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-500/10">
+                  <Users className="h-4 w-4 text-blue-600" />
+                </div>
+              </div>
+              <div className="p-5">
                 {usersDetail && usersDetail.roleDistribution.length > 0 ? (
                   <div className="space-y-3">
                     {usersDetail.roleDistribution.map((r) => {
@@ -608,7 +597,6 @@ export function AdminCharts() {
                         <div key={r.role} className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
                             <Badge
-                              variant="outline"
                               className={roleBadgeColor[r.role] ?? ""}
                             >
                               {r.role}
@@ -629,8 +617,8 @@ export function AdminCharts() {
                     Belum ada data role
                   </p>
                 )}
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           </div>
         </>
       )}

@@ -14,8 +14,9 @@ import {
     Trash2,
 } from "lucide-react";
 import { Button } from "@/shared/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { cn } from "@/shared/lib/utils";
+
+const cardCls = "rounded-2xl bg-card shadow-[0_2px_8px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.05]";
 
 interface WaSubscription {
     id: string;
@@ -137,11 +138,11 @@ export function WhatsappSettingsContent() {
 
             {/* Phone Input */}
             {!subscription && (
-                <Card className="border-0 shadow-sm">
-                    <CardHeader className="pb-3">
-                        <CardTitle className="text-base">Aktifkan Notifikasi</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
+                <div className={cardCls}>
+                    <div className="px-6 pt-6 pb-2">
+                        <h3 className="text-lg font-semibold tracking-tight">Aktifkan Notifikasi</h3>
+                    </div>
+                    <div className="space-y-4 p-6 pt-2">
                         <div className="relative">
                             <Phone className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                             <input
@@ -159,15 +160,15 @@ export function WhatsappSettingsContent() {
                             {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
                             Aktifkan Notifikasi WhatsApp
                         </Button>
-                    </CardContent>
-                </Card>
+                    </div>
+                </div>
             )}
 
             {/* Settings (when active) */}
             {subscription && (
                 <>
-                    <Card className="border-2 border-green-200/60 bg-green-50/30 shadow-sm dark:border-green-800/30 dark:bg-green-950/10">
-                        <CardContent className="p-4">
+                    <div className="rounded-2xl border-2 border-green-200/60 bg-green-50/30 dark:border-green-800/30 dark:bg-green-950/10">
+                        <div className="p-4">
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-3">
                                     <Check className="h-5 w-5 text-green-600" />
@@ -182,17 +183,17 @@ export function WhatsappSettingsContent() {
                                     {deleting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
                                 </Button>
                             </div>
-                        </CardContent>
-                    </Card>
+                        </div>
+                    </div>
 
-                    <Card className="border-0 shadow-sm">
-                        <CardHeader className="pb-3">
-                            <CardTitle className="flex items-center gap-2 text-base">
+                    <div className={cardCls}>
+                        <div className="px-6 pt-6 pb-2">
+                            <h3 className="flex items-center gap-2 text-lg font-semibold tracking-tight">
                                 <Bell className="h-5 w-5" />
                                 Preferensi Notifikasi
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-1">
+                            </h3>
+                        </div>
+                        <div className="space-y-1 p-6 pt-2">
                             {[
                                 { key: "remindSchedule" as const, icon: Calendar, label: "Pengingat Jadwal Belajar", desc: "Notifikasi untuk study planner" },
                                 { key: "remindResult" as const, icon: Trophy, label: "Hasil Tryout", desc: "Notifikasi saat hasil ujian keluar" },
@@ -221,8 +222,8 @@ export function WhatsappSettingsContent() {
                                     </div>
                                 </button>
                             ))}
-                        </CardContent>
-                    </Card>
+                        </div>
+                    </div>
                 </>
             )}
         </div>

@@ -6,7 +6,6 @@ import { Loader2, Wallet, ArrowUpRight, Clock, CheckCircle2 } from "lucide-react
 import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { Badge } from "@/shared/components/ui/badge";
 import { formatCurrency, truncate } from "@/shared/lib/utils";
 
@@ -47,6 +46,8 @@ const payoutStatusLabel: Record<string, string> = {
   PENDING: "Menunggu",
   REJECTED: "Ditolak",
 };
+
+const cardCls = "rounded-2xl bg-card shadow-[0_2px_8px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.05]";
 
 export const dynamic = "force-dynamic";
 
@@ -129,66 +130,66 @@ export default function TeacherEarningsPage() {
 
       {/* Stats */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
+        <div className={cardCls}>
+          <div className="flex flex-row items-center justify-between px-6 pt-6 pb-2">
+            <p className="text-sm font-medium text-muted-foreground">
               Total Penghasilan
-            </CardTitle>
+            </p>
             <Wallet className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
+          </div>
+          <div className="p-6">
             <p className="text-2xl font-bold">
               {formatCurrency(data?.totalEarnings ?? 0)}
             </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
+          </div>
+        </div>
+        <div className={cardCls}>
+          <div className="flex flex-row items-center justify-between px-6 pt-6 pb-2">
+            <p className="text-sm font-medium text-muted-foreground">
               Sudah Dicairkan
-            </CardTitle>
+            </p>
             <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-          </CardHeader>
-          <CardContent>
+          </div>
+          <div className="p-6">
             <p className="text-2xl font-bold">
               {formatCurrency(data?.paidOut ?? 0)}
             </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
+          </div>
+        </div>
+        <div className={cardCls}>
+          <div className="flex flex-row items-center justify-between px-6 pt-6 pb-2">
+            <p className="text-sm font-medium text-muted-foreground">
               Proses Pencairan
-            </CardTitle>
+            </p>
             <Clock className="h-4 w-4 text-amber-500" />
-          </CardHeader>
-          <CardContent>
+          </div>
+          <div className="p-6">
             <p className="text-2xl font-bold">
               {formatCurrency(data?.pendingPayout ?? 0)}
             </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
+          </div>
+        </div>
+        <div className={cardCls}>
+          <div className="flex flex-row items-center justify-between px-6 pt-6 pb-2">
+            <p className="text-sm font-medium text-muted-foreground">
               Dapat Ditarik
-            </CardTitle>
+            </p>
             <ArrowUpRight className="h-4 w-4 text-primary" />
-          </CardHeader>
-          <CardContent>
+          </div>
+          <div className="p-6">
             <p className="text-2xl font-bold">
               {formatCurrency(data?.withdrawable ?? 0)}
             </p>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
 
       {/* Payout Request */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Tarik Dana</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
+      <div className={cardCls}>
+        <div className="px-6 pt-6 pb-2">
+          <h3 className="text-lg font-semibold tracking-tight">Tarik Dana</h3>
+        </div>
+        <div className="p-6 space-y-4">
           <p className="text-sm text-muted-foreground">
             Minimal penarikan Rp 100.000. Dana akan ditransfer ke rekening
             bank yang terdaftar di profil Anda.
@@ -215,16 +216,16 @@ export default function TeacherEarningsPage() {
               </Button>
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Payout History */}
       {payouts.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Riwayat Pencairan</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
+        <div className={cardCls}>
+          <div className="px-6 pt-6 pb-2">
+            <h3 className="text-lg font-semibold tracking-tight">Riwayat Pencairan</h3>
+          </div>
+          <div className="p-6 space-y-2">
             {payouts.map((p) => (
               <div
                 key={p.id}
@@ -248,17 +249,17 @@ export default function TeacherEarningsPage() {
                 </div>
               </div>
             ))}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       )}
 
       {/* Earnings Detail */}
       {data && data.earnings.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Detail Penghasilan</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
+        <div className={cardCls}>
+          <div className="px-6 pt-6 pb-2">
+            <h3 className="text-lg font-semibold tracking-tight">Detail Penghasilan</h3>
+          </div>
+          <div className="p-6 space-y-2">
             {data.earnings.map((e) => (
               <div
                 key={e.id}
@@ -277,8 +278,8 @@ export default function TeacherEarningsPage() {
                 </p>
               </div>
             ))}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       )}
     </div>
   );

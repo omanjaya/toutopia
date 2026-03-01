@@ -4,7 +4,6 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/shared/lib/prisma";
 import { auth } from "@/shared/lib/auth";
 import { StartExamButton } from "./start-exam-button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
 import {
@@ -20,7 +19,9 @@ import {
   ArrowRight,
   CheckCircle2,
 } from "lucide-react";
-import { formatCurrency } from "@/shared/lib/utils";
+import { formatCurrency, cn } from "@/shared/lib/utils";
+
+const cardCls = "rounded-2xl bg-card shadow-[0_2px_8px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.05]";
 
 export const dynamic = "force-dynamic";
 
@@ -101,35 +102,35 @@ export default async function TryOutDetailPage({
 
       {/* Info Grid — 5 cards */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-        <Card>
-          <CardContent className="flex items-center gap-3 pt-6">
+        <div className={cardCls}>
+          <div className="flex items-center gap-3 p-6">
             <FileText className="h-5 w-5 shrink-0 text-muted-foreground" />
             <div>
               <p className="text-2xl font-bold">{pkg.totalQuestions}</p>
               <p className="text-xs text-muted-foreground">Soal</p>
             </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="flex items-center gap-3 pt-6">
+          </div>
+        </div>
+        <div className={cardCls}>
+          <div className="flex items-center gap-3 p-6">
             <Clock className="h-5 w-5 shrink-0 text-muted-foreground" />
             <div>
               <p className="text-2xl font-bold">{pkg.durationMinutes}</p>
               <p className="text-xs text-muted-foreground">Menit</p>
             </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="flex items-center gap-3 pt-6">
+          </div>
+        </div>
+        <div className={cardCls}>
+          <div className="flex items-center gap-3 p-6">
             <RotateCcw className="h-5 w-5 shrink-0 text-muted-foreground" />
             <div>
               <p className="text-2xl font-bold">{pkg.maxAttempts}x</p>
               <p className="text-xs text-muted-foreground">Percobaan</p>
             </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="flex items-center gap-3 pt-6">
+          </div>
+        </div>
+        <div className={cardCls}>
+          <div className="flex items-center gap-3 p-6">
             <Shield className="h-5 w-5 shrink-0 text-muted-foreground" />
             <div>
               <p className="text-2xl font-bold">
@@ -137,10 +138,10 @@ export default async function TryOutDetailPage({
               </p>
               <p className="text-xs text-muted-foreground">Anti-Cheat</p>
             </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="flex items-center gap-3 pt-6">
+          </div>
+        </div>
+        <div className={cardCls}>
+          <div className="flex items-center gap-3 p-6">
             <ShoppingCart className="h-5 w-5 shrink-0 text-muted-foreground" />
             <div>
               <p className="text-lg font-bold leading-tight">
@@ -150,8 +151,8 @@ export default async function TryOutDetailPage({
               </p>
               <p className="text-xs text-muted-foreground">Harga</p>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
 
       {/* Passing score + participants */}
@@ -175,14 +176,15 @@ export default async function TryOutDetailPage({
 
       {/* User leaderboard rank */}
       {userId && (
-        <Card
-          className={
+        <div
+          className={cn(
+            cardCls,
             leaderboardEntry
-              ? "border-amber-500/30 bg-amber-500/5"
-              : "border-dashed"
-          }
+              ? "border border-amber-500/30 bg-amber-500/5"
+              : "border border-dashed"
+          )}
         >
-          <CardContent className="flex items-center justify-between pt-6">
+          <div className="flex items-center justify-between p-6">
             <div className="flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-full bg-amber-500/10">
                 <Trophy className="h-5 w-5 text-amber-500" />
@@ -209,14 +211,14 @@ export default async function TryOutDetailPage({
                 <ArrowRight className="ml-1 h-4 w-4" />
               </Link>
             </Button>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       )}
 
       {/* Buy button for paid packages where user hasn't started */}
       {showBuyButton && (
-        <Card className="border-primary/20 bg-primary/5">
-          <CardContent className="flex items-center justify-between pt-6">
+        <div className={`${cardCls} border border-primary/20 bg-primary/5`}>
+          <div className="flex items-center justify-between p-6">
             <div>
               <p className="font-semibold">Paket Berbayar</p>
               <p className="text-sm text-muted-foreground">
@@ -230,16 +232,16 @@ export default async function TryOutDetailPage({
                 {formatCurrency(pkg.discountPrice ?? pkg.price)}
               </Link>
             </Button>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       )}
 
       {/* Sections */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Struktur Ujian</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
+      <div className={cardCls}>
+        <div className="px-6 pt-6 pb-2">
+          <h3 className="text-lg font-semibold tracking-tight">Struktur Ujian</h3>
+        </div>
+        <div className="space-y-3 p-6 pt-2">
           {pkg.sections.map((section, idx) => (
             <div
               key={section.id}
@@ -259,16 +261,16 @@ export default async function TryOutDetailPage({
               </div>
             </div>
           ))}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Previous Attempts */}
       {userAttempts.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Riwayat Percobaan</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
+        <div className={cardCls}>
+          <div className="px-6 pt-6 pb-2">
+            <h3 className="text-lg font-semibold tracking-tight">Riwayat Percobaan</h3>
+          </div>
+          <div className="space-y-2 p-6 pt-2">
             {userAttempts.map((attempt, idx) => {
               const isCompleted = attempt.status === "COMPLETED";
               const row = (
@@ -312,8 +314,8 @@ export default async function TryOutDetailPage({
                 <div key={attempt.id}>{row}</div>
               );
             })}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       )}
 
       {/* Start / Continue button */}

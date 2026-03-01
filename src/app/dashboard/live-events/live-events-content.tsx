@@ -13,8 +13,9 @@ import {
     Zap,
 } from "lucide-react";
 import { Button } from "@/shared/components/ui/button";
-import { Card, CardContent } from "@/shared/components/ui/card";
 import { Badge } from "@/shared/components/ui/badge";
+
+const cardCls = "rounded-2xl bg-card shadow-[0_2px_8px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.05]";
 import { cn } from "@/shared/lib/utils";
 
 interface LiveEventPackage {
@@ -167,8 +168,8 @@ export function LiveEventsContent() {
                             : false;
 
                         return (
-                            <Card key={event.id} className="border-0 shadow-sm transition-shadow hover:shadow-md">
-                                <CardContent className="p-5">
+                            <div key={event.id} className={`${cardCls} transition-shadow hover:shadow-md`}>
+                                <div className="p-5">
                                     <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
                                         <div className="space-y-2 flex-1">
                                             <div className="flex items-center gap-2 flex-wrap">
@@ -231,8 +232,8 @@ export function LiveEventsContent() {
                                             </Button>
                                         )}
                                     </div>
-                                </CardContent>
-                            </Card>
+                                </div>
+                            </div>
                         );
                     })}
                 </div>

@@ -3,8 +3,9 @@ import Link from "next/link";
 import { prisma } from "@/shared/lib/prisma";
 import { auth } from "@/shared/lib/auth";
 import { redirect } from "next/navigation";
-import { Card, CardContent } from "@/shared/components/ui/card";
 import { Badge } from "@/shared/components/ui/badge";
+
+const cardCls = "rounded-2xl bg-card shadow-[0_2px_8px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.05]";
 import { Button } from "@/shared/components/ui/button";
 import {
   ArrowLeft,
@@ -98,8 +99,8 @@ export default async function MobilePaymentHistoryPage({
 
       <div className="px-4 pt-5">
         {/* Balance Card */}
-        <Card className="mb-5 border-0 bg-primary text-primary-foreground shadow-sm">
-          <CardContent className="flex items-center justify-between p-4">
+        <div className="mb-5 rounded-2xl bg-primary text-primary-foreground">
+          <div className="flex items-center justify-between p-4">
             <div>
               <p className="text-xs opacity-80">Saldo Kredit</p>
               <p className="text-2xl font-bold">{credit?.balance ?? 0}</p>
@@ -108,8 +109,8 @@ export default async function MobilePaymentHistoryPage({
             <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary-foreground/15">
               <Wallet className="h-6 w-6" />
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
         {/* Tab Toggle */}
         <div className="mb-4 flex gap-2 rounded-xl bg-muted p-1">
@@ -145,8 +146,8 @@ export default async function MobilePaymentHistoryPage({
                 {transactions.map((t) => {
                   const meta = t.metadata as Record<string, string> | null;
                   return (
-                    <Card key={t.id} className="border-0 shadow-sm">
-                      <CardContent className="flex items-center gap-3 p-4">
+                    <div key={t.id} className={cardCls}>
+                      <div className="flex items-center gap-3 p-4">
                         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-muted">
                           <CreditCard className="h-5 w-5 text-muted-foreground" />
                         </div>
@@ -178,8 +179,8 @@ export default async function MobilePaymentHistoryPage({
                         <p className="shrink-0 text-sm font-bold tabular-nums">
                           {formatCurrency(t.amount)}
                         </p>
-                      </CardContent>
-                    </Card>
+                      </div>
+                    </div>
                   );
                 })}
               </div>
@@ -252,8 +253,8 @@ export default async function MobilePaymentHistoryPage({
             {creditHistory.length > 0 ? (
               <div className="space-y-2">
                 {creditHistory.map((h) => (
-                  <Card key={h.id} className="border-0 shadow-sm">
-                    <CardContent className="flex items-center gap-3 p-4">
+                  <div key={h.id} className={cardCls}>
+                    <div className="flex items-center gap-3 p-4">
                       <div
                         className={cn(
                           "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl",
@@ -291,8 +292,8 @@ export default async function MobilePaymentHistoryPage({
                         {h.amount > 0 ? "+" : ""}
                         {h.amount} kredit
                       </span>
-                    </CardContent>
-                  </Card>
+                    </div>
+                  </div>
                 ))}
               </div>
             ) : (

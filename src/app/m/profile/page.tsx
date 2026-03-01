@@ -3,7 +3,6 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { auth, signOut } from "@/shared/lib/auth";
 import { prisma } from "@/shared/lib/prisma";
-import { Card, CardContent } from "@/shared/components/ui/card";
 import {
   History,
   Bookmark,
@@ -15,6 +14,8 @@ import {
   BookOpen,
   Coins,
 } from "lucide-react";
+
+const cardCls = "rounded-2xl bg-card shadow-[0_2px_8px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.05]";
 
 export const dynamic = "force-dynamic";
 
@@ -126,30 +127,28 @@ export default async function MobileProfilePage() {
       </div>
 
       {/* Menu Items */}
-      <Card className="border-0 shadow-sm">
-        <CardContent className="divide-y p-0">
-          <MenuItem
-            href="/m/dashboard/history"
-            icon={<History className="h-4 w-4" />}
-            label="Riwayat Ujian"
-          />
-          <MenuItem
-            href="/m/dashboard/bookmarks"
-            icon={<Bookmark className="h-4 w-4" />}
-            label="Bookmark"
-          />
-          <MenuItem
-            href="/m/profile/settings"
-            icon={<Settings className="h-4 w-4" />}
-            label="Pengaturan"
-          />
-          <MenuItem
-            href="/m/contact"
-            icon={<HelpCircle className="h-4 w-4" />}
-            label="Bantuan"
-          />
-        </CardContent>
-      </Card>
+      <div className={`${cardCls} divide-y`}>
+        <MenuItem
+          href="/m/dashboard/history"
+          icon={<History className="h-4 w-4" />}
+          label="Riwayat Ujian"
+        />
+        <MenuItem
+          href="/m/dashboard/bookmarks"
+          icon={<Bookmark className="h-4 w-4" />}
+          label="Bookmark"
+        />
+        <MenuItem
+          href="/m/profile/settings"
+          icon={<Settings className="h-4 w-4" />}
+          label="Pengaturan"
+        />
+        <MenuItem
+          href="/m/contact"
+          icon={<HelpCircle className="h-4 w-4" />}
+          label="Bantuan"
+        />
+      </div>
 
       {/* Logout */}
       <form

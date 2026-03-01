@@ -3,6 +3,7 @@ import { Inter, JetBrains_Mono, Noto_Sans_Arabic, Noto_Sans_Math } from "next/fo
 import { Toaster } from "@/shared/components/ui/sonner";
 import { TooltipProvider } from "@/shared/components/ui/tooltip";
 import { ThemeProvider } from "@/shared/components/providers/theme-provider";
+import { SessionProvider } from "next-auth/react";
 import { siteConfig } from "@/config/site.config";
 import "katex/dist/katex.min.css";
 import "./globals.css";
@@ -84,12 +85,14 @@ export default function RootLayout({
       <body
         className={`${inter.variable} ${jetbrainsMono.variable} ${notoArabic.variable} ${notoMath.variable} font-sans antialiased`}
       >
-        <ThemeProvider>
-          <TooltipProvider>
-            {children}
-            <Toaster richColors position="bottom-right" />
-          </TooltipProvider>
-        </ThemeProvider>
+        <SessionProvider>
+          <ThemeProvider>
+            <TooltipProvider>
+              {children}
+              <Toaster richColors position="bottom-right" />
+            </TooltipProvider>
+          </ThemeProvider>
+        </SessionProvider>
       </body>
     </html>
   );

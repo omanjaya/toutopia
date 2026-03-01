@@ -16,7 +16,6 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import { Button } from "@/shared/components/ui/button";
-import { Card, CardContent, CardHeader } from "@/shared/components/ui/card";
 import { Badge } from "@/shared/components/ui/badge";
 import { LazyMathRenderer as MathRenderer } from "@/shared/components/shared/lazy-math-renderer";
 import { cn } from "@/shared/lib/utils";
@@ -55,6 +54,8 @@ interface ChallengeData {
     longest: number;
   };
 }
+
+const cardCls = "rounded-2xl bg-card shadow-[0_2px_8px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.05]";
 
 export function MobileDailyChallengeContent() {
   const [data, setData] = useState<ChallengeData | null>(null);
@@ -200,35 +201,35 @@ export function MobileDailyChallengeContent() {
 
       {/* Streak Cards */}
       <div className="mb-5 grid grid-cols-2 gap-3">
-        <Card className="border-0 bg-gradient-to-br from-orange-50 to-amber-50 shadow-sm dark:from-orange-950/20 dark:to-amber-950/20">
-          <CardContent className="flex flex-col items-center p-4">
+        <div className="rounded-2xl bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-950/20 dark:to-amber-950/20">
+          <div className="flex flex-col items-center p-4">
             <Flame className="mb-1 h-6 w-6 text-orange-500" />
             <p className="text-3xl font-bold tabular-nums text-orange-600">
               {data.streak.current}
             </p>
             <p className="text-xs text-muted-foreground">Streak Saat Ini</p>
-          </CardContent>
-        </Card>
-        <Card className="border-0 bg-gradient-to-br from-purple-50 to-violet-50 shadow-sm dark:from-purple-950/20 dark:to-violet-950/20">
-          <CardContent className="flex flex-col items-center p-4">
+          </div>
+        </div>
+        <div className="rounded-2xl bg-gradient-to-br from-purple-50 to-violet-50 dark:from-purple-950/20 dark:to-violet-950/20">
+          <div className="flex flex-col items-center p-4">
             <Trophy className="mb-1 h-6 w-6 text-purple-500" />
             <p className="text-3xl font-bold tabular-nums text-purple-600">
               {data.streak.longest}
             </p>
             <p className="text-xs text-muted-foreground">Streak Terpanjang</p>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
 
       {/* Question Card */}
-      <Card className="border-0 shadow-md">
-        <CardHeader className="pb-3">
+      <div className={cardCls}>
+        <div className="px-5 pt-5 pb-2">
           <Badge variant="outline" className="w-fit text-xs">
             <Target className="mr-1 h-3 w-3" />
             {data.question.topic}
           </Badge>
-        </CardHeader>
-        <CardContent className="space-y-4">
+        </div>
+        <div className="p-5 space-y-4">
           {/* Question content */}
           <MathRenderer
             content={data.question.content}
@@ -371,8 +372,8 @@ export function MobileDailyChallengeContent() {
               />
             </div>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 }

@@ -34,10 +34,11 @@ import {
   ArrowRight,
 } from "lucide-react";
 import { Button } from "@/shared/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { Badge } from "@/shared/components/ui/badge";
 import { LazyMathRenderer as MathRenderer } from "@/shared/components/shared/lazy-math-renderer";
 import { cn } from "@/shared/lib/utils";
+
+const cardCls = "rounded-2xl bg-card shadow-[0_2px_8px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.05]";
 import { ScoreShare } from "@/shared/components/exam/score-share";
 import { ExportPdfButton } from "@/shared/components/exam/export-pdf-button";
 import { QuestionDiscussion } from "@/shared/components/exam/question-discussion";
@@ -363,34 +364,34 @@ export function ExamResult({ attemptId }: ExamResultProps) {
 
       {/* Quick Stats */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <Card className="border-0 bg-card shadow-sm">
-          <CardContent className="flex flex-col items-center p-4 text-center">
+        <div className={cardCls}>
+          <div className="flex flex-col items-center p-4 text-center">
             <CheckCircle2 className="mb-2 h-5 w-5 text-emerald-500" />
             <p className="text-2xl font-bold tabular-nums">{data.totalCorrect ?? 0}</p>
             <p className="text-xs text-muted-foreground">Benar</p>
-          </CardContent>
-        </Card>
-        <Card className="border-0 bg-card shadow-sm">
-          <CardContent className="flex flex-col items-center p-4 text-center">
+          </div>
+        </div>
+        <div className={cardCls}>
+          <div className="flex flex-col items-center p-4 text-center">
             <XCircle className="mb-2 h-5 w-5 text-destructive" />
             <p className="text-2xl font-bold tabular-nums">{data.totalIncorrect ?? 0}</p>
             <p className="text-xs text-muted-foreground">Salah</p>
-          </CardContent>
-        </Card>
-        <Card className="border-0 bg-card shadow-sm">
-          <CardContent className="flex flex-col items-center p-4 text-center">
+          </div>
+        </div>
+        <div className={cardCls}>
+          <div className="flex flex-col items-center p-4 text-center">
             <MinusCircle className="mb-2 h-5 w-5 text-muted-foreground" />
             <p className="text-2xl font-bold tabular-nums">{data.totalUnanswered ?? 0}</p>
             <p className="text-xs text-muted-foreground">Kosong</p>
-          </CardContent>
-        </Card>
-        <Card className="border-0 bg-card shadow-sm">
-          <CardContent className="flex flex-col items-center p-4 text-center">
+          </div>
+        </div>
+        <div className={cardCls}>
+          <div className="flex flex-col items-center p-4 text-center">
             <Clock className="mb-2 h-5 w-5 text-muted-foreground" />
             <p className="text-2xl font-bold tabular-nums">{duration ? `${duration}m` : "—"}</p>
             <p className="text-xs text-muted-foreground">Durasi</p>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
 
       {/* Violations warning */}
@@ -434,11 +435,11 @@ export function ExamResult({ attemptId }: ExamResultProps) {
       {activeTab === "summary" && (
         <div className="space-y-4">
           {/* Section Breakdown */}
-          <Card className="border-0 bg-card shadow-sm">
-            <CardHeader className="pb-4">
-              <CardTitle className="text-base font-semibold">Breakdown per Seksi</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
+          <div className={cardCls}>
+            <div className="px-6 pt-6 pb-4">
+              <h3 className="text-base font-semibold tracking-tight">Breakdown per Seksi</h3>
+            </div>
+            <div className="space-y-2 p-6 pt-0">
               {data.sections.map((section) => {
                 const pct = section.total > 0 ? Math.round((section.correct / section.total) * 100) : 0;
                 const isExpanded = expandedSections.has(section.id);
@@ -503,21 +504,21 @@ export function ExamResult({ attemptId }: ExamResultProps) {
                   </div>
                 );
               })}
-            </CardContent>
-          </Card>
+            </div>
+          </div>
 
           {/* Comparison Section */}
           {comparison && comparison.sectionComparison.length > 0 && (
-            <Card className="border-0 bg-card shadow-sm">
-              <CardHeader className="pb-4">
-                <CardTitle className="text-base font-semibold">
+            <div className={cardCls}>
+              <div className="px-6 pt-6 pb-4">
+                <h3 className="text-base font-semibold tracking-tight">
                   Perbandingan dengan Peserta Lain
-                </CardTitle>
-                <p className="text-sm text-muted-foreground">
+                </h3>
+                <p className="mt-1 text-sm text-muted-foreground">
                   Berdasarkan {comparison.totalParticipants} peserta
                 </p>
-              </CardHeader>
-              <CardContent>
+              </div>
+              <div className="p-6 pt-0">
                 <div className="h-64">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={comparison.sectionComparison}>
@@ -564,8 +565,8 @@ export function ExamResult({ attemptId }: ExamResultProps) {
                     </div>
                   ))}
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           )}
 
           {/* Analytics link */}
@@ -625,11 +626,11 @@ export function ExamResult({ attemptId }: ExamResultProps) {
             if (filteredQuestions.length === 0) return null;
 
             return (
-              <Card key={section.id} className="border-0 bg-card shadow-sm">
-                <CardHeader className="pb-4">
+              <div key={section.id} className={cardCls}>
+                <div className="px-6 pt-6 pb-4">
                   <div className="flex items-start justify-between">
                     <div>
-                      <CardTitle className="text-base font-semibold">{section.title}</CardTitle>
+                      <h3 className="text-base font-semibold tracking-tight">{section.title}</h3>
                       <p className="mt-1 text-sm text-muted-foreground">
                         {section.subjectName} · {section.correct}/{section.total} benar
                         {reviewFilter !== "all" && (
@@ -643,8 +644,8 @@ export function ExamResult({ attemptId }: ExamResultProps) {
                       {section.total > 0 ? Math.round((section.correct / section.total) * 100) : 0}%
                     </Badge>
                   </div>
-                </CardHeader>
-                <CardContent className="space-y-4">
+                </div>
+                <div className="space-y-4 p-6 pt-0">
                   {filteredQuestions.map((q, qIdx) => (
                     <div
                       key={q.id}
@@ -764,8 +765,8 @@ export function ExamResult({ attemptId }: ExamResultProps) {
                       <QuestionDiscussion questionId={q.id} />
                     </div>
                   ))}
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             );
           })}
 

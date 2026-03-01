@@ -47,7 +47,19 @@ export async function POST(request: NextRequest) {
     }
 
     const buffer = Buffer.from(await file.arrayBuffer());
-    const url = await uploadFile(buffer, file.type);
+
+    let url: string;
+    try {
+      url = await uploadFile(buffer, file.type, "avatars");
+    } catch (uploadError) {
+      const msg = uploadError instanceof Error ? uploadError.message : String(uploadError);
+      const stack = uploadError instanceof Error ? uploadError.stack : "";
+      console.error("[upload] uploadFile failed:", msg || "(empty)", stack?.split("\n")[1] ?? "");
+      if (msg.includes("ECONNREFUSED") || msg.includes("connect")) {
+        return errorResponse("STORAGE_UNAVAILABLE", "Storage service tidak tersedia.", 503);
+      }
+      return errorResponse("UPLOAD_FAILED", `Upload gagal: ${msg}`, 500);
+    }
 
     return successResponse({ url });
   } catch (error) {

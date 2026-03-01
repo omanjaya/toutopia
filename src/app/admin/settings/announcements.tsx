@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
@@ -32,6 +31,16 @@ const typeLabels: Record<string, string> = {
   success: "Sukses",
   promo: "Promo",
 };
+
+const typeBadgeCls: Record<string, string> = {
+  info: "bg-blue-500/10 text-blue-700 border-blue-200",
+  warning: "bg-amber-500/10 text-amber-700 border-amber-200",
+  success: "bg-emerald-500/10 text-emerald-700 border-emerald-200",
+  promo: "bg-violet-500/10 text-violet-700 border-violet-200",
+};
+
+const cardCls =
+  "rounded-2xl bg-card shadow-[0_2px_8px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.05]";
 
 export function AnnouncementSettings() {
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
@@ -104,18 +113,26 @@ export function AnnouncementSettings() {
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Megaphone className="h-5 w-5" />
-          Announcement Banner
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        {/* Create form */}
-        <div className="space-y-3 rounded-lg border p-4">
-          <div className="space-y-2">
-            <Label>Pesan</Label>
+    <div className="space-y-4">
+      {/* Section header */}
+      <div className="flex items-center gap-2">
+        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+          <Megaphone className="h-4 w-4 text-primary" />
+        </div>
+        <div>
+          <p className="text-sm font-semibold">Announcement Banner</p>
+          <p className="text-xs text-muted-foreground">Tampilkan pengumuman di halaman utama</p>
+        </div>
+      </div>
+
+      {/* Create form card */}
+      <div className={`${cardCls} p-5`}>
+        <p className="mb-4 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          Buat Announcement Baru
+        </p>
+        <div className="space-y-3">
+          <div className="space-y-1.5">
+            <Label className="text-xs font-medium">Pesan</Label>
             <Input
               placeholder="Tulis pesan announcement..."
               value={message}
@@ -123,8 +140,8 @@ export function AnnouncementSettings() {
             />
           </div>
           <div className="grid gap-3 sm:grid-cols-3">
-            <div className="space-y-2">
-              <Label>Tipe</Label>
+            <div className="space-y-1.5">
+              <Label className="text-xs font-medium">Tipe</Label>
               <Select value={type} onValueChange={setType}>
                 <SelectTrigger>
                   <SelectValue />
@@ -137,16 +154,16 @@ export function AnnouncementSettings() {
                 </SelectContent>
               </Select>
             </div>
-            <div className="space-y-2">
-              <Label>Link URL (opsional)</Label>
+            <div className="space-y-1.5">
+              <Label className="text-xs font-medium">Link URL (opsional)</Label>
               <Input
                 placeholder="https://..."
                 value={linkUrl}
                 onChange={(e) => setLinkUrl(e.target.value)}
               />
             </div>
-            <div className="space-y-2">
-              <Label>Link Text (opsional)</Label>
+            <div className="space-y-1.5">
+              <Label className="text-xs font-medium">Link Text (opsional)</Label>
               <Input
                 placeholder="Lihat detail"
                 value={linkText}
@@ -154,31 +171,73 @@ export function AnnouncementSettings() {
               />
             </div>
           </div>
-          <Button onClick={handleCreate} disabled={creating || !message.trim()}>
-            {creating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Plus className="mr-2 h-4 w-4" />}
+          <Button
+            size="sm"
+            onClick={handleCreate}
+            disabled={creating || !message.trim()}
+          >
+            {creating ? (
+              <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+            ) : (
+              <Plus className="mr-1.5 h-3.5 w-3.5" />
+            )}
             Buat Announcement
           </Button>
         </div>
+      </div>
 
-        {/* List */}
+      {/* Announcement list */}
+      <div className={cardCls}>
         {loading ? (
-          <p className="text-sm text-muted-foreground">Memuat...</p>
+          <div className="divide-y">
+            {[1, 2].map((i) => (
+              <div key={i} className="flex items-center gap-3 p-4">
+                <div className="flex-1 space-y-1.5">
+                  <div className="h-4 w-3/4 animate-pulse rounded bg-muted" />
+                  <div className="flex gap-2">
+                    <div className="h-5 w-14 animate-pulse rounded bg-muted" />
+                    <div className="h-5 w-14 animate-pulse rounded bg-muted" />
+                  </div>
+                </div>
+                <div className="h-8 w-24 animate-pulse rounded bg-muted" />
+                <div className="h-8 w-8 animate-pulse rounded bg-muted" />
+              </div>
+            ))}
+          </div>
         ) : announcements.length === 0 ? (
-          <p className="text-sm text-muted-foreground">Belum ada announcement.</p>
+          <div className="flex flex-col items-center gap-3 py-12 text-center">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-muted">
+              <Megaphone className="h-6 w-6 text-muted-foreground/40" />
+            </div>
+            <p className="text-sm font-medium text-muted-foreground">Belum ada announcement</p>
+            <p className="text-xs text-muted-foreground/60">
+              Buat announcement untuk ditampilkan kepada pengguna
+            </p>
+          </div>
         ) : (
-          <div className="space-y-2">
+          <div className="divide-y">
             {announcements.map((a) => (
               <div
                 key={a.id}
-                className="flex items-center gap-3 rounded-lg border p-3"
+                className="flex items-center gap-3 p-4 transition-colors hover:bg-muted/30"
               >
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm truncate">{a.message}</p>
-                  <div className="flex items-center gap-2 mt-1">
-                    <Badge variant="outline" className="text-xs">
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm">{a.message}</p>
+                  <div className="mt-1.5 flex items-center gap-2">
+                    <Badge
+                      variant="outline"
+                      className={`text-[10px] px-1.5 py-0 leading-5 ${typeBadgeCls[a.type] ?? ""}`}
+                    >
                       {typeLabels[a.type] ?? a.type}
                     </Badge>
-                    <Badge variant={a.isActive ? "default" : "secondary"} className="text-xs">
+                    <Badge
+                      variant="outline"
+                      className={`text-[10px] px-1.5 py-0 leading-5 ${
+                        a.isActive
+                          ? "bg-emerald-500/10 text-emerald-700 border-emerald-200"
+                          : "text-muted-foreground"
+                      }`}
+                    >
                       {a.isActive ? "Aktif" : "Nonaktif"}
                     </Badge>
                   </div>
@@ -186,6 +245,7 @@ export function AnnouncementSettings() {
                 <Button
                   variant="outline"
                   size="sm"
+                  className="shrink-0 text-xs"
                   onClick={() => handleToggle(a.id, a.isActive)}
                 >
                   {a.isActive ? "Nonaktifkan" : "Aktifkan"}
@@ -193,7 +253,7 @@ export function AnnouncementSettings() {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="text-destructive"
+                  className="h-8 w-8 shrink-0 text-muted-foreground hover:text-destructive"
                   onClick={() => handleDelete(a.id)}
                 >
                   <Trash2 className="h-4 w-4" />
@@ -202,7 +262,7 @@ export function AnnouncementSettings() {
             ))}
           </div>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

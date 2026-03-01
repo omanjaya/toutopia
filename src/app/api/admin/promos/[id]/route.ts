@@ -1,4 +1,5 @@
 import { NextRequest } from "next/server";
+import { z } from "zod";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/shared/lib/prisma";
 import { requireAdmin } from "@/shared/lib/auth-guard";
@@ -76,6 +77,30 @@ export async function PUT(
     ) {
       return errorResponse("DUPLICATE_CODE", "Kode promo sudah digunakan", 409);
     }
+    return handleApiError(error);
+  }
+}
+
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+): Promise<Response> {
+  try {
+    await requireAdmin();
+    const { id } = await params;
+    const body = await request.json();
+    const data = z.object({ isActive: z.boolean() }).parse(body);
+
+    const existing = await prisma.promoCode.findUnique({ where: { id } });
+    if (!existing) return notFoundResponse("Promo code");
+
+    const promo = await prisma.promoCode.update({
+      where: { id },
+      data: { isActive: data.isActive },
+    });
+
+    return successResponse(promo);
+  } catch (error) {
     return handleApiError(error);
   }
 }

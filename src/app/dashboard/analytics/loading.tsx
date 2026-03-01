@@ -1,4 +1,4 @@
-import { Card, CardContent, CardHeader } from "@/shared/components/ui/card";
+const cardCls = "rounded-2xl bg-card shadow-[0_2px_8px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.05]";
 
 function Skeleton({ className }: { className?: string }) {
   return <div className={`animate-pulse rounded-md bg-muted ${className ?? ""}`} />;
@@ -13,24 +13,24 @@ export default function AnalyticsLoading() {
       </div>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {Array.from({ length: 4 }).map((_, i) => (
-          <Card key={i}>
-            <CardHeader className="pb-2">
+          <div key={i} className={cardCls}>
+            <div className="px-6 pt-6 pb-2">
               <Skeleton className="h-4 w-24" />
-            </CardHeader>
-            <CardContent>
+            </div>
+            <div className="p-6 pt-2">
               <Skeleton className="h-8 w-16" />
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         ))}
       </div>
-      <Card>
-        <CardHeader>
+      <div className={cardCls}>
+        <div className="px-6 pt-6 pb-2">
           <Skeleton className="h-6 w-28" />
-        </CardHeader>
-        <CardContent>
+        </div>
+        <div className="p-6 pt-2">
           <Skeleton className="h-72 w-full" />
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 }

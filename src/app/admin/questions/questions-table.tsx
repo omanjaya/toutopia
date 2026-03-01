@@ -169,7 +169,7 @@ export function QuestionsTable({ questions, hasActiveFilter = false }: Questions
 
   return (
     <>
-      <div className="rounded-lg border">
+      <div className="rounded-2xl bg-card shadow-[0_2px_8px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.05] overflow-hidden">
         <Table>
           <TableHeader>
             <TableRow>

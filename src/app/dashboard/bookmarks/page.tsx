@@ -5,7 +5,6 @@ import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { auth } from "@/shared/lib/auth";
 import { prisma } from "@/shared/lib/prisma";
-import { Card, CardContent } from "@/shared/components/ui/card";
 import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
 import { Bookmark, ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
@@ -17,6 +16,8 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Bookmark Soal",
 };
+
+const cardCls = "rounded-2xl bg-card shadow-[0_2px_8px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.05]";
 
 const PAGE_SIZE = 12;
 
@@ -124,15 +125,15 @@ export default async function BookmarksPage({ searchParams }: PageProps) {
           </p>
         </div>
         {grandTotal > 0 && (
-          <Badge variant="secondary" className="text-sm">
+          <Badge className="bg-muted text-foreground text-sm">
             {grandTotal} soal
           </Badge>
         )}
       </div>
 
       {grandTotal === 0 ? (
-        <Card className="border-dashed">
-          <CardContent className="flex flex-col items-center py-16 text-center">
+        <div className={`${cardCls} border-dashed`}>
+          <div className="flex flex-col items-center py-16 text-center p-6">
             <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-muted">
               <Bookmark className="h-8 w-8 text-muted-foreground/50" />
             </div>
@@ -146,8 +147,8 @@ export default async function BookmarksPage({ searchParams }: PageProps) {
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       ) : (
         <>
           {/* Filters — needs Suspense because it uses useSearchParams inside */}
@@ -163,11 +164,11 @@ export default async function BookmarksPage({ searchParams }: PageProps) {
 
           {/* Bookmark list */}
           {serialized.length === 0 ? (
-            <Card className="border-dashed">
-              <CardContent className="py-12 text-center text-muted-foreground">
+            <div className={cardCls}>
+              <div className="py-12 text-center text-muted-foreground p-6">
                 Tidak ada soal yang cocok dengan filter ini.
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           ) : (
             <div className="space-y-3">
               {serialized.map((bm) => (

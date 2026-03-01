@@ -11,7 +11,6 @@ import {
   CheckCircle2,
   XCircle,
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import {
   PieChart,
   Pie,
@@ -19,6 +18,8 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { cn } from "@/shared/lib/utils";
+
+const cardCls = "rounded-2xl bg-card shadow-[0_2px_8px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.05]";
 
 interface TopicData {
   id: string;
@@ -130,15 +131,15 @@ export default function SubjectMastery() {
 
   if (data.subjects.length === 0) {
     return (
-      <Card>
-        <CardContent className="py-12 text-center">
+      <div className={cardCls}>
+        <div className="p-6 py-12 text-center">
           <BookOpen className="mx-auto h-12 w-12 text-muted-foreground/40" />
           <h3 className="mt-4 text-lg font-medium">Belum ada data</h3>
           <p className="mt-1 text-sm text-muted-foreground">
             Selesaikan minimal 1 ujian untuk melihat penguasaan materi
           </p>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     );
   }
 
@@ -159,14 +160,14 @@ export default function SubjectMastery() {
   return (
     <div className="space-y-6">
       {/* Overall Mastery */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+      <div className={cardCls}>
+        <div className="px-6 pt-6 pb-2">
+          <h3 className="text-lg font-semibold tracking-tight flex items-center gap-2">
             <BookOpen className="h-5 w-5" />
             Penguasaan Keseluruhan
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
+          </h3>
+        </div>
+        <div className="p-6 pt-2">
           <div className="flex flex-col items-center gap-4 sm:flex-row sm:gap-8">
             <div className="relative h-40 w-40">
               <ResponsiveContainer width="100%" height="100%">
@@ -207,8 +208,8 @@ export default function SubjectMastery() {
               </p>
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Sort Controls */}
       <div className="flex items-center gap-2">
@@ -242,8 +243,8 @@ export default function SubjectMastery() {
           const isExpanded = expandedSubjects.has(subject.id);
 
           return (
-            <Card key={subject.id} className="overflow-hidden">
-              <CardContent className="p-4">
+            <div key={subject.id} className={`${cardCls} overflow-hidden`}>
+              <div className="p-4">
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
@@ -319,8 +320,8 @@ export default function SubjectMastery() {
                     )}
                   </>
                 )}
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           );
         })}
       </div>

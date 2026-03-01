@@ -11,10 +11,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/shared/components/ui/select";
-import { Card, CardContent } from "@/shared/components/ui/card";
 import { Label } from "@/shared/components/ui/label";
 import { cn } from "@/shared/lib/utils";
 import { PracticeSession } from "./practice-session";
+
+const cardCls = "rounded-2xl bg-card shadow-[0_2px_8px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.05]";
 
 interface Topic {
   id: string;
@@ -171,8 +172,8 @@ export function PracticeSetup({ categories }: PracticeSetupProps): React.JSX.Ele
   }
 
   return (
-    <Card>
-      <CardContent className="space-y-6 pt-6">
+    <div className={cardCls}>
+      <div className="space-y-6 p-6">
         {/* Category */}
         <div className="space-y-2">
           <Label>Kategori Ujian</Label>
@@ -302,7 +303,7 @@ export function PracticeSetup({ categories }: PracticeSetupProps): React.JSX.Ele
           )}
           Mulai Latihan
         </Button>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

@@ -16,7 +16,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/shared/components/ui/select";
-import { Card, CardContent } from "@/shared/components/ui/card";
 import { cn } from "@/shared/lib/utils";
 import {
   teacherApplicationSchema,
@@ -48,6 +47,8 @@ const specializationOptions = [
   "Penalaran Umum",
   "Pengetahuan Kuantitatif",
 ];
+
+const cardCls = "rounded-2xl bg-card shadow-[0_2px_8px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.05]";
 
 export function MobileTeacherApplicationForm(): React.ReactElement {
   const router = useRouter();
@@ -106,8 +107,8 @@ export function MobileTeacherApplicationForm(): React.ReactElement {
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       {/* Personal Info */}
-      <Card className="border-0 shadow-sm">
-        <CardContent className="p-4 space-y-4">
+      <div className={cardCls}>
+        <div className="p-4 space-y-4">
           <p className="text-sm font-semibold">Informasi Pribadi</p>
 
           <div className="space-y-2">
@@ -180,12 +181,12 @@ export function MobileTeacherApplicationForm(): React.ReactElement {
               <p className="text-xs text-destructive">{errors.bio.message}</p>
             )}
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Bank Info */}
-      <Card className="border-0 shadow-sm">
-        <CardContent className="p-4 space-y-4">
+      <div className={cardCls}>
+        <div className="p-4 space-y-4">
           <p className="text-sm font-semibold">Informasi Rekening</p>
           <p className="text-xs text-muted-foreground">
             Digunakan untuk transfer penghasilan dari kontribusi soal.
@@ -232,8 +233,8 @@ export function MobileTeacherApplicationForm(): React.ReactElement {
               </p>
             )}
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       <Button
         type="submit"

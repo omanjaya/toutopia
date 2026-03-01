@@ -3,7 +3,6 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/shared/lib/prisma";
 import { auth } from "@/shared/lib/auth";
 import { TeacherApplicationForm } from "./teacher-application-form";
-import { Card, CardContent } from "@/shared/components/ui/card";
 import { Badge } from "@/shared/components/ui/badge";
 import { Clock } from "lucide-react";
 
@@ -12,6 +11,8 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Daftar Pengajar",
 };
+
+const cardCls = "rounded-2xl bg-card shadow-[0_2px_8px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.05]";
 
 export default async function BecomeTeacherPage() {
   const session = await auth();
@@ -35,8 +36,8 @@ export default async function BecomeTeacherPage() {
             Pendaftaran Pengajar
           </h2>
         </div>
-        <Card>
-          <CardContent className="flex items-center gap-4 pt-6">
+        <div className={cardCls}>
+          <div className="flex items-center gap-4 p-6">
             <Clock className="h-8 w-8 text-amber-500" />
             <div>
               <p className="font-semibold">Pengajuan Sedang Diproses</p>
@@ -48,8 +49,8 @@ export default async function BecomeTeacherPage() {
                 Menunggu Verifikasi
               </Badge>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
     );
   }

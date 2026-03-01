@@ -22,7 +22,6 @@ import {
     Headphones,
 } from "lucide-react";
 import { Button } from "@/shared/components/ui/button";
-import { Card, CardContent } from "@/shared/components/ui/card";
 import { Badge } from "@/shared/components/ui/badge";
 import { useGSAPAnimation } from "@/shared/hooks/use-gsap-animation";
 
@@ -272,17 +271,15 @@ export function HomeContent() {
                                     onMouseEnter={(e) => animateHoverEnter(e.currentTarget)}
                                     onMouseLeave={(e) => animateHoverLeave(e.currentTarget)}
                                 >
-                                    <Card className="h-full border-0 bg-card/60 shadow-sm backdrop-blur-xl transition-all hover:shadow-md">
-                                        <CardContent className="flex flex-col items-start p-8">
-                                            <div className={`mb-6 inline-flex rounded-2xl p-3 ${category.bg}`}>
-                                                <category.icon className={`h-6 w-6 ${category.color}`} />
-                                            </div>
-                                            <h3 className="text-xl font-semibold tracking-tight transition-colors group-hover:text-primary">
-                                                {category.title}
-                                            </h3>
-                                            <p className="mt-2 text-muted-foreground">{category.description}</p>
-                                        </CardContent>
-                                    </Card>
+                                    <div className="flex h-full flex-col items-start rounded-2xl bg-card/60 p-8 shadow-sm ring-1 ring-black/[0.05] backdrop-blur-xl transition-all hover:shadow-md">
+                                        <div className={`mb-6 inline-flex rounded-2xl p-3 ${category.bg}`}>
+                                            <category.icon className={`h-6 w-6 ${category.color}`} />
+                                        </div>
+                                        <h3 className="text-xl font-semibold tracking-tight transition-colors group-hover:text-primary">
+                                            {category.title}
+                                        </h3>
+                                        <p className="mt-2 text-muted-foreground">{category.description}</p>
+                                    </div>
                                 </Link>
                             </div>
                         ))}
@@ -352,34 +349,29 @@ export function HomeContent() {
 
                     <div className="mx-auto mt-16 grid max-w-xl grid-cols-1 gap-8 lg:max-w-none lg:grid-cols-3">
                         {testimonials.map((testimonial) => (
-                            <Card
+                            <div
                                 key={testimonial.name}
-                                className="feature-item border-0 bg-card shadow-sm"
+                                className="feature-item flex flex-col rounded-2xl bg-card p-8 shadow-sm ring-1 ring-black/[0.05]"
                             >
-                                <CardContent className="flex flex-col p-8">
-                                    <Quote className="mb-4 h-8 w-8 text-primary/20" />
-                                    <p className="flex-1 text-base leading-7 text-muted-foreground">
-                                        {testimonial.content}
-                                    </p>
-                                    <hr className="my-6 border-border/60" />
-                                    <div className="flex items-center justify-between">
-                                        <div>
-                                            <p className="font-semibold text-foreground">
-                                                {testimonial.name}
-                                            </p>
-                                            <p className="text-sm text-muted-foreground">
-                                                {testimonial.role}
-                                            </p>
-                                        </div>
-                                        <Badge
-                                            variant="secondary"
-                                            className="shrink-0 text-xs font-medium"
-                                        >
-                                            {testimonial.score}
-                                        </Badge>
+                                <Quote className="mb-4 h-8 w-8 text-primary/20" />
+                                <p className="flex-1 text-base leading-7 text-muted-foreground">
+                                    {testimonial.content}
+                                </p>
+                                <hr className="my-6 border-border/60" />
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <p className="font-semibold text-foreground">
+                                            {testimonial.name}
+                                        </p>
+                                        <p className="text-sm text-muted-foreground">
+                                            {testimonial.role}
+                                        </p>
                                     </div>
-                                </CardContent>
-                            </Card>
+                                    <Badge className="shrink-0 bg-muted text-foreground text-xs font-medium hover:bg-muted">
+                                        {testimonial.score}
+                                    </Badge>
+                                </div>
+                            </div>
                         ))}
                     </div>
                 </div>

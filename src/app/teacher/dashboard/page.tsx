@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { prisma } from "@/shared/lib/prisma";
 import { auth } from "@/shared/lib/auth";
 import { redirect } from "next/navigation";
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { FileText, CheckCircle2, Clock, Wallet } from "lucide-react";
 import { formatCurrency } from "@/shared/lib/utils";
 
@@ -11,6 +10,8 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Dashboard Pengajar",
 };
+
+const cardCls = "rounded-2xl bg-card shadow-[0_2px_8px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.05]";
 
 export default async function TeacherDashboardPage() {
   const session = await auth();
@@ -45,52 +46,52 @@ export default async function TeacherDashboardPage() {
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
+        <div className={cardCls}>
+          <div className="flex flex-row items-center justify-between px-6 pt-6 pb-2">
+            <p className="text-sm font-medium text-muted-foreground">
               Total Soal
-            </CardTitle>
+            </p>
             <FileText className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
+          </div>
+          <div className="p-6">
             <p className="text-2xl font-bold">{totalQuestions}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
+          </div>
+        </div>
+        <div className={cardCls}>
+          <div className="flex flex-row items-center justify-between px-6 pt-6 pb-2">
+            <p className="text-sm font-medium text-muted-foreground">
               Disetujui
-            </CardTitle>
+            </p>
             <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-          </CardHeader>
-          <CardContent>
+          </div>
+          <div className="p-6">
             <p className="text-2xl font-bold">{approvedQuestions}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
+          </div>
+        </div>
+        <div className={cardCls}>
+          <div className="flex flex-row items-center justify-between px-6 pt-6 pb-2">
+            <p className="text-sm font-medium text-muted-foreground">
               Menunggu Review
-            </CardTitle>
+            </p>
             <Clock className="h-4 w-4 text-amber-500" />
-          </CardHeader>
-          <CardContent>
+          </div>
+          <div className="p-6">
             <p className="text-2xl font-bold">{pendingQuestions}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
+          </div>
+        </div>
+        <div className={cardCls}>
+          <div className="flex flex-row items-center justify-between px-6 pt-6 pb-2">
+            <p className="text-sm font-medium text-muted-foreground">
               Total Penghasilan
-            </CardTitle>
+            </p>
             <Wallet className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
+          </div>
+          <div className="p-6">
             <p className="text-2xl font-bold">
               {formatCurrency(profile.totalEarnings)}
             </p>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
     </div>
   );

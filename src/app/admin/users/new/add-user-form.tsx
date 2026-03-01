@@ -18,13 +18,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/shared/components/ui/select";
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/shared/components/ui/card";
+
+const cardCls = "rounded-2xl bg-card shadow-[0_2px_8px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.05]";
 
 const addUserSchema = z.object({
   name: z.string().min(2, "Nama minimal 2 karakter"),
@@ -85,15 +80,15 @@ export function AddUserForm() {
   }
 
   return (
-    <Card className="max-w-2xl">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <UserPlus className="h-5 w-5" />
-          Data Pengguna Baru
-        </CardTitle>
-      </CardHeader>
+    <div className={`${cardCls} max-w-2xl`}>
+      <div className="flex items-center gap-2 border-b border-border/60 px-5 py-4">
+        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+          <UserPlus className="h-3.5 w-3.5 text-primary" />
+        </div>
+        <p className="text-sm font-semibold">Data Pengguna Baru</p>
+      </div>
       <form onSubmit={handleSubmit(onSubmit)}>
-        <CardContent className="space-y-6">
+        <div className="space-y-6 p-5">
           {/* Name */}
           <div className="space-y-2">
             <Label htmlFor="name">
@@ -220,9 +215,9 @@ export function AddUserForm() {
               Jumlah kredit gratis yang diberikan saat akun dibuat
             </p>
           </div>
-        </CardContent>
+        </div>
 
-        <CardFooter className="flex justify-between border-t pt-6">
+        <div className="flex justify-between border-t border-border/60 px-5 py-4">
           <Button variant="outline" type="button" asChild>
             <Link href="/admin/users">
               <ArrowLeft className="mr-2 h-4 w-4" />
@@ -242,8 +237,8 @@ export function AddUserForm() {
               </>
             )}
           </Button>
-        </CardFooter>
+        </div>
       </form>
-    </Card>
+    </div>
   );
 }

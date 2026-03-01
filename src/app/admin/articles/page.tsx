@@ -3,7 +3,6 @@ import Link from "next/link";
 import Image from "next/image";
 import { prisma } from "@/shared/lib/prisma";
 import { Button } from "@/shared/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { Badge } from "@/shared/components/ui/badge";
 import { Separator } from "@/shared/components/ui/separator";
 import {
@@ -20,6 +19,9 @@ import {
 } from "lucide-react";
 import type { Prisma } from "@prisma/client";
 import { ArticleActions } from "./article-actions";
+
+const cardCls =
+  "rounded-2xl bg-card shadow-[0_2px_8px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.05]";
 
 // Reading time estimated from excerpt — avoids fetching full content on list
 function estimateReadTime(excerpt: string | null): string | null {
@@ -172,11 +174,14 @@ export default async function AdminArticlesPage({ searchParams }: Props) {
     <div className="space-y-6">
       {/* ── Header ── */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <h2 className="text-2xl font-bold tracking-tight">Artikel</h2>
-          <p className="mt-0.5 text-sm text-muted-foreground">
-            Kelola artikel dan konten blog platform
-          </p>
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10">
+            <Newspaper className="h-5 w-5 text-primary" />
+          </div>
+          <div>
+            <h2 className="text-2xl font-semibold tracking-tight">Artikel</h2>
+            <p className="text-sm text-muted-foreground">Kelola artikel dan konten blog platform</p>
+          </div>
         </div>
         <Button size="sm" asChild className="self-start">
           <Link href="/admin/articles/new">
@@ -189,26 +194,24 @@ export default async function AdminArticlesPage({ searchParams }: Props) {
       {/* ── Stat Cards ── */}
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         {statCards.map((stat) => (
-          <Card key={stat.title} className="border-0 shadow-sm ring-1 ring-border/60">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 p-4 pb-2">
-              <CardTitle className="text-xs font-medium text-muted-foreground">
-                {stat.title}
-              </CardTitle>
-              <div className={`flex h-7 w-7 items-center justify-center rounded-lg ${stat.color}`}>
-                <stat.icon className="h-3.5 w-3.5" />
+          <div key={stat.title} className={cardCls}>
+            <div className="flex items-center justify-between p-5">
+              <div>
+                <p className="text-xs font-medium text-muted-foreground">{stat.title}</p>
+                <p className="mt-1.5 text-2xl font-bold tabular-nums">
+                  {stat.value.toLocaleString("id-ID")}
+                </p>
               </div>
-            </CardHeader>
-            <CardContent className="px-4 pb-4 pt-0">
-              <p className="text-2xl font-bold tabular-nums">
-                {stat.value.toLocaleString("id-ID")}
-              </p>
-            </CardContent>
-          </Card>
+              <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${stat.color}`}>
+                <stat.icon className="h-5 w-5" />
+              </div>
+            </div>
+          </div>
         ))}
       </div>
 
       {/* ── Filter Bar ── */}
-      <div className="rounded-xl border bg-card p-4 shadow-sm">
+      <div className={`${cardCls} p-4`}>
         <div className="flex flex-wrap items-center gap-2.5">
           {/* Search */}
           <form method="GET" action="/admin/articles" className="flex items-center gap-2">
@@ -354,33 +357,31 @@ export default async function AdminArticlesPage({ searchParams }: Props) {
 
       {/* ── Article list ── */}
       {articles.length === 0 ? (
-        <Card className="border-dashed shadow-none">
-          <CardContent className="py-20">
-            <div className="flex flex-col items-center gap-3 text-center">
-              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-muted">
-                <Newspaper className="h-7 w-7 text-muted-foreground/40" />
-              </div>
-              <div>
-                <p className="font-medium">
-                  {hasFilters ? "Tidak ada artikel yang cocok" : "Belum ada artikel"}
-                </p>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  {hasFilters ? "Coba ubah atau hapus filter" : "Mulai tulis artikel pertamamu"}
-                </p>
-              </div>
-              {!hasFilters && (
-                <Button size="sm" asChild>
-                  <Link href="/admin/articles/new">
-                    <Plus className="mr-1.5 h-3.5 w-3.5" />
-                    Buat Artikel
-                  </Link>
-                </Button>
-              )}
+        <div className={`${cardCls} py-16 text-center`}>
+          <div className="flex flex-col items-center gap-3">
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-muted">
+              <Newspaper className="h-7 w-7 text-muted-foreground/40" />
             </div>
-          </CardContent>
-        </Card>
+            <div>
+              <p className="font-medium">
+                {hasFilters ? "Tidak ada artikel yang cocok" : "Belum ada artikel"}
+              </p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                {hasFilters ? "Coba ubah atau hapus filter" : "Mulai tulis artikel pertamamu"}
+              </p>
+            </div>
+            {!hasFilters && (
+              <Button size="sm" asChild>
+                <Link href="/admin/articles/new">
+                  <Plus className="mr-1.5 h-3.5 w-3.5" />
+                  Buat Artikel
+                </Link>
+              </Button>
+            )}
+          </div>
+        </div>
       ) : (
-        <div className="overflow-hidden rounded-xl border shadow-sm">
+        <div className={`${cardCls} overflow-hidden`}>
           {articles.map((article, idx) => {
             const statusCfg = STATUS_CONFIG[article.status];
             const readTime = estimateReadTime(article.excerpt);

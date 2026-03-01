@@ -20,15 +20,10 @@ import {
   X,
   ChevronUp,
   ChevronDown,
+  Copy,
 } from "lucide-react";
 import { Button } from "@/shared/components/ui/button";
 import { Badge } from "@/shared/components/ui/badge";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/shared/components/ui/card";
 import { Separator } from "@/shared/components/ui/separator";
 import { PackageForm } from "@/shared/components/exam/package-form";
 import { formatCurrency, truncate } from "@/shared/lib/utils";
@@ -103,13 +98,16 @@ interface PackageDetailProps {
   categories: Category[];
 }
 
+const cardCls =
+  "rounded-2xl bg-card shadow-[0_2px_8px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.05]";
+
 const statusConfig: Record<
   string,
-  { label: string; variant: "default" | "secondary" | "outline" }
+  { label: string; cls: string }
 > = {
-  PUBLISHED: { label: "Published", variant: "default" },
-  DRAFT: { label: "Draft", variant: "secondary" },
-  ARCHIVED: { label: "Archived", variant: "outline" },
+  PUBLISHED: { label: "Published", cls: "bg-emerald-500/10 text-emerald-700 border-emerald-200" },
+  DRAFT: { label: "Draft", cls: "bg-amber-500/10 text-amber-700 border-amber-200" },
+  ARCHIVED: { label: "Archived", cls: "text-muted-foreground" },
 };
 
 const difficultyLabel: Record<string, string> = {
@@ -125,6 +123,7 @@ export function PackageDetail({ pkg, categories }: PackageDetailProps) {
   const [mode, setMode] = useState<"view" | "edit">("view");
   const [isPublishing, setIsPublishing] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isCloning, setIsCloning] = useState(false);
   const [generateSection, setGenerateSection] = useState<{
     sectionId: string;
     sectionTitle: string;
@@ -154,7 +153,7 @@ export function PackageDetail({ pkg, categories }: PackageDetailProps) {
 
   const status = statusConfig[pkg.status] ?? {
     label: pkg.status,
-    variant: "secondary" as const,
+    cls: "text-muted-foreground",
   };
 
   async function handlePublish() {
@@ -198,6 +197,22 @@ export function PackageDetail({ pkg, categories }: PackageDetailProps) {
       router.refresh();
     } finally {
       setIsDeleting(false);
+    }
+  }
+
+  async function handleClone() {
+    setIsCloning(true);
+    try {
+      const response = await fetch(`/api/admin/packages/${pkg.id}/clone`, { method: "POST" });
+      const result = await response.json();
+      if (!response.ok) {
+        toast.error(result.error?.message ?? "Gagal menduplikat paket");
+        return;
+      }
+      toast.success(`Paket berhasil diduplikat sebagai draft`);
+      router.push(`/admin/packages/${result.data.id}`);
+    } finally {
+      setIsCloning(false);
     }
   }
 
@@ -294,14 +309,17 @@ export function PackageDetail({ pkg, categories }: PackageDetailProps) {
 
     return (
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-2xl font-bold tracking-tight">Edit Paket</h2>
-            <p className="text-muted-foreground">Perbarui detail paket ujian</p>
-          </div>
-          <Button variant="outline" onClick={() => setMode("view")}>
-            Batal Edit
+        <div className="flex items-center gap-3">
+          <Button variant="ghost" size="icon" className="h-9 w-9" onClick={() => setMode("view")}>
+            <ArrowLeft className="h-4 w-4" />
           </Button>
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10">
+            <Pencil className="h-5 w-5 text-primary" />
+          </div>
+          <div>
+            <h2 className="text-2xl font-semibold tracking-tight">Edit Paket</h2>
+            <p className="text-sm text-muted-foreground">Perbarui detail paket ujian</p>
+          </div>
         </div>
         <PackageForm
           categories={categories}
@@ -337,7 +355,7 @@ export function PackageDetail({ pkg, categories }: PackageDetailProps) {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <Badge variant={status.variant}>{status.label}</Badge>
+          <Badge variant="outline" className={`text-xs ${status.cls}`}>{status.label}</Badge>
           {(pkg.status === "DRAFT" || pkg.status === "PUBLISHED") && (
             <Button
               variant="outline"
@@ -362,6 +380,10 @@ export function PackageDetail({ pkg, categories }: PackageDetailProps) {
               Publish
             </Button>
           )}
+          <Button variant="outline" size="sm" onClick={handleClone} disabled={isCloning}>
+            {isCloning ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <Copy className="mr-1.5 h-3.5 w-3.5" />}
+            Duplikat
+          </Button>
           <Button
             variant="outline"
             size="sm"
@@ -388,83 +410,65 @@ export function PackageDetail({ pkg, categories }: PackageDetailProps) {
 
       {/* Info Cards */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-2">
-              <FileText className="h-4 w-4 text-muted-foreground" />
-              <p className="text-sm text-muted-foreground">Total Soal</p>
+        {[
+          { icon: FileText, label: "Total Soal", value: String(pkg.totalQuestions) },
+          { icon: Clock, label: "Durasi", value: `${pkg.durationMinutes} menit` },
+          {
+            icon: null,
+            label: "Harga",
+            value: pkg.isFree ? "Gratis" : formatCurrency(pkg.price),
+            sub: pkg.discountPrice ? formatCurrency(pkg.discountPrice) : undefined,
+          },
+          { icon: Users, label: "Peserta", value: String(pkg._count.attempts) },
+          {
+            icon: Shield,
+            label: "Anti-Cheat",
+            value: pkg.isAntiCheat ? "Aktif" : "Nonaktif",
+            valueColor: pkg.isAntiCheat ? "text-emerald-600" : "text-muted-foreground",
+          },
+        ].map((stat) => (
+          <div key={stat.label} className={`${cardCls} p-4`}>
+            <div className="flex items-center gap-1.5 text-muted-foreground">
+              {stat.icon && <stat.icon className="h-3.5 w-3.5 shrink-0" />}
+              <p className="text-xs font-medium">{stat.label}</p>
             </div>
-            <p className="mt-1 text-2xl font-bold">{pkg.totalQuestions}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-2">
-              <Clock className="h-4 w-4 text-muted-foreground" />
-              <p className="text-sm text-muted-foreground">Durasi</p>
-            </div>
-            <p className="mt-1 text-2xl font-bold">{pkg.durationMinutes} menit</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-6">
-            <p className="text-sm text-muted-foreground">Harga</p>
-            <p className="mt-1 text-2xl font-bold">
-              {pkg.isFree ? "Gratis" : formatCurrency(pkg.price)}
+            <p className={`mt-1.5 text-xl font-bold tabular-nums ${stat.valueColor ?? ""}`}>
+              {stat.value}
             </p>
-            {pkg.discountPrice && (
-              <p className="text-sm text-muted-foreground line-through">
-                {formatCurrency(pkg.discountPrice)}
-              </p>
+            {stat.sub && (
+              <p className="text-xs text-muted-foreground line-through">{stat.sub}</p>
             )}
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-2">
-              <Users className="h-4 w-4 text-muted-foreground" />
-              <p className="text-sm text-muted-foreground">Peserta</p>
-            </div>
-            <p className="mt-1 text-2xl font-bold">{pkg._count.attempts}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-2">
-              <Shield className="h-4 w-4 text-muted-foreground" />
-              <p className="text-sm text-muted-foreground">Anti-Cheat</p>
-            </div>
-            <p className="mt-1 text-2xl font-bold">
-              {pkg.isAntiCheat ? "Aktif" : "Nonaktif"}
-            </p>
-          </CardContent>
-        </Card>
+          </div>
+        ))}
       </div>
 
       {/* Description */}
       {pkg.description && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Deskripsi</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm">{pkg.description}</p>
-          </CardContent>
-        </Card>
+        <div className={`${cardCls} p-5`}>
+          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            Deskripsi
+          </p>
+          <p className="text-sm">{pkg.description}</p>
+        </div>
       )}
 
       {/* Sections */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Section Ujian ({pkg.sections.length})</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
+      <div className={cardCls}>
+        <div className="border-b border-border/60 px-5 py-4">
+          <p className="text-sm font-semibold">
+            Section Ujian <span className="text-muted-foreground">({pkg.sections.length})</span>
+          </p>
+        </div>
+        <div className="space-y-3 p-5">
           {sortedSections.map((section, idx) => {
             const pct = Math.round(
               (section.questions.length / section.totalQuestions) * 100
             );
             return (
-              <div key={section.id} className="rounded-lg border p-4 space-y-3">
+              <div
+                key={section.id}
+                className="rounded-xl ring-1 ring-black/[0.06] bg-muted/20 p-4 space-y-3"
+              >
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex-1 min-w-0">
                     <p className="font-semibold">
@@ -500,10 +504,11 @@ export function PackageDetail({ pkg, categories }: PackageDetailProps) {
 
                     {/* Fill badge */}
                     <Badge
-                      variant={
+                      variant="outline"
+                      className={
                         section.questions.length >= section.totalQuestions
-                          ? "default"
-                          : "outline"
+                          ? "bg-emerald-500/10 text-emerald-700 border-emerald-200"
+                          : "bg-amber-500/10 text-amber-700 border-amber-200"
                       }
                     >
                       {section.questions.length}/{section.totalQuestions} soal
@@ -618,8 +623,8 @@ export function PackageDetail({ pkg, categories }: PackageDetailProps) {
               </div>
             );
           })}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       <Separator />
 

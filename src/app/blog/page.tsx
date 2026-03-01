@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
 import { prisma } from "@/shared/lib/prisma";
-import { Card, CardContent } from "@/shared/components/ui/card";
 import { Badge } from "@/shared/components/ui/badge";
 import { FileText } from "lucide-react";
 import { BlogFilters } from "./blog-filters";
@@ -19,6 +18,8 @@ export const metadata: Metadata = {
       "Artikel, tips belajar, dan informasi terbaru seputar try out.",
   },
 };
+
+const cardCls = "rounded-2xl bg-card shadow-[0_2px_8px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.05]";
 
 interface Props {
   searchParams: Promise<{ category?: string; q?: string }>;
@@ -91,7 +92,7 @@ export default async function BlogPage({ searchParams }: Props) {
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {articles.map((article) => (
             <Link key={article.id} href={`/blog/${article.slug}`}>
-              <Card className="h-full overflow-hidden transition-shadow hover:shadow-lg">
+              <div className={`${cardCls} h-full overflow-hidden transition-shadow hover:shadow-lg`}>
                 <div className="relative aspect-video overflow-hidden bg-muted">
                   {article.coverImage ? (
                     <Image
@@ -107,9 +108,9 @@ export default async function BlogPage({ searchParams }: Props) {
                     </div>
                   )}
                 </div>
-                <CardContent className="p-4">
+                <div className="p-4">
                   {article.category && (
-                    <Badge variant="secondary" className="mb-2">
+                    <Badge className="bg-muted text-foreground mb-2">
                       {article.category}
                     </Badge>
                   )}
@@ -133,8 +134,8 @@ export default async function BlogPage({ searchParams }: Props) {
                         : ""}
                     </span>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             </Link>
           ))}
         </div>

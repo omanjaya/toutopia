@@ -6,17 +6,16 @@ import {
     Users,
     UserPlus,
     Loader2,
-    Trophy,
-    TrendingUp,
-    Mail,
     Check,
     X,
     Send,
+    Mail,
 } from "lucide-react";
 import { Button } from "@/shared/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { Badge } from "@/shared/components/ui/badge";
 import { cn } from "@/shared/lib/utils";
+
+const cardCls = "rounded-2xl bg-card shadow-[0_2px_8px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.05]";
 
 interface Friend {
     id: string;
@@ -136,14 +135,14 @@ export function FriendsContent() {
             </div>
 
             {/* Invite Friend */}
-            <Card className="border-0 shadow-sm">
-                <CardHeader className="pb-3">
-                    <CardTitle className="flex items-center gap-2 text-base">
+            <div className={cardCls}>
+                <div className="px-6 pt-6 pb-2">
+                    <h3 className="text-lg font-semibold tracking-tight flex items-center gap-2">
                         <UserPlus className="h-5 w-5 text-primary" />
                         Undang Teman
-                    </CardTitle>
-                </CardHeader>
-                <CardContent>
+                    </h3>
+                </div>
+                <div className="p-6">
                     <div className="flex gap-2">
                         <div className="relative flex-1">
                             <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -163,16 +162,16 @@ export function FriendsContent() {
                             Undang
                         </Button>
                     </div>
-                </CardContent>
-            </Card>
+                </div>
+            </div>
 
             {/* Pending Invites */}
             {data?.pendingInvites && data.pendingInvites.length > 0 && (
-                <Card className="border-2 border-amber-200/60 bg-amber-50/30 shadow-sm dark:border-amber-800/30 dark:bg-amber-950/10">
-                    <CardHeader className="pb-3">
-                        <CardTitle className="text-base">Undangan Masuk</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-2">
+                <div className="rounded-2xl border-2 border-amber-200/60 bg-amber-50/30 dark:border-amber-800/30 dark:bg-amber-950/10">
+                    <div className="px-6 pt-6 pb-2">
+                        <h3 className="text-lg font-semibold tracking-tight">Undangan Masuk</h3>
+                    </div>
+                    <div className="p-6 space-y-2">
                         {data.pendingInvites.map((invite) => (
                             <div key={invite.id} className="flex items-center justify-between rounded-lg bg-background p-3">
                                 <div className="flex items-center gap-3">
@@ -196,8 +195,8 @@ export function FriendsContent() {
                                 </Button>
                             </div>
                         ))}
-                    </CardContent>
-                </Card>
+                    </div>
+                </div>
             )}
 
             {/* Comparison Cards */}
@@ -208,8 +207,8 @@ export function FriendsContent() {
                         const isTied = comp.myAvgScore === comp.friendAvgScore;
 
                         return (
-                            <Card key={comp.friendId} className="border-0 shadow-sm">
-                                <CardContent className="p-5">
+                            <div key={comp.friendId} className={cardCls}>
+                                <div className="p-5">
                                     <div className="flex items-center justify-between mb-4">
                                         <div className="flex items-center gap-3">
                                             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 font-bold text-primary">
@@ -250,8 +249,8 @@ export function FriendsContent() {
                                             </div>
                                         </div>
                                     </div>
-                                </CardContent>
-                            </Card>
+                                </div>
+                            </div>
                         );
                     })}
                 </div>

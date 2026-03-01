@@ -3,12 +3,6 @@ import Link from "next/link";
 import { prisma } from "@/shared/lib/prisma";
 import { Header } from "@/shared/components/layout/header";
 import { Footer } from "@/shared/components/layout/footer";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/shared/components/ui/card";
 import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
 import { Clock, FileText, Users, ArrowRight } from "lucide-react";
@@ -26,6 +20,8 @@ export const metadata: Metadata = {
       "Jelajahi semua paket try out UTBK, CPNS, BUMN, Kedinasan, dan PPPK.",
   },
 };
+
+const cardCls = "rounded-2xl bg-card shadow-[0_2px_8px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.05]";
 
 export default async function PackagesPage({
   searchParams,
@@ -110,12 +106,12 @@ export default async function PackagesPage({
           {packages.length > 0 ? (
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {packages.map((pkg) => (
-                <Card key={pkg.id} className="flex flex-col">
-                  <CardHeader>
+                <div key={pkg.id} className={`${cardCls} flex flex-col`}>
+                  <div className="px-6 pt-6 pb-2">
                     <div className="flex items-start justify-between">
                       <Badge variant="outline">{pkg.category.name}</Badge>
                       {pkg.isFree ? (
-                        <Badge variant="secondary">Gratis</Badge>
+                        <Badge className="bg-muted text-foreground">Gratis</Badge>
                       ) : (
                         <span className="text-sm font-semibold">
                           {pkg.discountPrice !== null ? (
@@ -131,14 +127,14 @@ export default async function PackagesPage({
                         </span>
                       )}
                     </div>
-                    <CardTitle className="mt-2">{pkg.title}</CardTitle>
+                    <h3 className="text-lg font-semibold tracking-tight mt-2">{pkg.title}</h3>
                     {pkg.description && (
                       <p className="text-sm text-muted-foreground line-clamp-2">
                         {pkg.description}
                       </p>
                     )}
-                  </CardHeader>
-                  <CardContent className="flex-1 space-y-3">
+                  </div>
+                  <div className="px-6 pb-6 flex-1 space-y-3">
                     <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
                       <span className="flex items-center gap-1">
                         <FileText className="size-4" strokeWidth={1.5} />
@@ -173,8 +169,8 @@ export default async function PackagesPage({
                         </Link>
                       </Button>
                     </div>
-                  </CardContent>
-                </Card>
+                  </div>
+                </div>
               ))}
             </div>
           ) : (

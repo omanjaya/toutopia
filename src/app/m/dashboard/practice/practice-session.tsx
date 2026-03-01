@@ -11,8 +11,9 @@ import {
   Trophy,
 } from "lucide-react";
 import { Button } from "@/shared/components/ui/button";
-import { Card, CardContent } from "@/shared/components/ui/card";
 import { Badge } from "@/shared/components/ui/badge";
+
+const cardCls = "rounded-2xl bg-card shadow-[0_2px_8px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.05]";
 import { LazyMathRenderer as MathRenderer } from "@/shared/components/shared/lazy-math-renderer";
 import { cn } from "@/shared/lib/utils";
 
@@ -110,8 +111,8 @@ export function MobilePracticeSession({
 
     return (
       <div className="min-h-screen bg-background px-4 pb-24 pt-6">
-        <Card>
-          <CardContent className="space-y-6 p-5">
+        <div className={cardCls}>
+          <div className="space-y-6 p-5">
             <div className="flex flex-col items-center space-y-3 text-center">
               <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
                 <Trophy className="h-8 w-8 text-primary" />
@@ -182,8 +183,8 @@ export function MobilePracticeSession({
                 Latihan Lagi
               </Button>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
     );
   }
@@ -240,8 +241,8 @@ export function MobilePracticeSession({
       </div>
 
       {/* Question Content */}
-      <Card className="mb-4">
-        <CardContent className="p-4">
+      <div className={`${cardCls} mb-4`}>
+        <div className="p-4">
           <p className="mb-2 text-[11px] text-muted-foreground">
             {currentQuestion.topicName}
           </p>
@@ -256,8 +257,8 @@ export function MobilePracticeSession({
               className="mt-3 w-full max-h-56 rounded-lg object-contain"
             />
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Options */}
       <div className="space-y-2.5">
@@ -325,8 +326,8 @@ export function MobilePracticeSession({
 
       {/* Explanation */}
       {isAnswered && currentQuestion.explanation && (
-        <Card className="mt-4 border-blue-200 bg-blue-50/50">
-          <CardContent className="p-4">
+        <div className="mt-4 rounded-2xl border-blue-200 bg-blue-50/50 border">
+          <div className="p-4">
             <p className="mb-2 text-sm font-semibold text-blue-700">
               Pembahasan
             </p>
@@ -334,8 +335,8 @@ export function MobilePracticeSession({
               content={currentQuestion.explanation}
               className="prose prose-sm max-w-none text-blue-900 [&_img]:max-w-full [&_pre]:overflow-x-auto [&_table]:overflow-x-auto"
             />
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       )}
 
       {/* Navigation - fixed at bottom */}

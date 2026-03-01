@@ -16,11 +16,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/shared/components/ui/select";
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import {
   teacherApplicationSchema,
   type TeacherApplicationInput,
 } from "@/shared/lib/validators/teacher.validators";
+
+const cardCls = "rounded-2xl bg-card shadow-[0_2px_8px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.05]";
 
 const educationOptions = [
   "S1 / Sarjana",
@@ -105,11 +106,11 @@ export function TeacherApplicationForm() {
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       {/* Personal Info */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Informasi Pribadi</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
+      <div className={cardCls}>
+        <div className="px-6 pt-6 pb-2">
+          <h3 className="text-lg font-semibold tracking-tight">Informasi Pribadi</h3>
+        </div>
+        <div className="p-6 pt-2 space-y-4">
           <div className="space-y-2">
             <Label>Pendidikan Terakhir</Label>
             <Select
@@ -178,15 +179,15 @@ export function TeacherApplicationForm() {
               <p className="text-sm text-destructive">{errors.bio.message}</p>
             )}
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Bank Info */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Informasi Rekening</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
+      <div className={cardCls}>
+        <div className="px-6 pt-6 pb-2">
+          <h3 className="text-lg font-semibold tracking-tight">Informasi Rekening</h3>
+        </div>
+        <div className="p-6 pt-2 space-y-4">
           <p className="text-sm text-muted-foreground">
             Digunakan untuk transfer penghasilan dari kontribusi soal.
           </p>
@@ -219,8 +220,8 @@ export function TeacherApplicationForm() {
               )}
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       <Button type="submit" className="w-full" disabled={isSubmitting}>
         {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}

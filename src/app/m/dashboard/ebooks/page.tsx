@@ -2,10 +2,11 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
 import { prisma } from "@/shared/lib/prisma";
-import { Card, CardContent } from "@/shared/components/ui/card";
 import { Badge } from "@/shared/components/ui/badge";
 import { BookText, Eye } from "lucide-react";
 import { MobileEbookFilters } from "./ebook-filters-mobile";
+
+const cardCls = "rounded-2xl bg-card shadow-[0_2px_8px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.05]";
 
 export const dynamic = "force-dynamic";
 
@@ -109,7 +110,7 @@ export default async function MobileEbooksPage({ searchParams }: Props) {
               key={ebook.id}
               href={`/m/dashboard/ebooks/${ebook.slug}`}
             >
-              <Card className="h-full overflow-hidden active:scale-[0.98] transition-transform">
+              <div className={`${cardCls} h-full overflow-hidden active:scale-[0.98] transition-transform`}>
                 <div className="relative aspect-[4/3] overflow-hidden bg-muted">
                   {ebook.coverImage ? (
                     <Image
@@ -125,11 +126,10 @@ export default async function MobileEbooksPage({ searchParams }: Props) {
                     </div>
                   )}
                 </div>
-                <CardContent className="p-3">
+                <div className="p-3">
                   <div className="mb-1.5 flex flex-wrap items-center gap-1">
                     <Badge
-                      variant="secondary"
-                      className="text-[10px] px-1.5 py-0"
+                      className="bg-muted text-foreground text-[10px] px-1.5 py-0"
                     >
                       {ebook.contentType}
                     </Badge>
@@ -168,8 +168,8 @@ export default async function MobileEbooksPage({ searchParams }: Props) {
                       </>
                     )}
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             </Link>
           ))}
         </div>

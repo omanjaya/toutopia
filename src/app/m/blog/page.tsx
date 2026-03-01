@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
 import { prisma } from "@/shared/lib/prisma";
-import { Card, CardContent } from "@/shared/components/ui/card";
 import { Badge } from "@/shared/components/ui/badge";
 import { ArrowLeft, FileText } from "lucide-react";
 import { MobileBlogFilters } from "./blog-filters-mobile";
@@ -62,6 +61,8 @@ async function getCategories(): Promise<string[]> {
   return results.map((r) => r.category).filter(Boolean) as string[];
 }
 
+const cardCls = "rounded-2xl bg-card shadow-[0_2px_8px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.05]";
+
 export default async function MobileBlogPage({ searchParams }: Props) {
   const { category, q } = await searchParams;
   const [articles, categories] = await Promise.all([
@@ -112,7 +113,7 @@ export default async function MobileBlogPage({ searchParams }: Props) {
           <div className="space-y-3">
             {articles.map((article) => (
               <Link key={article.id} href={`/m/blog/${article.slug}`}>
-                <Card className="overflow-hidden active:scale-[0.98] transition-transform">
+                <div className={`${cardCls} overflow-hidden active:scale-[0.98] transition-transform`}>
                   <div className="flex gap-3 p-3">
                     {/* Thumbnail */}
                     <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-lg bg-muted">
@@ -136,8 +137,7 @@ export default async function MobileBlogPage({ searchParams }: Props) {
                       <div>
                         {article.category && (
                           <Badge
-                            variant="secondary"
-                            className="mb-1 text-[10px] px-1.5 py-0"
+                            className="mb-1 text-[10px] px-1.5 py-0 bg-muted text-foreground"
                           >
                             {article.category}
                           </Badge>
@@ -163,7 +163,7 @@ export default async function MobileBlogPage({ searchParams }: Props) {
                       </div>
                     </div>
                   </div>
-                </Card>
+                </div>
               </Link>
             ))}
           </div>

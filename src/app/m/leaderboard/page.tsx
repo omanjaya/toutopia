@@ -3,10 +3,11 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { auth } from "@/shared/lib/auth";
 import { prisma } from "@/shared/lib/prisma";
-import { Card, CardContent } from "@/shared/components/ui/card";
 import { Badge } from "@/shared/components/ui/badge";
 import { ArrowLeft, Medal, Trophy } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
+
+const cardCls = "rounded-2xl bg-card shadow-[0_2px_8px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.05]";
 
 export const dynamic = "force-dynamic";
 
@@ -171,8 +172,8 @@ export default async function MobileLeaderboardPage({
           </div>
 
           {/* Full Rankings List */}
-          <Card className="border-0 shadow-sm">
-            <CardContent className="divide-y p-0">
+          <div className={cardCls}>
+            <div className="divide-y p-0">
               {entries.map((entry, idx) => {
                 const rank = idx + 1;
                 const isCurrentUser = entry.userId === userId;
@@ -213,7 +214,7 @@ export default async function MobileLeaderboardPage({
                       >
                         {entry.user.name}
                         {isCurrentUser && (
-                          <Badge variant="secondary" className="ml-2 text-[10px]">
+                          <Badge className="ml-2 text-[10px] bg-muted text-foreground">
                             Anda
                           </Badge>
                         )}
@@ -226,8 +227,8 @@ export default async function MobileLeaderboardPage({
                   </div>
                 );
               })}
-            </CardContent>
-          </Card>
+            </div>
+          </div>
 
           {/* Current user rank summary */}
           {currentUserRank && (

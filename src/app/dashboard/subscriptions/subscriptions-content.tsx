@@ -12,9 +12,10 @@ import {
     Calendar,
 } from "lucide-react";
 import { Button } from "@/shared/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { Badge } from "@/shared/components/ui/badge";
 import { cn } from "@/shared/lib/utils";
+
+const cardCls = "rounded-2xl bg-card shadow-[0_2px_8px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.05]";
 
 interface BundlePackage {
     id: string;
@@ -157,14 +158,14 @@ export function SubscriptionsContent() {
 
             {/* Active Subscriptions */}
             {data?.userSubscriptions && data.userSubscriptions.length > 0 && (
-                <Card className="border-2 border-emerald-500/50 bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-950/20 dark:to-teal-950/20">
-                    <CardHeader className="pb-3">
-                        <CardTitle className="flex items-center gap-2 text-base text-emerald-700 dark:text-emerald-400">
+                <div className="rounded-2xl border-2 border-emerald-500/50 bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-950/20 dark:to-teal-950/20">
+                    <div className="px-6 pt-6 pb-2">
+                        <h3 className="flex items-center gap-2 text-base text-emerald-700 dark:text-emerald-400 font-semibold tracking-tight">
                             <Sparkles className="h-5 w-5" />
                             Langganan Aktif
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-2">
+                        </h3>
+                    </div>
+                    <div className="space-y-2 p-6 pt-2">
                         {data.userSubscriptions.map((sub) => (
                             <div key={sub.id} className="flex items-center justify-between rounded-lg bg-white/60 p-3 dark:bg-background/30">
                                 <div>
@@ -176,8 +177,8 @@ export function SubscriptionsContent() {
                                 <Badge variant="default" className="bg-emerald-500">Aktif</Badge>
                             </div>
                         ))}
-                    </CardContent>
-                </Card>
+                    </div>
+                </div>
             )}
 
             {/* Plan Selector */}
@@ -220,17 +221,18 @@ export function SubscriptionsContent() {
                     );
 
                     return (
-                        <Card
+                        <div
                             key={bundle.id}
                             className={cn(
-                                "border-0 shadow-md transition-shadow hover:shadow-lg",
+                                cardCls,
+                                "transition-shadow hover:shadow-lg",
                                 isSubscribed && "ring-2 ring-emerald-500/50"
                             )}
                         >
-                            <CardHeader className="pb-3">
+                            <div className="px-6 pt-6 pb-2">
                                 <div className="flex items-start justify-between">
                                     <div>
-                                        <CardTitle className="text-lg font-bold">{bundle.name}</CardTitle>
+                                        <h3 className="text-lg font-semibold tracking-tight">{bundle.name}</h3>
                                         {bundle.description && (
                                             <p className="mt-1 text-sm text-muted-foreground">{bundle.description}</p>
                                         )}
@@ -239,8 +241,8 @@ export function SubscriptionsContent() {
                                         <Badge className="bg-emerald-500 text-white">-{saving}%</Badge>
                                     )}
                                 </div>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
+                            </div>
+                            <div className="space-y-4 p-6 pt-2">
                                 <div>
                                     <p className="text-3xl font-bold">
                                         {formatPrice(price)}
@@ -289,8 +291,8 @@ export function SubscriptionsContent() {
                                         </>
                                     )}
                                 </Button>
-                            </CardContent>
-                        </Card>
+                            </div>
+                        </div>
                     );
                 })}
             </div>

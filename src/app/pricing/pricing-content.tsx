@@ -1,12 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/shared/components/ui/card";
 import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
 import {
@@ -30,6 +24,8 @@ import {
 import { formatCurrency } from "@/shared/lib/utils";
 
 // --- Data ---
+
+const cardCls = "rounded-2xl bg-card shadow-[0_2px_8px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.05]";
 
 interface PricingPlan {
   name: string;
@@ -291,18 +287,18 @@ const faqs: FaqItem[] = [
 
 function PricingCard({ plan }: { plan: PricingPlan }): React.ReactElement {
   return (
-    <Card
+    <div
       className={
         plan.popular
-          ? "relative border-primary shadow-lg shadow-primary/10"
-          : "relative"
+          ? `${cardCls} relative border-primary shadow-lg shadow-primary/10`
+          : `${cardCls} relative`
       }
     >
-      <CardHeader className="pb-4">
+      <div className="px-6 pt-6 pb-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 text-muted-foreground">
             {plan.icon}
-            <CardTitle className="text-lg">{plan.name}</CardTitle>
+            <h3 className="text-lg font-semibold tracking-tight">{plan.name}</h3>
           </div>
           {plan.badge && (
             <Badge className="shadow-sm">{plan.badge}</Badge>
@@ -329,8 +325,8 @@ function PricingCard({ plan }: { plan: PricingPlan }): React.ReactElement {
         <p className="text-sm text-muted-foreground mt-1">
           {plan.description}
         </p>
-      </CardHeader>
-      <CardContent className="space-y-4">
+      </div>
+      <div className="px-6 pb-6 space-y-4">
         <ul className="space-y-2.5">
           {plan.features.map((feature) => (
             <li key={feature} className="flex items-start gap-2 text-sm">
@@ -347,8 +343,8 @@ function PricingCard({ plan }: { plan: PricingPlan }): React.ReactElement {
         >
           <Link href={plan.href}>{plan.cta}</Link>
         </Button>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }
 
@@ -375,7 +371,7 @@ export function PricingContent(): React.ReactElement {
       <section className="relative py-16 sm:py-20">
         <div className="absolute inset-0 -z-10 bg-gradient-to-b from-primary/5 to-transparent" />
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 text-center">
-          <Badge variant="secondary" className="mb-4">
+          <Badge className="bg-muted text-foreground mb-4">
             Investasi Masa Depanmu
           </Badge>
           <h1 className="text-2xl font-bold tracking-tight sm:text-4xl lg:text-5xl">
@@ -505,8 +501,8 @@ export function PricingContent(): React.ReactElement {
           {/* Testimonials */}
           <div className="mx-auto grid max-w-5xl gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {testimonials.map((t) => (
-              <Card key={t.name}>
-                <CardContent className="pt-6">
+              <div key={t.name} className={cardCls}>
+                <div className="px-6 pt-6 pb-6">
                   <div className="flex gap-0.5 mb-3">
                     {Array.from({ length: t.rating }).map((_, i) => (
                       <Star
@@ -528,8 +524,8 @@ export function PricingContent(): React.ReactElement {
                       <p className="text-xs text-muted-foreground">{t.role}</p>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             ))}
           </div>
         </div>

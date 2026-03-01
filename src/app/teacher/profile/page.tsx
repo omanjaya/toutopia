@@ -9,7 +9,6 @@ import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
 import { Textarea } from "@/shared/components/ui/textarea";
 import { Label } from "@/shared/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { Badge } from "@/shared/components/ui/badge";
 import {
   teacherApplicationSchema,
@@ -45,6 +44,8 @@ interface TeacherProfile {
   totalEarnings: number;
   createdAt: string;
 }
+
+const cardCls = "rounded-2xl bg-card shadow-[0_2px_8px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.05]";
 
 export const dynamic = "force-dynamic";
 
@@ -146,11 +147,11 @@ export default function TeacherProfilePage() {
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Informasi Akademik</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
+        <div className={cardCls}>
+          <div className="px-6 pt-6 pb-2">
+            <h3 className="text-lg font-semibold tracking-tight">Informasi Akademik</h3>
+          </div>
+          <div className="p-6 space-y-4">
             <div className="space-y-2">
               <Label>Pendidikan Terakhir</Label>
               <Input {...register("education")} placeholder="S1 Pendidikan Matematika" />
@@ -199,14 +200,14 @@ export default function TeacherProfilePage() {
                 <p className="text-sm text-destructive">{errors.bio.message}</p>
               )}
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Informasi Rekening Bank</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
+        <div className={cardCls}>
+          <div className="px-6 pt-6 pb-2">
+            <h3 className="text-lg font-semibold tracking-tight">Informasi Rekening Bank</h3>
+          </div>
+          <div className="p-6 space-y-4">
             <div className="space-y-2">
               <Label>Nama Bank</Label>
               <Input {...register("bankName")} placeholder="BCA" />
@@ -234,8 +235,8 @@ export default function TeacherProfilePage() {
                 </p>
               )}
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
         <div className="flex justify-end">
           <Button type="submit" disabled={saving}>
@@ -250,11 +251,11 @@ export default function TeacherProfilePage() {
       </form>
 
       {profile && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Status Akun</CardTitle>
-          </CardHeader>
-          <CardContent className="grid gap-4 sm:grid-cols-2">
+        <div className={cardCls}>
+          <div className="px-6 pt-6 pb-2">
+            <h3 className="text-lg font-semibold tracking-tight">Status Akun</h3>
+          </div>
+          <div className="p-6 grid gap-4 sm:grid-cols-2">
             <div>
               <p className="text-sm text-muted-foreground">Status</p>
               <Badge
@@ -271,8 +272,8 @@ export default function TeacherProfilePage() {
                 })}
               </p>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       )}
     </div>
   );

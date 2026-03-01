@@ -11,7 +11,6 @@ import {
   CheckCircle2,
   XCircle,
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { cn } from "@/shared/lib/utils";
 
 interface TopicData {
@@ -57,6 +56,8 @@ function getMasteryTrackColor(mastery: number): string {
   if (mastery < 70) return "bg-amber-100";
   return "bg-emerald-100";
 }
+
+const cardCls = "rounded-2xl bg-card shadow-[0_2px_8px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.05]";
 
 export default function MobileSubjectMastery() {
   const [data, setData] = useState<SubjectMasteryData | null>(null);
@@ -141,8 +142,8 @@ export default function MobileSubjectMastery() {
   return (
     <div className="space-y-4">
       {/* Overall Mastery Card */}
-      <Card>
-        <CardContent className="p-4">
+      <div className={cardCls}>
+        <div className="p-4">
           <div className="flex items-center gap-4">
             {/* Circular indicator (simple) */}
             <div className="relative flex h-20 w-20 shrink-0 items-center justify-center">
@@ -195,8 +196,8 @@ export default function MobileSubjectMastery() {
               </p>
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Sort Controls */}
       <div className="flex items-center gap-2">
@@ -230,8 +231,8 @@ export default function MobileSubjectMastery() {
           const isExpanded = expandedSubjects.has(subject.id);
 
           return (
-            <Card key={subject.id} className="overflow-hidden">
-              <CardContent className="p-4">
+            <div key={subject.id} className={`${cardCls} overflow-hidden`}>
+              <div className="p-4">
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-1.5">
@@ -340,8 +341,8 @@ export default function MobileSubjectMastery() {
                     )}
                   </>
                 )}
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           );
         })}
       </div>
