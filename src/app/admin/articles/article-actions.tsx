@@ -112,7 +112,7 @@ export function ArticleActions({
           asChild
         >
           <a
-            href={`/dashboard/articles/${articleSlug}`}
+            href={`/admin/articles/preview/${articleSlug}`}
             target="_blank"
             rel="noopener noreferrer"
           >
