@@ -18,7 +18,17 @@ import {
 } from "lucide-react";
 import type { Prisma } from "@prisma/client";
 import { ArticleActions } from "./article-actions";
-import { estimateFromHtml } from "@/shared/lib/reading-time";
+// Reading time on list is estimated from excerpt (avg 200 chars ≈ 1 min) to avoid
+// fetching full content field for all articles.
+function estimateFromExcerpt(excerpt: string | null): string | null {
+  if (!excerpt) return null;
+  const words = excerpt.trim().split(/\s+/).length;
+  // Assume article is ~8x longer than excerpt
+  const estimatedMinutes = Math.max(1, Math.round((words * 8) / 250));
+  return estimatedMinutes < 60
+    ? `~${estimatedMinutes}m`
+    : `~${Math.floor(estimatedMinutes / 60)}j`;
+}
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Artikel — Admin" };
@@ -111,7 +121,6 @@ export default async function AdminArticlesPage({ searchParams }: Props) {
         slug: true,
         excerpt: true,
         coverImage: true,
-        content: true,
         status: true,
         category: true,
         tags: true,
@@ -414,7 +423,7 @@ export default async function AdminArticlesPage({ searchParams }: Props) {
         <div className="overflow-hidden rounded-xl border">
           {articles.map((article, idx) => {
             const statusCfg = STATUS_CONFIG[article.status];
-            const readingTime = estimateFromHtml(article.content);
+            const readingTime = estimateFromExcerpt(article.excerpt);
             const displayDate = article.publishedAt ?? article.createdAt;
 
             return (
@@ -483,7 +492,7 @@ export default async function AdminArticlesPage({ searchParams }: Props) {
                       {article.viewCount.toLocaleString("id-ID")}
                     </span>
                     {readingTime && (
-                      <span>{readingTime.short} baca</span>
+                      <span>{readingTime} baca</span>
                     )}
                     {article.tags.length > 0 && (
                       <span className="hidden sm:inline">

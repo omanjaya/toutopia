@@ -8,7 +8,6 @@ import { Input } from "@/shared/components/ui/input";
 import { Button } from "@/shared/components/ui/button";
 import { auth } from "@/shared/lib/auth";
 import { Newspaper, Eye, Search, BookOpen } from "lucide-react";
-import { estimateFromHtml } from "@/shared/lib/reading-time";
 
 export const dynamic = "force-dynamic";
 
@@ -44,7 +43,6 @@ async function getArticles(category?: string, query?: string) {
       slug: true,
       excerpt: true,
       coverImage: true,
-      content: true,
       category: true,
       tags: true,
       viewCount: true,
@@ -210,10 +208,6 @@ export default async function ArticlesPage({ searchParams }: Props) {
                           })}
                         </span>
                       )}
-                      {(() => {
-                        const rt = estimateFromHtml(featured.content);
-                        return rt ? <span>{rt.label}</span> : null;
-                      })()}
                       {featured.viewCount > 0 && (
                         <span className="flex items-center gap-1">
                           <Eye className="h-3 w-3" />
@@ -229,9 +223,7 @@ export default async function ArticlesPage({ searchParams }: Props) {
 
           {/* Article grid */}
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {(q || category ? articles : rest).map((article) => {
-              const rt = estimateFromHtml(article.content);
-              return (
+            {(q || category ? articles : rest).map((article) => (
                 <Link
                   key={article.id}
                   href={`/dashboard/articles/${article.slug}`}
@@ -281,7 +273,6 @@ export default async function ArticlesPage({ searchParams }: Props) {
                           })}
                         </span>
                         <div className="flex items-center gap-2.5">
-                          {rt && <span>{rt.short} baca</span>}
                           {article.viewCount > 0 && (
                             <span className="flex items-center gap-0.5">
                               <Eye className="h-3 w-3" />
@@ -293,8 +284,7 @@ export default async function ArticlesPage({ searchParams }: Props) {
                     </div>
                   </div>
                 </Link>
-              );
-            })}
+            ))}
           </div>
         </div>
       )}
