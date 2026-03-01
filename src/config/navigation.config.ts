@@ -22,6 +22,7 @@ export const studentNav: NavItem[] = [
   { title: "Tryout Bersama", href: "/dashboard/live-events", icon: "Radio", group: "Belajar" },
   { title: "Latihan", href: "/dashboard/practice", icon: "Dumbbell", group: "Belajar" },
   { title: "Ebook", href: "/dashboard/ebooks", icon: "BookText", group: "Belajar" },
+  { title: "Artikel", href: "/dashboard/articles", icon: "Newspaper", group: "Belajar" },
   { title: "Riwayat", href: "/dashboard/history", icon: "History", group: "Progres" },
   { title: "Analitik", href: "/dashboard/analytics", icon: "BarChart3", group: "Progres" },
   { title: "Rekomendasi", href: "/dashboard/recommendations", icon: "Brain", group: "Progres" },
