@@ -26,15 +26,12 @@ import {
   ChevronUp,
   BookOpen,
   BarChart3,
-  Share2,
   RotateCcw,
   TrendingUp,
   Video,
-  Play,
-  MessageSquare,
-  ThumbsUp,
-  ThumbsDown,
-  Send,
+  Bookmark,
+  BookmarkCheck,
+  ArrowRight,
 } from "lucide-react";
 import { Button } from "@/shared/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
@@ -82,6 +79,7 @@ interface ResultData {
   id: string;
   status: string;
   packageTitle: string;
+  packageId?: string;
   score: number | null;
   totalCorrect: number | null;
   totalIncorrect: number | null;
@@ -113,6 +111,75 @@ interface ExamResultProps {
   attemptId: string;
 }
 
+type ReviewFilter = "all" | "correct" | "incorrect" | "unanswered";
+
+// Determines the filter category of a question
+function getQuestionFilterCategory(q: Question): ReviewFilter {
+  if (q.isCorrect === true) return "correct";
+  if (q.isCorrect === false) return "incorrect";
+  return "unanswered";
+}
+
+// BookmarkButton: isolated component to manage per-question bookmark state
+function BookmarkButton({ questionId }: { questionId: string }) {
+  const [bookmarked, setBookmarked] = useState(false);
+  const [bookmarkId, setBookmarkId] = useState<string | null>(null);
+  const [pending, setPending] = useState(false);
+
+  async function handleToggle() {
+    if (pending) return;
+    setPending(true);
+
+    // Optimistic update
+    const wasBookmarked = bookmarked;
+    setBookmarked(!wasBookmarked);
+
+    try {
+      if (wasBookmarked && bookmarkId) {
+        const res = await fetch(`/api/user/bookmarks/${bookmarkId}`, { method: "DELETE" });
+        if (!res.ok) throw new Error("Gagal menghapus bookmark");
+        setBookmarkId(null);
+      } else {
+        const res = await fetch("/api/user/bookmarks", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ questionId }),
+        });
+        if (!res.ok) throw new Error("Gagal menyimpan bookmark");
+        const result = await res.json() as { data?: { id?: string } };
+        if (result.data?.id) {
+          setBookmarkId(result.data.id);
+        }
+      }
+    } catch {
+      // Revert on failure
+      setBookmarked(wasBookmarked);
+      toast.error(wasBookmarked ? "Gagal menghapus bookmark" : "Gagal menyimpan bookmark");
+    } finally {
+      setPending(false);
+    }
+  }
+
+  return (
+    <button
+      onClick={handleToggle}
+      disabled={pending}
+      aria-label={bookmarked ? "Hapus bookmark" : "Simpan bookmark"}
+      className={cn(
+        "flex h-7 w-7 shrink-0 items-center justify-center rounded-md transition-colors",
+        "hover:bg-muted/60 disabled:opacity-50",
+        bookmarked ? "text-primary" : "text-muted-foreground"
+      )}
+    >
+      {bookmarked ? (
+        <BookmarkCheck className="h-4 w-4" />
+      ) : (
+        <Bookmark className="h-4 w-4" />
+      )}
+    </button>
+  );
+}
+
 export function ExamResult({ attemptId }: ExamResultProps) {
   const router = useRouter();
   const [data, setData] = useState<ResultData | null>(null);
@@ -120,6 +187,7 @@ export function ExamResult({ attemptId }: ExamResultProps) {
   const [activeTab, setActiveTab] = useState<"summary" | "review">("summary");
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set());
   const [comparison, setComparison] = useState<ComparisonData | null>(null);
+  const [reviewFilter, setReviewFilter] = useState<ReviewFilter>("all");
 
   useEffect(() => {
     async function fetchResult() {
@@ -221,6 +289,22 @@ export function ExamResult({ attemptId }: ExamResultProps) {
       : passed === false
         ? "from-red-50 to-rose-50 dark:from-red-950/20 dark:to-rose-950/20"
         : "from-primary/5 to-violet-50/50 dark:from-primary/10 dark:to-violet-950/10";
+
+  // Aggregate counts for filter pills
+  const allQuestions = data.sections.flatMap((s) => s.questions);
+  const filterCounts: Record<ReviewFilter, number> = {
+    all: allQuestions.length,
+    correct: allQuestions.filter((q) => q.isCorrect === true).length,
+    incorrect: allQuestions.filter((q) => q.isCorrect === false).length,
+    unanswered: allQuestions.filter((q) => q.isCorrect === null).length,
+  };
+
+  const filterOptions: { value: ReviewFilter; label: string }[] = [
+    { value: "all", label: "Semua" },
+    { value: "correct", label: "Benar" },
+    { value: "incorrect", label: "Salah" },
+    { value: "unanswered", label: "Tidak Dijawab" },
+  ];
 
   return (
     <div className="result-content mx-auto max-w-4xl space-y-6 px-4 py-8 sm:px-6">
@@ -483,152 +567,228 @@ export function ExamResult({ attemptId }: ExamResultProps) {
               </CardContent>
             </Card>
           )}
+
+          {/* Analytics link */}
+          <div className="flex items-center justify-center py-2">
+            <Link
+              href="/dashboard/analytics"
+              className="flex items-center gap-1.5 text-sm text-primary hover:underline"
+            >
+              Lihat perkembangan skor kamu secara keseluruhan
+              <ArrowRight className="h-3.5 w-3.5" />
+            </Link>
+          </div>
         </div>
       )}
 
       {/* Review Tab */}
       {activeTab === "review" && (
         <div className="space-y-6">
-          {data.sections.map((section) => (
-            <Card key={section.id} className="border-0 bg-card shadow-sm">
-              <CardHeader className="pb-4">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <CardTitle className="text-base font-semibold">{section.title}</CardTitle>
-                    <p className="mt-1 text-sm text-muted-foreground">
-                      {section.subjectName} · {section.correct}/{section.total} benar
-                    </p>
-                  </div>
-                  <Badge variant="outline" className="tabular-nums">
-                    {section.total > 0 ? Math.round((section.correct / section.total) * 100) : 0}%
-                  </Badge>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {section.questions.map((q, qIdx) => (
-                  <div
-                    key={q.id}
-                    className={cn(
-                      "rounded-xl border p-4 space-y-3",
-                      q.isCorrect === true
-                        ? "border-emerald-200 bg-emerald-50/30 dark:border-emerald-900/50 dark:bg-emerald-950/10"
-                        : q.isCorrect === false
-                          ? "border-destructive/20 bg-destructive/5"
-                          : "border-border/60 bg-muted/20"
-                    )}
-                  >
-                    {/* Question header */}
-                    <div className="flex items-center gap-2">
-                      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-bold">
-                        {qIdx + 1}
-                      </span>
-                      {q.isCorrect === true ? (
-                        <Badge variant="outline" className="border-emerald-500 text-emerald-600 text-xs">
-                          Benar
-                        </Badge>
-                      ) : q.isCorrect === false ? (
-                        <Badge variant="destructive" className="text-xs">Salah</Badge>
-                      ) : (
-                        <Badge variant="secondary" className="text-xs">Tidak Dijawab</Badge>
-                      )}
+          {/* Filter bar */}
+          <div className="flex flex-wrap gap-2">
+            {filterOptions.map((opt) => (
+              <button
+                key={opt.value}
+                onClick={() => setReviewFilter(opt.value)}
+                className={cn(
+                  "inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-sm font-medium transition-colors",
+                  reviewFilter === opt.value
+                    ? "border-primary bg-primary text-primary-foreground"
+                    : "border-border bg-background text-muted-foreground hover:border-primary/50 hover:text-foreground"
+                )}
+              >
+                {opt.label}
+                <span
+                  className={cn(
+                    "flex h-4.5 min-w-[1.125rem] items-center justify-center rounded-full px-1 text-xs tabular-nums",
+                    reviewFilter === opt.value
+                      ? "bg-primary-foreground/20 text-primary-foreground"
+                      : "bg-muted text-muted-foreground"
+                  )}
+                >
+                  {filterCounts[opt.value]}
+                </span>
+              </button>
+            ))}
+          </div>
+
+          {data.sections.map((section) => {
+            // Filter questions in this section
+            const filteredQuestions =
+              reviewFilter === "all"
+                ? section.questions
+                : section.questions.filter(
+                  (q) => getQuestionFilterCategory(q) === reviewFilter
+                );
+
+            // Hide section entirely when no questions match
+            if (filteredQuestions.length === 0) return null;
+
+            return (
+              <Card key={section.id} className="border-0 bg-card shadow-sm">
+                <CardHeader className="pb-4">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <CardTitle className="text-base font-semibold">{section.title}</CardTitle>
+                      <p className="mt-1 text-sm text-muted-foreground">
+                        {section.subjectName} · {section.correct}/{section.total} benar
+                        {reviewFilter !== "all" && (
+                          <span className="ml-1 text-primary">
+                            · {filteredQuestions.length} ditampilkan
+                          </span>
+                        )}
+                      </p>
                     </div>
+                    <Badge variant="outline" className="tabular-nums">
+                      {section.total > 0 ? Math.round((section.correct / section.total) * 100) : 0}%
+                    </Badge>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {filteredQuestions.map((q, qIdx) => (
+                    <div
+                      key={q.id}
+                      className={cn(
+                        "rounded-xl border p-4 space-y-3",
+                        q.isCorrect === true
+                          ? "border-emerald-200 bg-emerald-50/30 dark:border-emerald-900/50 dark:bg-emerald-950/10"
+                          : q.isCorrect === false
+                            ? "border-destructive/20 bg-destructive/5"
+                            : "border-border/60 bg-muted/20"
+                      )}
+                    >
+                      {/* Question header */}
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2">
+                          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-bold">
+                            {qIdx + 1}
+                          </span>
+                          {q.isCorrect === true ? (
+                            <Badge variant="outline" className="border-emerald-500 text-emerald-600 text-xs">
+                              Benar
+                            </Badge>
+                          ) : q.isCorrect === false ? (
+                            <Badge variant="destructive" className="text-xs">Salah</Badge>
+                          ) : (
+                            <Badge variant="secondary" className="text-xs">Tidak Dijawab</Badge>
+                          )}
+                        </div>
+                        <BookmarkButton questionId={q.id} />
+                      </div>
 
-                    {/* Question content */}
-                    <MathRenderer
-                      content={q.content}
-                      className="prose prose-sm max-w-none dark:prose-invert"
-                    />
-                    {q.imageUrl && (
-                      <img src={q.imageUrl} alt="Gambar soal" className="max-h-48 rounded-lg" />
-                    )}
+                      {/* Question content */}
+                      <MathRenderer
+                        content={q.content}
+                        className="prose prose-sm max-w-none dark:prose-invert"
+                      />
+                      {q.imageUrl && (
+                        <img src={q.imageUrl} alt="Gambar soal" className="max-h-48 rounded-lg" />
+                      )}
 
-                    {/* Options */}
-                    <div className="space-y-1.5">
-                      {q.options.map((opt) => {
-                        const isSelected =
-                          q.selectedOptionId === opt.id || q.selectedOptions.includes(opt.id);
-                        return (
-                          <div
-                            key={opt.id}
-                            className={cn(
-                              "flex items-start gap-2.5 rounded-lg px-3 py-2 text-sm",
-                              opt.isCorrect && "bg-emerald-100/70 dark:bg-emerald-950/30",
-                              isSelected && !opt.isCorrect && "bg-destructive/10"
-                            )}
-                          >
-                            <span
+                      {/* Options */}
+                      <div className="space-y-1.5">
+                        {q.options.map((opt) => {
+                          const isSelected =
+                            q.selectedOptionId === opt.id || q.selectedOptions.includes(opt.id);
+                          return (
+                            <div
+                              key={opt.id}
                               className={cn(
-                                "flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-xs font-bold",
-                                opt.isCorrect
-                                  ? "bg-emerald-500 text-white"
-                                  : isSelected
-                                    ? "bg-destructive text-white"
-                                    : "bg-muted text-muted-foreground"
+                                "flex items-start gap-2.5 rounded-lg px-3 py-2 text-sm",
+                                opt.isCorrect && "bg-emerald-100/70 dark:bg-emerald-950/30",
+                                isSelected && !opt.isCorrect && "bg-destructive/10"
                               )}
                             >
-                              {opt.label}
-                            </span>
-                            <div className="flex-1">
-                              <MathRenderer content={opt.content} className="text-sm" />
-                              {opt.imageUrl && (
-                                <img
-                                  src={opt.imageUrl}
-                                  alt={`Opsi ${opt.label}`}
-                                  className="mt-1.5 max-h-36 rounded-lg"
-                                />
-                              )}
+                              <span
+                                className={cn(
+                                  "flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-xs font-bold",
+                                  opt.isCorrect
+                                    ? "bg-emerald-500 text-white"
+                                    : isSelected
+                                      ? "bg-destructive text-white"
+                                      : "bg-muted text-muted-foreground"
+                                )}
+                              >
+                                {opt.label}
+                              </span>
+                              <div className="flex-1">
+                                <MathRenderer content={opt.content} className="text-sm" />
+                                {opt.imageUrl && (
+                                  <img
+                                    src={opt.imageUrl}
+                                    alt={`Opsi ${opt.label}`}
+                                    className="mt-1.5 max-h-36 rounded-lg"
+                                  />
+                                )}
+                              </div>
+                              {opt.isCorrect && <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />}
+                              {isSelected && !opt.isCorrect && <XCircle className="mt-0.5 h-4 w-4 shrink-0 text-destructive" />}
                             </div>
-                            {opt.isCorrect && <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />}
-                            {isSelected && !opt.isCorrect && <XCircle className="mt-0.5 h-4 w-4 shrink-0 text-destructive" />}
-                          </div>
-                        );
-                      })}
-                    </div>
-
-                    {/* Explanation */}
-                    {q.explanation && (
-                      <div className="rounded-xl border border-blue-200/60 bg-blue-50/50 p-4 dark:border-blue-900/50 dark:bg-blue-950/20">
-                        <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-blue-600 dark:text-blue-400">
-                          Pembahasan
-                        </p>
-                        <MathRenderer
-                          content={q.explanation}
-                          className="prose prose-sm max-w-none text-sm dark:prose-invert"
-                        />
+                          );
+                        })}
                       </div>
-                    )}
 
-                    {/* Video Pembahasan */}
-                    {q.videoUrl && (
-                      <div className="rounded-xl border border-purple-200/60 bg-purple-50/50 p-4 dark:border-purple-900/50 dark:bg-purple-950/20">
-                        <p className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-purple-600 dark:text-purple-400">
-                          <Video className="h-3.5 w-3.5" />
-                          Video Pembahasan
-                        </p>
-                        <div className="aspect-video overflow-hidden rounded-lg">
-                          <iframe
-                            src={q.videoUrl.replace("watch?v=", "embed/").replace("youtu.be/", "youtube.com/embed/")}
-                            className="h-full w-full"
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                            allowFullScreen
-                            title="Video Pembahasan"
+                      {/* Explanation */}
+                      {q.explanation && (
+                        <div className="rounded-xl border border-blue-200/60 bg-blue-50/50 p-4 dark:border-blue-900/50 dark:bg-blue-950/20">
+                          <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-blue-600 dark:text-blue-400">
+                            Pembahasan
+                          </p>
+                          <MathRenderer
+                            content={q.explanation}
+                            className="prose prose-sm max-w-none text-sm dark:prose-invert"
                           />
                         </div>
-                      </div>
-                    )}
+                      )}
 
-                    {/* Discussion Forum */}
-                    <QuestionDiscussion questionId={q.id} />
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-          ))}
+                      {/* Video Pembahasan */}
+                      {q.videoUrl && (
+                        <div className="rounded-xl border border-purple-200/60 bg-purple-50/50 p-4 dark:border-purple-900/50 dark:bg-purple-950/20">
+                          <p className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-purple-600 dark:text-purple-400">
+                            <Video className="h-3.5 w-3.5" />
+                            Video Pembahasan
+                          </p>
+                          <div className="aspect-video overflow-hidden rounded-lg">
+                            <iframe
+                              src={q.videoUrl.replace("watch?v=", "embed/").replace("youtu.be/", "youtube.com/embed/")}
+                              className="h-full w-full"
+                              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                              allowFullScreen
+                              title="Video Pembahasan"
+                            />
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Discussion Forum */}
+                      <QuestionDiscussion questionId={q.id} />
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+            );
+          })}
+
+          {/* Empty state when filter yields no results at all */}
+          {data.sections.every((section) => {
+            const filtered =
+              reviewFilter === "all"
+                ? section.questions
+                : section.questions.filter((q) => getQuestionFilterCategory(q) === reviewFilter);
+            return filtered.length === 0;
+          }) && (
+            <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed border-border py-12 text-center">
+              <MinusCircle className="h-8 w-8 text-muted-foreground/50" />
+              <p className="text-sm text-muted-foreground">
+                Tidak ada soal dengan filter ini.
+              </p>
+            </div>
+          )}
         </div>
       )}
 
       {/* Bottom Actions */}
-      <div className="flex flex-col items-center gap-3 pb-8 sm:flex-row sm:justify-center">
+      <div className="flex flex-col items-center gap-3 pb-4 sm:flex-row sm:justify-center">
         <Button variant="outline" className="w-full rounded-full sm:w-auto" asChild>
           <Link href="/dashboard/tryout">
             <RotateCcw className="mr-2 h-4 w-4" />
@@ -647,6 +807,54 @@ export function ExamResult({ attemptId }: ExamResultProps) {
             Lihat Analitik
           </Link>
         </Button>
+      </div>
+
+      {/* CTA — Apa Selanjutnya? */}
+      <div className="pb-8">
+        <p className="mb-4 text-base font-semibold">Apa Selanjutnya?</p>
+        <div className="grid gap-3 sm:grid-cols-3">
+          {/* Ulangi Try Out */}
+          <Link
+            href="/dashboard/tryout"
+            className="group flex flex-col items-center gap-3 rounded-2xl border border-border/60 bg-card p-5 text-center transition-colors hover:border-primary/40 hover:bg-primary/5"
+          >
+            <div className="flex h-11 w-11 items-center justify-center rounded-full bg-muted transition-colors group-hover:bg-primary/10">
+              <RotateCcw className="h-5 w-5 text-muted-foreground transition-colors group-hover:text-primary" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold">Ulangi Try Out</p>
+              <p className="mt-0.5 text-xs text-muted-foreground">Coba kembali dan tingkatkan skor</p>
+            </div>
+          </Link>
+
+          {/* Lihat Leaderboard */}
+          <Link
+            href="/dashboard/leaderboard"
+            className="group flex flex-col items-center gap-3 rounded-2xl border border-border/60 bg-card p-5 text-center transition-colors hover:border-primary/40 hover:bg-primary/5"
+          >
+            <div className="flex h-11 w-11 items-center justify-center rounded-full bg-muted transition-colors group-hover:bg-primary/10">
+              <Trophy className="h-5 w-5 text-muted-foreground transition-colors group-hover:text-primary" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold">Lihat Leaderboard</p>
+              <p className="mt-0.5 text-xs text-muted-foreground">Bandingkan skor dengan peserta lain</p>
+            </div>
+          </Link>
+
+          {/* Mode Latihan */}
+          <Link
+            href="/dashboard/practice"
+            className="group flex flex-col items-center gap-3 rounded-2xl border border-border/60 bg-card p-5 text-center transition-colors hover:border-primary/40 hover:bg-primary/5"
+          >
+            <div className="flex h-11 w-11 items-center justify-center rounded-full bg-muted transition-colors group-hover:bg-primary/10">
+              <BookOpen className="h-5 w-5 text-muted-foreground transition-colors group-hover:text-primary" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold">Mode Latihan</p>
+              <p className="mt-0.5 text-xs text-muted-foreground">Latihan soal tanpa batas waktu</p>
+            </div>
+          </Link>
+        </div>
       </div>
     </div>
   );

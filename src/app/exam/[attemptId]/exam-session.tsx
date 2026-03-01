@@ -14,6 +14,7 @@ import {
   ShieldAlert,
   X,
   Keyboard,
+  Check,
 } from "lucide-react";
 import { Button } from "@/shared/components/ui/button";
 import { Card, CardContent } from "@/shared/components/ui/card";
@@ -65,6 +66,16 @@ interface ExamSessionProps {
   attemptId: string;
 }
 
+type SaveStatus = "idle" | "saving" | "saved";
+
+function isQuestionAnswered(q: Question): boolean {
+  return (
+    !!q.selectedOptionId ||
+    q.selectedOptions.length > 0 ||
+    q.numericAnswer !== null
+  );
+}
+
 export function ExamSession({ attemptId }: ExamSessionProps) {
   const router = useRouter();
   const [examData, setExamData] = useState<ExamData | null>(null);
@@ -74,7 +85,9 @@ export function ExamSession({ attemptId }: ExamSessionProps) {
   const [timeLeft, setTimeLeft] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showConfirmSubmit, setShowConfirmSubmit] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const saveStatusTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const questionTimeRef = useRef(0);
   const handleSubmitRef = useRef<() => void>(() => {});
   const selectOptionRef = useRef<(optionId: string) => void>(() => {});
@@ -262,17 +275,32 @@ export function ExamSession({ attemptId }: ExamSessionProps) {
   navigateQuestionRef.current = navigateQuestion;
 
   const allQuestions = examData?.sections.flatMap((s) => s.questions) ?? [];
-  const answeredCount = allQuestions.filter(
-    (q) =>
-      q.selectedOptionId ||
-      q.selectedOptions.length > 0 ||
-      q.numericAnswer !== null
-  ).length;
+  const answeredCount = allQuestions.filter(isQuestionAnswered).length;
   const flaggedCount = allQuestions.filter((q) => q.isFlagged).length;
+  const unansweredCount = allQuestions.length - answeredCount;
+  const progressPercent =
+    allQuestions.length > 0
+      ? Math.round((answeredCount / allQuestions.length) * 100)
+      : 0;
 
-  // Save answer with debounce
+  // Find the first unanswered question across all sections in order
+  function findFirstUnanswered(): { sIdx: number; qIdx: number } | null {
+    if (!examData) return null;
+    for (let sIdx = 0; sIdx < examData.sections.length; sIdx++) {
+      const section = examData.sections[sIdx];
+      for (let qIdx = 0; qIdx < section.questions.length; qIdx++) {
+        if (!isQuestionAnswered(section.questions[qIdx])) {
+          return { sIdx, qIdx };
+        }
+      }
+    }
+    return null;
+  }
+
+  // Save answer with debounce + save status tracking
   const saveAnswer = useCallback(
     async (question: Question) => {
+      setSaveStatus("saving");
       try {
         await fetch(`/api/exam/${attemptId}/answer`, {
           method: "POST",
@@ -286,8 +314,16 @@ export function ExamSession({ attemptId }: ExamSessionProps) {
             timeSpentSeconds: question.timeSpentSeconds + questionTimeRef.current,
           }),
         });
+        setSaveStatus("saved");
+        if (saveStatusTimerRef.current)
+          clearTimeout(saveStatusTimerRef.current);
+        saveStatusTimerRef.current = setTimeout(
+          () => setSaveStatus("idle"),
+          2000
+        );
       } catch {
         // Silent fail — will retry on next save
+        setSaveStatus("idle");
       }
     },
     [attemptId]
@@ -441,90 +477,145 @@ export function ExamSession({ attemptId }: ExamSessionProps) {
   return (
     <div className="flex h-screen flex-col">
       {/* Top Bar */}
-      <div className="flex items-center justify-between border-b px-4 py-2">
-        <div>
-          <h1 className="font-semibold">{examData.packageTitle}</h1>
-          <p className="text-sm text-muted-foreground">
-            {currentSection.title}
-          </p>
-        </div>
-        <div className="flex items-center gap-4">
-          <div className="text-sm text-muted-foreground">
-            {answeredCount}/{allQuestions.length} dijawab
-            {flaggedCount > 0 && (
-              <span className="ml-2 text-amber-500">
-                {flaggedCount} ditandai
+      <div className="border-b">
+        <div className="flex items-center justify-between px-4 py-2">
+          <div>
+            <h1 className="font-semibold">{examData.packageTitle}</h1>
+            <p className="text-sm text-muted-foreground">
+              {currentSection.title}
+            </p>
+          </div>
+          <div className="flex items-center gap-3">
+            {/* Answered count + save status + flagged indicator */}
+            <div className="flex items-center gap-1.5">
+              {saveStatus === "saving" && (
+                <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />
+              )}
+              {saveStatus === "saved" && (
+                <Check className="h-3 w-3 text-emerald-500" />
+              )}
+              <span className="text-xs text-muted-foreground">
+                {answeredCount}/{allQuestions.length} dijawab
               </span>
-            )}
-          </div>
-          {violationCount > 0 && (
-            <div className="flex items-center gap-1 rounded-lg bg-destructive/10 px-3 py-1.5 text-sm font-medium text-destructive">
-              <ShieldAlert className="h-4 w-4" />
-              {violationCount} pelanggaran
+              {flaggedCount > 0 && (
+                <span
+                  className="ml-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-amber-500 text-[10px] font-bold text-white"
+                  title={`${flaggedCount} soal ditandai`}
+                >
+                  {flaggedCount}
+                </span>
+              )}
             </div>
-          )}
-          <div
-            className={cn(
-              "flex items-center gap-1 rounded-lg px-3 py-1.5 font-mono text-lg font-bold",
-              isTimeWarning
-                ? "bg-destructive/10 text-destructive animate-pulse"
-                : "bg-muted"
+
+            {/* Jump to first unanswered */}
+            {unansweredCount > 0 && (
+              <button
+                onClick={() => {
+                  const target = findFirstUnanswered();
+                  if (target) navigateQuestion(target.sIdx, target.qIdx);
+                }}
+                className="flex items-center gap-1 rounded-md border border-dashed border-muted-foreground/40 px-2 py-1 text-xs text-muted-foreground transition-colors hover:border-foreground/50 hover:text-foreground"
+              >
+                Lanjut Belum Dijawab
+                <ChevronRight className="h-3 w-3" />
+              </button>
             )}
-          >
-            <Clock className="h-4 w-4" />
-            {formatTime(timeLeft)}
+
+            {violationCount > 0 && (
+              <div className="flex items-center gap-1 rounded-lg bg-destructive/10 px-3 py-1.5 text-sm font-medium text-destructive">
+                <ShieldAlert className="h-4 w-4" />
+                {violationCount} pelanggaran
+              </div>
+            )}
+            <div
+              className={cn(
+                "flex items-center gap-1 rounded-lg px-3 py-1.5 font-mono text-lg font-bold",
+                isTimeWarning
+                  ? "bg-destructive/10 text-destructive animate-pulse"
+                  : "bg-muted"
+              )}
+            >
+              <Clock className="h-4 w-4" />
+              {formatTime(timeLeft)}
+            </div>
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={() => setShowConfirmSubmit(true)}
+            >
+              <Send className="mr-2 h-4 w-4" />
+              Selesai
+            </Button>
           </div>
-          <Button
-            variant="destructive"
-            size="sm"
-            onClick={() => setShowConfirmSubmit(true)}
-          >
-            <Send className="mr-2 h-4 w-4" />
-            Selesai
-          </Button>
+        </div>
+
+        {/* Full-width progress bar */}
+        <div className="h-1.5 w-full bg-muted">
+          <div
+            className="h-full bg-emerald-500 transition-all duration-500"
+            style={{ width: `${progressPercent}%` }}
+          />
         </div>
       </div>
 
       <div className="flex flex-1 overflow-hidden">
         {/* Question Navigation Sidebar */}
         <div className="w-64 shrink-0 overflow-y-auto border-r p-3">
-          {examData.sections.map((section, sIdx) => (
-            <div key={section.id} className="mb-4">
-              <p className="mb-2 text-xs font-semibold uppercase text-muted-foreground">
-                {section.title}
-              </p>
-              <div className="grid grid-cols-5 gap-1">
-                {section.questions.map((q, qIdx) => {
-                  const isActive =
-                    sIdx === currentSectionIdx && qIdx === currentQuestionIdx;
-                  const isAnswered =
-                    !!q.selectedOptionId ||
-                    q.selectedOptions.length > 0 ||
-                    q.numericAnswer !== null;
+          {examData.sections.map((section, sIdx) => {
+            const sectionAnswered = section.questions.filter(isQuestionAnswered).length;
+            const sectionTotal = section.questions.length;
+            const sectionPercent =
+              sectionTotal > 0
+                ? Math.round((sectionAnswered / sectionTotal) * 100)
+                : 0;
 
-                  return (
-                    <button
-                      key={q.id}
-                      onClick={() => navigateQuestion(sIdx, qIdx)}
-                      className={cn(
-                        "relative flex h-9 w-9 items-center justify-center rounded text-xs font-medium transition-colors",
-                        isActive
-                          ? "bg-primary text-primary-foreground"
-                          : isAnswered
-                          ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
-                          : "bg-muted text-muted-foreground hover:bg-muted/80"
-                      )}
-                    >
-                      {qIdx + 1}
-                      {q.isFlagged && (
-                        <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-amber-500" />
-                      )}
-                    </button>
-                  );
-                })}
+            return (
+              <div key={section.id} className="mb-4">
+                <p className="mb-1 text-xs font-semibold uppercase text-muted-foreground">
+                  {section.title}
+                </p>
+                {/* Per-section progress */}
+                <div className="mb-2 space-y-1">
+                  <p className="text-xs text-muted-foreground">
+                    {sectionAnswered}/{sectionTotal} dijawab
+                  </p>
+                  <div className="h-1 w-full overflow-hidden rounded-full bg-muted">
+                    <div
+                      className="h-full rounded-full bg-emerald-500 transition-all duration-300"
+                      style={{ width: `${sectionPercent}%` }}
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-5 gap-1">
+                  {section.questions.map((q, qIdx) => {
+                    const isActive =
+                      sIdx === currentSectionIdx && qIdx === currentQuestionIdx;
+                    const isAnswered = isQuestionAnswered(q);
+
+                    return (
+                      <button
+                        key={q.id}
+                        onClick={() => navigateQuestion(sIdx, qIdx)}
+                        className={cn(
+                          "relative flex h-9 w-9 items-center justify-center rounded text-xs font-medium transition-colors",
+                          isActive
+                            ? "bg-primary text-primary-foreground"
+                            : isAnswered
+                            ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
+                            : "bg-muted text-muted-foreground hover:bg-muted/80"
+                        )}
+                      >
+                        {qIdx + 1}
+                        {q.isFlagged && (
+                          <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-amber-500" />
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         {/* Question Content */}
@@ -747,15 +838,67 @@ export function ExamSession({ attemptId }: ExamSessionProps) {
                 <AlertTriangle className="h-6 w-6 text-amber-500" />
                 <h3 className="text-lg font-semibold">Selesaikan Ujian?</h3>
               </div>
-              <div className="space-y-2 text-sm">
-                <p>
-                  {answeredCount} dari {allQuestions.length} soal dijawab
-                </p>
-                {allQuestions.length - answeredCount > 0 && (
-                  <p className="text-destructive">
-                    {allQuestions.length - answeredCount} soal belum dijawab
-                  </p>
-                )}
+
+              {/* Per-section breakdown */}
+              <div className="space-y-2">
+                {examData.sections.map((section, sIdx) => {
+                  const sectionAnswered = section.questions.filter(isQuestionAnswered).length;
+                  const sectionTotal = section.questions.length;
+                  const hasUnanswered = sectionAnswered < sectionTotal;
+
+                  return (
+                    <div
+                      key={section.id}
+                      className={cn(
+                        "flex items-center justify-between rounded-lg px-3 py-2 text-sm",
+                        hasUnanswered
+                          ? "bg-amber-50 text-amber-800 dark:bg-amber-900/20 dark:text-amber-300"
+                          : "bg-muted text-foreground"
+                      )}
+                    >
+                      <div className="flex items-center gap-2">
+                        {hasUnanswered ? (
+                          <AlertTriangle className="h-3.5 w-3.5 shrink-0 text-amber-500" />
+                        ) : (
+                          <Check className="h-3.5 w-3.5 shrink-0 text-emerald-500" />
+                        )}
+                        <span className="font-medium">{section.title}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span
+                          className={cn(
+                            "tabular-nums",
+                            hasUnanswered
+                              ? "text-amber-700 dark:text-amber-400"
+                              : "text-muted-foreground"
+                          )}
+                        >
+                          {sectionAnswered}/{sectionTotal}
+                        </span>
+                        {hasUnanswered && (
+                          <button
+                            onClick={() => {
+                              setShowConfirmSubmit(false);
+                              // Navigate to first unanswered in this section
+                              const firstUnansweredIdx = section.questions.findIndex(
+                                (q) => !isQuestionAnswered(q)
+                              );
+                              if (firstUnansweredIdx !== -1) {
+                                navigateQuestion(sIdx, firstUnansweredIdx);
+                              }
+                            }}
+                            className="text-xs underline underline-offset-2 hover:no-underline"
+                          >
+                            Kembali ke soal
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div className="space-y-1 text-sm">
                 {flaggedCount > 0 && (
                   <p className="text-amber-500">
                     {flaggedCount} soal masih ditandai
@@ -765,6 +908,7 @@ export function ExamSession({ attemptId }: ExamSessionProps) {
                   Setelah diselesaikan, Anda tidak bisa mengubah jawaban.
                 </p>
               </div>
+
               <div className="flex gap-3">
                 <Button
                   variant="outline"
