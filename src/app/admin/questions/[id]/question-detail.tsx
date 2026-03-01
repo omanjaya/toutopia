@@ -26,6 +26,7 @@ import { Label } from "@/shared/components/ui/label";
 import { LazyMathRenderer as MathRenderer } from "@/shared/components/shared/lazy-math-renderer";
 import { QuestionForm } from "@/shared/components/exam/question-form";
 import type { CreateQuestionInput } from "@/shared/lib/validators/question.validators";
+import { Breadcrumb } from "@/shared/components/layout/breadcrumb";
 
 interface QuestionData {
   id: string;
@@ -212,6 +213,12 @@ export function QuestionDetail({ question, categories }: QuestionDetailProps) {
 
   return (
     <div className="space-y-6">
+      <Breadcrumb
+        items={[
+          { label: "Bank Soal", href: "/admin/questions" },
+          { label: "Detail Soal" },
+        ]}
+      />
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">

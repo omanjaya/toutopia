@@ -10,9 +10,21 @@ import {
   TableRow,
 } from "@/shared/components/ui/table";
 import { Badge } from "@/shared/components/ui/badge";
-import { GraduationCap, Clock, UserCheck, Wallet } from "lucide-react";
+import { Button } from "@/shared/components/ui/button";
+import Link from "next/link";
+import {
+  GraduationCap,
+  Clock,
+  UserCheck,
+  Wallet,
+  Search,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 import { formatCurrency } from "@/shared/lib/utils";
 import { TeacherActions } from "./teacher-actions";
+import { SortSelect } from "./sort-select";
+import type { Prisma } from "@prisma/client";
 
 export const dynamic = "force-dynamic";
 
@@ -20,25 +32,104 @@ export const metadata: Metadata = {
   title: "Kelola Pengajar — Admin",
 };
 
-export default async function AdminTeachersPage() {
-  const teachers = await prisma.teacherProfile.findMany({
-    orderBy: [{ isVerified: "asc" }, { createdAt: "desc" }],
-    include: {
-      user: {
-        select: { id: true, name: true, email: true },
-      },
-    },
-  });
+const ITEMS_PER_PAGE = 20;
 
-  const pendingCount = teachers.filter((t) => !t.isVerified).length;
-  const verifiedCount = teachers.filter((t) => t.isVerified).length;
-  const totalEarnings = teachers.reduce((s, t) => s + t.totalEarnings, 0);
+interface Props {
+  searchParams: Promise<{
+    status?: string;
+    q?: string;
+    sort?: string;
+    page?: string;
+  }>;
+}
+
+export default async function AdminTeachersPage({ searchParams }: Props) {
+  const params = await searchParams;
+  const status = params.status ?? "";
+  const q = params.q ?? "";
+  const sort = params.sort ?? "newest";
+  const page = Math.max(1, parseInt(params.page ?? "1", 10));
+
+  const where: Prisma.TeacherProfileWhereInput = {};
+  if (status === "pending") where.isVerified = false;
+  if (status === "verified") where.isVerified = true;
+  if (q) {
+    where.user = {
+      OR: [
+        { name: { contains: q, mode: "insensitive" } },
+        { email: { contains: q, mode: "insensitive" } },
+      ],
+    };
+  }
+
+  const orderBy: Prisma.TeacherProfileOrderByWithRelationInput[] =
+    sort === "earnings"
+      ? [{ totalEarnings: "desc" }]
+      : sort === "name"
+      ? [{ user: { name: "asc" } }]
+      : [{ isVerified: "asc" }, { createdAt: "desc" }];
+
+  const [teachers, total, pendingCount, verifiedCount, totalEarnings] =
+    await Promise.all([
+      prisma.teacherProfile.findMany({
+        where,
+        orderBy,
+        skip: (page - 1) * ITEMS_PER_PAGE,
+        take: ITEMS_PER_PAGE,
+        include: {
+          user: {
+            select: { id: true, name: true, email: true },
+          },
+        },
+      }),
+      prisma.teacherProfile.count({ where }),
+      prisma.teacherProfile.count({ where: { isVerified: false } }),
+      prisma.teacherProfile.count({ where: { isVerified: true } }),
+      prisma.teacherProfile.aggregate({ _sum: { totalEarnings: true } }),
+    ]);
+
+  const totalPages = Math.ceil(total / ITEMS_PER_PAGE);
+
+  function buildUrl(overrides: Record<string, string>): string {
+    const p = new URLSearchParams();
+    if (overrides.q ?? q) p.set("q", overrides.q ?? q);
+    if (overrides.status ?? status) p.set("status", overrides.status ?? status);
+    if (overrides.sort ?? sort) p.set("sort", overrides.sort ?? sort);
+    if (overrides.page) p.set("page", overrides.page);
+    return `/admin/teachers?${p.toString()}`;
+  }
 
   const statCards = [
-    { title: "Menunggu Verifikasi", value: pendingCount.toString(), icon: Clock, color: "bg-amber-500/10 text-amber-600" },
-    { title: "Terverifikasi", value: verifiedCount.toString(), icon: UserCheck, color: "bg-emerald-500/10 text-emerald-600" },
-    { title: "Total Pengajar", value: teachers.length.toString(), icon: GraduationCap, color: "bg-blue-500/10 text-blue-600" },
-    { title: "Total Penghasilan", value: formatCurrency(totalEarnings), icon: Wallet, color: "bg-violet-500/10 text-violet-600" },
+    {
+      title: "Menunggu Verifikasi",
+      value: pendingCount.toString(),
+      icon: Clock,
+      color: "bg-amber-500/10 text-amber-600",
+    },
+    {
+      title: "Terverifikasi",
+      value: verifiedCount.toString(),
+      icon: UserCheck,
+      color: "bg-emerald-500/10 text-emerald-600",
+    },
+    {
+      title: "Total Pengajar",
+      value: total.toString(),
+      icon: GraduationCap,
+      color: "bg-blue-500/10 text-blue-600",
+    },
+    {
+      title: "Total Penghasilan",
+      value: formatCurrency(totalEarnings._sum.totalEarnings ?? 0),
+      icon: Wallet,
+      color: "bg-violet-500/10 text-violet-600",
+    },
+  ];
+
+  const filterTabs = [
+    { value: "", label: "Semua" },
+    { value: "pending", label: "Menunggu Verifikasi" },
+    { value: "verified", label: "Terverifikasi" },
   ];
 
   return (
@@ -57,7 +148,9 @@ export default async function AdminTeachersPage() {
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 {stat.title}
               </CardTitle>
-              <div className={`flex h-8 w-8 items-center justify-center rounded-lg ${stat.color}`}>
+              <div
+                className={`flex h-8 w-8 items-center justify-center rounded-lg ${stat.color}`}
+              >
                 <stat.icon className="h-4 w-4" />
               </div>
             </CardHeader>
@@ -66,6 +159,51 @@ export default async function AdminTeachersPage() {
             </CardContent>
           </Card>
         ))}
+      </div>
+
+      {/* Filters */}
+      <div className="flex flex-wrap items-center gap-3">
+        {/* Search */}
+        <form
+          method="GET"
+          action="/admin/teachers"
+          className="flex items-center gap-2"
+        >
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <input
+              name="q"
+              defaultValue={q}
+              placeholder="Cari nama atau email..."
+              className="h-9 w-64 rounded-lg border border-input bg-background pl-9 pr-3 text-sm outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-ring"
+            />
+          </div>
+          {status && <input type="hidden" name="status" value={status} />}
+          {sort && <input type="hidden" name="sort" value={sort} />}
+          <Button type="submit" size="sm">
+            Cari
+          </Button>
+        </form>
+
+        {/* Status filter tabs */}
+        <div className="flex gap-1 rounded-lg border p-1">
+          {filterTabs.map((tab) => (
+            <Link
+              key={tab.value}
+              href={buildUrl({ status: tab.value, page: "1" })}
+              className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+                status === tab.value
+                  ? "bg-primary text-primary-foreground shadow-sm"
+                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
+              }`}
+            >
+              {tab.label}
+            </Link>
+          ))}
+        </div>
+
+        {/* Sort select */}
+        <SortSelect currentSort={sort} currentStatus={status} currentQ={q} />
       </div>
 
       <div className="rounded-lg border">
@@ -112,10 +250,7 @@ export default async function AdminTeachersPage() {
                   </Badge>
                 </TableCell>
                 <TableCell>
-                  <TeacherActions
-                    teacherId={t.id}
-                    isVerified={t.isVerified}
-                  />
+                  <TeacherActions teacherId={t.id} isVerified={t.isVerified} />
                 </TableCell>
               </TableRow>
             ))}
@@ -125,7 +260,9 @@ export default async function AdminTeachersPage() {
                   <div className="flex flex-col items-center gap-2">
                     <GraduationCap className="h-8 w-8 text-muted-foreground/50" />
                     <p className="text-sm text-muted-foreground">
-                      Belum ada pendaftaran pengajar
+                      {q || status
+                        ? "Tidak ada pengajar yang sesuai filter"
+                        : "Belum ada pendaftaran pengajar"}
                     </p>
                   </div>
                 </TableCell>
@@ -134,6 +271,33 @@ export default async function AdminTeachersPage() {
           </TableBody>
         </Table>
       </div>
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between">
+          <p className="text-sm text-muted-foreground">
+            Halaman {page} dari {totalPages} ({total} pengajar)
+          </p>
+          <div className="flex gap-2">
+            {page > 1 && (
+              <Button variant="outline" size="sm" asChild>
+                <Link href={buildUrl({ page: String(page - 1) })}>
+                  <ChevronLeft className="mr-1 h-4 w-4" />
+                  Sebelumnya
+                </Link>
+              </Button>
+            )}
+            {page < totalPages && (
+              <Button variant="outline" size="sm" asChild>
+                <Link href={buildUrl({ page: String(page + 1) })}>
+                  Selanjutnya
+                  <ChevronRight className="ml-1 h-4 w-4" />
+                </Link>
+              </Button>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

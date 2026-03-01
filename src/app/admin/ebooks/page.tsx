@@ -1,37 +1,26 @@
-"use client";
-
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { toast } from "sonner";
-import {
-  Loader2,
-  Plus,
-  Pencil,
-  Trash2,
-  Eye,
-  Download,
-  BookText,
-  FileEdit,
-  CheckCircle2,
-} from "lucide-react";
+import type { Metadata } from "next";
+import Link from "next/link";
+import { prisma } from "@/shared/lib/prisma";
 import { Button } from "@/shared/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { Badge } from "@/shared/components/ui/badge";
-import Link from "next/link";
+import {
+  Plus,
+  Search,
+  BookText,
+  FileEdit,
+  CheckCircle2,
+  Eye,
+  Download,
+} from "lucide-react";
+import type { Prisma } from "@prisma/client";
+import { EbookActions } from "./ebook-actions";
 
-interface Ebook {
-  id: string;
-  title: string;
-  slug: string;
-  contentType: string;
-  status: string;
-  category: string | null;
-  viewCount: number;
-  downloadCount: number;
-  publishedAt: string | null;
-  createdAt: string;
-  author: { name: string | null };
-}
+export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = { title: "Ebook" };
+
+const ITEMS_PER_PAGE = 20;
 
 const statusBadgeClass: Record<string, string> = {
   PUBLISHED: "bg-emerald-500/10 text-emerald-700 border-emerald-200",
@@ -39,60 +28,69 @@ const statusBadgeClass: Record<string, string> = {
   ARCHIVED: "bg-amber-500/10 text-amber-700 border-amber-200",
 };
 
-export const dynamic = "force-dynamic";
+interface Props {
+  searchParams: Promise<{
+    q?: string;
+    status?: string;
+    page?: string;
+  }>;
+}
 
-export default function AdminEbooksPage() {
-  const [ebooks, setEbooks] = useState<Ebook[]>([]);
-  const [loading, setLoading] = useState(true);
-  const router = useRouter();
+export default async function AdminEbooksPage({ searchParams }: Props) {
+  const params = await searchParams;
+  const q = params.q ?? "";
+  const statusFilter = params.status ?? "";
+  const page = Math.max(1, parseInt(params.page ?? "1", 10));
 
-  useEffect(() => {
-    async function fetchEbooks() {
-      try {
-        const res = await fetch("/api/admin/ebooks");
-        const result = await res.json();
-        if (res.ok) setEbooks(result.data);
-      } catch {
-        toast.error("Gagal memuat ebook");
-      } finally {
-        setLoading(false);
-      }
-    }
+  const where: Prisma.EbookWhereInput = {};
 
-    fetchEbooks();
-  }, []);
-
-  async function handleDelete(id: string) {
-    if (!confirm("Hapus ebook ini?")) return;
-
-    try {
-      const res = await fetch(`/api/admin/ebooks/${id}`, {
-        method: "DELETE",
-      });
-      if (res.ok) {
-        setEbooks((prev) => prev.filter((e) => e.id !== id));
-        toast.success("Ebook dihapus");
-      }
-    } catch {
-      toast.error("Gagal menghapus");
-    }
+  if (q) {
+    where.OR = [
+      { title: { contains: q, mode: "insensitive" } },
+      { category: { contains: q, mode: "insensitive" } },
+    ];
   }
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center py-16">
-        <div className="flex flex-col items-center gap-3">
-          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-          <p className="text-sm text-muted-foreground">Memuat ebook...</p>
-        </div>
-      </div>
-    );
+  if (statusFilter) {
+    where.status = statusFilter as Prisma.EbookWhereInput["status"];
   }
 
-  const publishedCount = ebooks.filter((e) => e.status === "PUBLISHED").length;
-  const draftCount = ebooks.filter((e) => e.status === "DRAFT").length;
-  const totalViews = ebooks.reduce((s, e) => s + e.viewCount, 0);
-  const totalDownloads = ebooks.reduce((s, e) => s + e.downloadCount, 0);
+  const [ebooks, total, publishedCount, draftCount, totalViews, totalDownloads] = await Promise.all([
+    prisma.ebook.findMany({
+      where,
+      orderBy: { createdAt: "desc" },
+      skip: (page - 1) * ITEMS_PER_PAGE,
+      take: ITEMS_PER_PAGE,
+      select: {
+        id: true,
+        title: true,
+        slug: true,
+        contentType: true,
+        status: true,
+        category: true,
+        viewCount: true,
+        downloadCount: true,
+        publishedAt: true,
+        createdAt: true,
+        author: { select: { name: true } },
+      },
+    }),
+    prisma.ebook.count({ where }),
+    prisma.ebook.count({ where: { status: "PUBLISHED" } }),
+    prisma.ebook.count({ where: { status: "DRAFT" } }),
+    prisma.ebook.aggregate({ _sum: { viewCount: true } }).then((r) => r._sum.viewCount ?? 0),
+    prisma.ebook.aggregate({ _sum: { downloadCount: true } }).then((r) => r._sum.downloadCount ?? 0),
+  ]);
+
+  const totalPages = Math.ceil(total / ITEMS_PER_PAGE);
+
+  function buildUrl(overrides: Record<string, string>): string {
+    const p = new URLSearchParams();
+    if (overrides.q ?? q) p.set("q", overrides.q ?? q);
+    if (overrides.status ?? statusFilter) p.set("status", overrides.status ?? statusFilter);
+    if (overrides.page) p.set("page", overrides.page);
+    return `/admin/ebooks?${p.toString()}`;
+  }
 
   const statCards = [
     { title: "Published", value: publishedCount, icon: CheckCircle2, color: "bg-emerald-500/10 text-emerald-600" },
@@ -111,11 +109,12 @@ export default function AdminEbooksPage() {
         <Button size="sm" asChild>
           <Link href="/admin/ebooks/new">
             <Plus className="mr-1.5 h-3.5 w-3.5" />
-            Tambah Ebook
+            Upload Ebook
           </Link>
         </Button>
       </div>
 
+      {/* Stat Cards */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {statCards.map((stat) => (
           <Card key={stat.title}>
@@ -134,15 +133,58 @@ export default function AdminEbooksPage() {
         ))}
       </div>
 
+      {/* Filters */}
+      <div className="flex flex-wrap items-center gap-3">
+        <form method="GET" action="/admin/ebooks" className="flex items-center gap-2">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <input
+              name="q"
+              defaultValue={q}
+              placeholder="Cari judul ebook..."
+              className="h-9 w-64 rounded-lg border border-input bg-background pl-9 pr-3 text-sm outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-ring"
+            />
+          </div>
+          {statusFilter && <input type="hidden" name="status" value={statusFilter} />}
+          <Button type="submit" size="sm">Cari</Button>
+        </form>
+
+        <div className="flex gap-1 rounded-lg border p-1">
+          {[
+            { value: "", label: "Semua" },
+            { value: "DRAFT", label: "Draft" },
+            { value: "PUBLISHED", label: "Published" },
+            { value: "ARCHIVED", label: "Archived" },
+          ].map((s) => (
+            <Link
+              key={s.value}
+              href={buildUrl({ status: s.value, page: "1" })}
+              className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+                statusFilter === s.value
+                  ? "bg-primary text-primary-foreground shadow-sm"
+                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
+              }`}
+            >
+              {s.label}
+            </Link>
+          ))}
+        </div>
+      </div>
+
+      {/* Ebook List */}
       {ebooks.length === 0 ? (
         <Card>
           <CardContent className="py-16">
             <div className="flex flex-col items-center gap-3">
               <BookText className="h-10 w-10 text-muted-foreground/50" />
-              <p className="text-sm text-muted-foreground">Belum ada ebook</p>
-              <Button size="sm" variant="outline" asChild>
-                <Link href="/admin/ebooks/new">Buat Ebook Pertama</Link>
-              </Button>
+              <p className="text-sm text-muted-foreground">
+                {q || statusFilter ? "Tidak ada ebook yang cocok" : "Belum ada ebook"}
+              </p>
+              {!q && !statusFilter && (
+                <Button size="sm" variant="outline" asChild>
+                  <Link href="/admin/ebooks/new">Upload Ebook Pertama</Link>
+                </Button>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -180,27 +222,35 @@ export default function AdminEbooksPage() {
                       year: "numeric",
                     })}
                   </span>
+                  {ebook.author.name && (
+                    <span className="text-muted-foreground/70">{ebook.author.name}</span>
+                  )}
                 </div>
               </div>
-              <div className="flex items-center gap-1 ml-4">
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  onClick={() => router.push(`/admin/ebooks/${ebook.id}`)}
-                >
-                  <Pencil className="h-4 w-4" />
-                </Button>
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  onClick={() => handleDelete(ebook.id)}
-                  className="text-destructive hover:text-destructive"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
+              <EbookActions ebookId={ebook.id} />
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between">
+          <p className="text-sm text-muted-foreground">
+            Halaman {page} dari {totalPages} ({total} ebook)
+          </p>
+          <div className="flex gap-2">
+            {page > 1 && (
+              <Button variant="outline" size="sm" asChild>
+                <Link href={buildUrl({ page: String(page - 1) })}>Sebelumnya</Link>
+              </Button>
+            )}
+            {page < totalPages && (
+              <Button variant="outline" size="sm" asChild>
+                <Link href={buildUrl({ page: String(page + 1) })}>Selanjutnya</Link>
+              </Button>
+            )}
+          </div>
         </div>
       )}
     </div>

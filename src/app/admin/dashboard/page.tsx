@@ -109,7 +109,7 @@ export default async function AdminDashboardPage() {
       subtitle: `${formatCurrency(stats.revenueThisMonth)} bulan ini`,
       icon: CreditCard,
       color: iconColors.revenue,
-      href: "/admin/transactions",
+      href: "/admin/transactions?status=PAID",
     },
     {
       title: "Paket Published",
@@ -185,7 +185,7 @@ export default async function AdminDashboardPage() {
         <div className="flex flex-wrap gap-3">
           {stats.pendingQuestions > 0 && (
             <Link
-              href="/admin/questions?status=PENDING"
+              href="/admin/questions?status=PENDING_REVIEW"
               className="flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-4 py-2.5 text-sm transition-colors hover:bg-amber-100 dark:border-amber-500/20 dark:bg-amber-500/10 dark:hover:bg-amber-500/15"
             >
               <AlertCircle className="h-4 w-4 text-amber-600 dark:text-amber-400" />
@@ -197,7 +197,7 @@ export default async function AdminDashboardPage() {
           )}
           {stats.pendingTeachers > 0 && (
             <Link
-              href="/admin/teachers"
+              href="/admin/teachers?status=pending"
               className="flex items-center gap-2 rounded-lg border border-blue-200 bg-blue-50 px-4 py-2.5 text-sm transition-colors hover:bg-blue-100 dark:border-blue-500/20 dark:bg-blue-500/10 dark:hover:bg-blue-500/15"
             >
               <Clock className="h-4 w-4 text-blue-600 dark:text-blue-400" />
@@ -214,7 +214,7 @@ export default async function AdminDashboardPage() {
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {statCards.map((stat) => (
           <Link key={stat.title} href={stat.href}>
-            <Card className="transition-colors hover:bg-muted/50">
+            <Card className="transition-colors transition-shadow hover:bg-muted/50 hover:shadow-md cursor-pointer">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground">
                   {stat.title}

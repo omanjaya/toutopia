@@ -59,6 +59,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/shared/components/ui/avat
 import { formatCurrency, getInitials } from "@/shared/lib/utils";
 import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
+import { Breadcrumb } from "@/shared/components/layout/breadcrumb";
 
 export interface UserData {
   id: string;
@@ -334,6 +335,12 @@ export function UserDetail({ user, packages, attemptCount, transactionCount }: U
 
   return (
     <div className="space-y-6">
+      <Breadcrumb
+        items={[
+          { label: "Pengguna", href: "/admin/users" },
+          { label: user.name },
+        ]}
+      />
       {/* Header */}
       <div className="flex items-center gap-4">
         <Button variant="ghost" size="icon" asChild>

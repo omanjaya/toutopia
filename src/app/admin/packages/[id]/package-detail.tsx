@@ -37,6 +37,7 @@ import { GenerateSectionModal } from "@/shared/components/exam/generate-section-
 import { BatchGenerateDialog } from "@/app/admin/packages/[id]/batch-generate-dialog";
 import { detectExamTypeFromCategory } from "@/shared/lib/exam-templates";
 import { AddFromBankDialog } from "@/shared/components/exam/add-from-bank-dialog";
+import { Breadcrumb } from "@/shared/components/layout/breadcrumb";
 
 function stripHtml(html: string): string {
   return html
@@ -316,6 +317,12 @@ export function PackageDetail({ pkg, categories }: PackageDetailProps) {
 
   return (
     <div className="space-y-6">
+      <Breadcrumb
+        items={[
+          { label: "Paket", href: "/admin/packages" },
+          { label: pkg.title },
+        ]}
+      />
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">

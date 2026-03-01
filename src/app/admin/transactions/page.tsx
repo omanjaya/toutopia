@@ -20,6 +20,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Search,
+  Banknote,
 } from "lucide-react";
 import { formatCurrency } from "@/shared/lib/utils";
 import type { Prisma } from "@prisma/client";
@@ -46,6 +47,13 @@ const statusLabel: Record<string, string> = {
   REFUNDED: "Refund",
 };
 
+const paymentMethodLabel: Record<string, string> = {
+  QRIS: "QRIS",
+  BANK_TRANSFER: "Transfer Bank",
+  EWALLET: "E-Wallet",
+  CREDIT_CARD: "Kartu Kredit",
+};
+
 const ITEMS_PER_PAGE = 30;
 
 interface Props {
@@ -53,6 +61,9 @@ interface Props {
     status?: string;
     q?: string;
     page?: string;
+    from?: string;
+    to?: string;
+    sort?: string;
   }>;
 }
 
@@ -61,6 +72,9 @@ export default async function AdminTransactionsPage({ searchParams }: Props) {
   const statusFilter = params.status ?? "";
   const q = params.q ?? "";
   const page = Math.max(1, parseInt(params.page ?? "1", 10));
+  const from = params.from ?? "";
+  const to = params.to ?? "";
+  const sort = params.sort ?? "newest";
 
   const where: Prisma.TransactionWhereInput = {};
   if (statusFilter) {
@@ -74,45 +88,118 @@ export default async function AdminTransactionsPage({ searchParams }: Props) {
       ],
     };
   }
+  if (from || to) {
+    where.createdAt = {
+      ...(from && { gte: new Date(from) }),
+      ...(to && { lte: new Date(to + "T23:59:59") }),
+    };
+  }
 
-  const [transactions, total, paidAgg, pendingCount, totalAll] = await Promise.all([
-    prisma.transaction.findMany({
-      where,
-      orderBy: { createdAt: "desc" },
-      skip: (page - 1) * ITEMS_PER_PAGE,
-      take: ITEMS_PER_PAGE,
-      include: {
-        user: { select: { name: true, email: true } },
-        package: { select: { title: true } },
-      },
-    }),
-    prisma.transaction.count({ where }),
-    prisma.transaction.aggregate({
-      where: { status: "PAID" },
-      _sum: { amount: true },
-      _count: true,
-    }),
-    prisma.transaction.count({ where: { status: "PENDING" } }),
-    prisma.transaction.count(),
-  ]);
+  const orderBy: Prisma.TransactionOrderByWithRelationInput =
+    sort === "oldest"
+      ? { createdAt: "asc" }
+      : sort === "highest"
+      ? { amount: "desc" }
+      : sort === "lowest"
+      ? { amount: "asc" }
+      : { createdAt: "desc" };
+
+  // Start of today in local time (WIB = UTC+7)
+  const nowUtc = new Date();
+  const startOfToday = new Date(
+    Date.UTC(
+      nowUtc.getUTCFullYear(),
+      nowUtc.getUTCMonth(),
+      nowUtc.getUTCDate(),
+      // Subtract 7 hours to get start of WIB day in UTC
+      -7,
+    ),
+  );
+
+  const [transactions, total, paidAgg, pendingCount, totalAll, todayRevAgg] =
+    await Promise.all([
+      prisma.transaction.findMany({
+        where,
+        orderBy,
+        skip: (page - 1) * ITEMS_PER_PAGE,
+        take: ITEMS_PER_PAGE,
+        include: {
+          user: { select: { name: true, email: true } },
+          package: { select: { title: true } },
+        },
+      }),
+      prisma.transaction.count({ where }),
+      prisma.transaction.aggregate({
+        where: { status: "PAID" },
+        _sum: { amount: true },
+        _count: true,
+      }),
+      prisma.transaction.count({ where: { status: "PENDING" } }),
+      prisma.transaction.count(),
+      prisma.transaction.aggregate({
+        where: {
+          status: "PAID",
+          paidAt: { gte: startOfToday },
+        },
+        _sum: { amount: true },
+      }),
+    ]);
 
   const totalPages = Math.ceil(total / ITEMS_PER_PAGE);
   const totalRevenue = paidAgg._sum.amount ?? 0;
   const paidCount = paidAgg._count;
+  const todayRevenue = todayRevAgg._sum.amount ?? 0;
 
   function buildUrl(overrides: Record<string, string>): string {
     const p = new URLSearchParams();
     if (overrides.q ?? q) p.set("q", overrides.q ?? q);
-    if (overrides.status ?? statusFilter) p.set("status", overrides.status ?? statusFilter);
+    if (overrides.status ?? statusFilter)
+      p.set("status", overrides.status ?? statusFilter);
+    if (overrides.sort ?? sort) p.set("sort", overrides.sort ?? sort);
+    if (overrides.from ?? from) p.set("from", overrides.from ?? from);
+    if (overrides.to ?? to) p.set("to", overrides.to ?? to);
     if (overrides.page) p.set("page", overrides.page);
     return `/admin/transactions?${p.toString()}`;
   }
 
   const statCards = [
-    { title: "Total Revenue", value: formatCurrency(totalRevenue), icon: TrendingUp, color: "bg-emerald-500/10 text-emerald-600" },
-    { title: "Transaksi Berhasil", value: paidCount.toLocaleString("id-ID"), icon: CheckCircle2, color: "bg-blue-500/10 text-blue-600" },
-    { title: "Menunggu Pembayaran", value: pendingCount.toString(), icon: Clock, color: "bg-amber-500/10 text-amber-600" },
-    { title: "Total Transaksi", value: totalAll.toLocaleString("id-ID"), icon: CreditCard, color: "bg-violet-500/10 text-violet-600" },
+    {
+      title: "Total Revenue",
+      value: formatCurrency(totalRevenue),
+      icon: TrendingUp,
+      color: "bg-emerald-500/10 text-emerald-600",
+    },
+    {
+      title: "Pendapatan Hari Ini",
+      value: formatCurrency(todayRevenue),
+      icon: Banknote,
+      color: "bg-teal-500/10 text-teal-600",
+    },
+    {
+      title: "Transaksi Berhasil",
+      value: paidCount.toLocaleString("id-ID"),
+      icon: CheckCircle2,
+      color: "bg-blue-500/10 text-blue-600",
+    },
+    {
+      title: "Menunggu Pembayaran",
+      value: pendingCount.toString(),
+      icon: Clock,
+      color: "bg-amber-500/10 text-amber-600",
+    },
+    {
+      title: "Total Transaksi",
+      value: totalAll.toLocaleString("id-ID"),
+      icon: CreditCard,
+      color: "bg-violet-500/10 text-violet-600",
+    },
+  ];
+
+  const sortOptions = [
+    { value: "newest", label: "Terbaru" },
+    { value: "oldest", label: "Terlama" },
+    { value: "highest", label: "Terbesar" },
+    { value: "lowest", label: "Terkecil" },
   ];
 
   return (
@@ -125,14 +212,16 @@ export default async function AdminTransactionsPage({ searchParams }: Props) {
       </div>
 
       {/* Stats */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
         {statCards.map((stat) => (
           <Card key={stat.title}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 {stat.title}
               </CardTitle>
-              <div className={`flex h-8 w-8 items-center justify-center rounded-lg ${stat.color}`}>
+              <div
+                className={`flex h-8 w-8 items-center justify-center rounded-lg ${stat.color}`}
+              >
                 <stat.icon className="h-4 w-4" />
               </div>
             </CardHeader>
@@ -145,7 +234,12 @@ export default async function AdminTransactionsPage({ searchParams }: Props) {
 
       {/* Filters */}
       <div className="flex flex-wrap items-center gap-3">
-        <form method="GET" action="/admin/transactions" className="flex items-center gap-2">
+        {/* Search */}
+        <form
+          method="GET"
+          action="/admin/transactions"
+          className="flex items-center gap-2"
+        >
           <div className="relative">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <input
@@ -155,10 +249,82 @@ export default async function AdminTransactionsPage({ searchParams }: Props) {
               className="h-9 w-64 rounded-lg border border-input bg-background pl-9 pr-3 text-sm outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-ring"
             />
           </div>
-          {statusFilter && <input type="hidden" name="status" value={statusFilter} />}
-          <Button type="submit" size="sm">Cari</Button>
+          {statusFilter && (
+            <input type="hidden" name="status" value={statusFilter} />
+          )}
+          {sort && <input type="hidden" name="sort" value={sort} />}
+          {from && <input type="hidden" name="from" value={from} />}
+          {to && <input type="hidden" name="to" value={to} />}
+          <Button type="submit" size="sm">
+            Cari
+          </Button>
         </form>
 
+        {/* Date range */}
+        <form
+          method="GET"
+          action="/admin/transactions"
+          className="flex items-center gap-2"
+        >
+          {q && <input type="hidden" name="q" value={q} />}
+          {statusFilter && (
+            <input type="hidden" name="status" value={statusFilter} />
+          )}
+          {sort && <input type="hidden" name="sort" value={sort} />}
+          <input type="hidden" name="page" value="1" />
+          <input
+            type="date"
+            name="from"
+            defaultValue={from}
+            className="h-9 rounded-lg border border-input bg-background px-3 text-sm outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-ring"
+          />
+          <span className="text-sm text-muted-foreground">s/d</span>
+          <input
+            type="date"
+            name="to"
+            defaultValue={to}
+            className="h-9 rounded-lg border border-input bg-background px-3 text-sm outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-ring"
+          />
+          <Button type="submit" size="sm" variant="outline">
+            Filter Tanggal
+          </Button>
+          {(from || to) && (
+            <Button variant="ghost" size="sm" asChild>
+              <Link href={buildUrl({ from: "", to: "", page: "1" })}>
+                Reset
+              </Link>
+            </Button>
+          )}
+        </form>
+
+        {/* Sort select — inline form, submits on change via noscript fallback; wrapped in a Link-based select */}
+        <form method="GET" action="/admin/transactions">
+          {q && <input type="hidden" name="q" value={q} />}
+          {statusFilter && (
+            <input type="hidden" name="status" value={statusFilter} />
+          )}
+          {from && <input type="hidden" name="from" value={from} />}
+          {to && <input type="hidden" name="to" value={to} />}
+          <input type="hidden" name="page" value="1" />
+          <div className="flex items-center gap-2">
+            <select
+              name="sort"
+              defaultValue={sort}
+              className="h-9 rounded-lg border border-input bg-background px-3 text-sm outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-ring"
+            >
+              {sortOptions.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+            <Button type="submit" size="sm" variant="outline">
+              Urutkan
+            </Button>
+          </div>
+        </form>
+
+        {/* Status tabs */}
         <div className="flex gap-1 rounded-lg border p-1">
           {[
             { value: "", label: "Semua" },
@@ -215,10 +381,15 @@ export default async function AdminTransactionsPage({ searchParams }: Props) {
                     {formatCurrency(t.amount)}
                   </TableCell>
                   <TableCell className="text-sm text-muted-foreground">
-                    {t.paymentMethod ?? "-"}
+                    {t.paymentMethod
+                      ? (paymentMethodLabel[t.paymentMethod] ?? t.paymentMethod)
+                      : "-"}
                   </TableCell>
                   <TableCell>
-                    <Badge variant="outline" className={statusBadgeClass[t.status] ?? ""}>
+                    <Badge
+                      variant="outline"
+                      className={statusBadgeClass[t.status] ?? ""}
+                    >
                       {statusLabel[t.status] ?? t.status}
                     </Badge>
                   </TableCell>
@@ -238,7 +409,9 @@ export default async function AdminTransactionsPage({ searchParams }: Props) {
                   <div className="flex flex-col items-center gap-2">
                     <CreditCard className="h-8 w-8 text-muted-foreground/50" />
                     <p className="text-sm text-muted-foreground">
-                      {q || statusFilter ? "Tidak ada transaksi yang sesuai filter" : "Belum ada transaksi"}
+                      {q || statusFilter || from || to
+                        ? "Tidak ada transaksi yang sesuai filter"
+                        : "Belum ada transaksi"}
                     </p>
                   </div>
                 </TableCell>
