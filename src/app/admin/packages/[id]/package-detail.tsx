@@ -14,6 +14,8 @@ import {
   FileText,
   Users,
   Shield,
+  Wand2,
+  Sparkles,
 } from "lucide-react";
 import { Button } from "@/shared/components/ui/button";
 import { Badge } from "@/shared/components/ui/badge";
@@ -27,6 +29,21 @@ import { Separator } from "@/shared/components/ui/separator";
 import { PackageForm } from "@/shared/components/exam/package-form";
 import { formatCurrency, truncate } from "@/shared/lib/utils";
 import type { CreatePackageInput } from "@/shared/lib/validators/package.validators";
+import { GenerateSectionModal } from "@/shared/components/exam/generate-section-modal";
+import { BatchGenerateDialog } from "@/app/admin/packages/[id]/batch-generate-dialog";
+import { detectExamTypeFromCategory } from "@/shared/lib/exam-templates";
+
+function stripHtml(html: string): string {
+  return html
+    .replace(/<[^>]*>/g, "")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .trim();
+}
 
 interface PackageData {
   id: string;
@@ -102,6 +119,15 @@ export function PackageDetail({ pkg, categories }: PackageDetailProps) {
   const [mode, setMode] = useState<"view" | "edit">("view");
   const [isPublishing, setIsPublishing] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [generateSection, setGenerateSection] = useState<{
+    sectionId: string;
+    sectionTitle: string;
+    subjectId: string;
+    needed: number;
+  } | null>(null);
+  const [showBatchGenerate, setShowBatchGenerate] = useState(false);
+
+  const detectedExamType = detectExamTypeFromCategory(pkg.category.name) ?? "";
 
   const status = statusConfig[pkg.status] ?? {
     label: pkg.status,
@@ -214,6 +240,16 @@ export function PackageDetail({ pkg, categories }: PackageDetailProps) {
         </div>
         <div className="flex items-center gap-2">
           <Badge variant={status.variant}>{status.label}</Badge>
+          {(pkg.status === "DRAFT" || pkg.status === "PUBLISHED") && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowBatchGenerate(true)}
+            >
+              <Sparkles className="mr-2 h-4 w-4" />
+              Generate Semua
+            </Button>
+          )}
           {pkg.status === "DRAFT" && (
             <Button
               size="sm"
@@ -337,13 +373,33 @@ export function PackageDetail({ pkg, categories }: PackageDetailProps) {
                     &middot; {section.durationMinutes} menit
                   </p>
                 </div>
-                <Badge variant={
-                  section.questions.length >= section.totalQuestions
-                    ? "default"
-                    : "outline"
-                }>
-                  {section.questions.length}/{section.totalQuestions} soal
-                </Badge>
+                <div className="flex items-center gap-2">
+                  <Badge variant={
+                    section.questions.length >= section.totalQuestions
+                      ? "default"
+                      : "outline"
+                  }>
+                    {section.questions.length}/{section.totalQuestions} soal
+                  </Badge>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() =>
+                      setGenerateSection({
+                        sectionId: section.id,
+                        sectionTitle: section.title,
+                        subjectId: section.subject.id,
+                        needed: section.totalQuestions - section.questions.length,
+                      })
+                    }
+                    disabled={section.questions.length >= section.totalQuestions}
+                  >
+                    <Wand2 className="h-3.5 w-3.5 mr-1" />
+                    {section.questions.length >= section.totalQuestions
+                      ? "Penuh"
+                      : "Generate Soal"}
+                  </Button>
+                </div>
               </div>
 
               {section.questions.length > 0 && (
@@ -357,7 +413,7 @@ export function PackageDetail({ pkg, categories }: PackageDetailProps) {
                         {qIdx + 1}.
                       </span>
                       <span className="flex-1 truncate">
-                        {truncate(sq.question.content.replace(/<[^>]*>/g, ""), 60)}
+                        {truncate(stripHtml(sq.question.content), 60)}
                       </span>
                       <Badge variant="outline" className="text-xs">
                         {difficultyLabel[sq.question.difficulty] ?? sq.question.difficulty}
@@ -378,6 +434,51 @@ export function PackageDetail({ pkg, categories }: PackageDetailProps) {
         &middot; Maks. percobaan: {pkg.maxAttempts}x
         {pkg.passingScore && <> &middot; Passing score: {pkg.passingScore}</>}
       </div>
+
+      {/* Generate Section Modal */}
+      {generateSection && (
+        <GenerateSectionModal
+          open={!!generateSection}
+          onOpenChange={(open) => {
+            if (!open) setGenerateSection(null);
+          }}
+          packageId={pkg.id}
+          sectionId={generateSection.sectionId}
+          sectionTitle={generateSection.sectionTitle}
+          subjectId={generateSection.subjectId}
+          needed={generateSection.needed}
+          examType={detectedExamType}
+          onSuccess={({ generated, remaining }) => {
+            toast.success(
+              `${generated} soal berhasil digenerate${
+                remaining > 0
+                  ? `. Masih butuh ${remaining} soal lagi.`
+                  : ". Seksi penuh!"
+              }`
+            );
+            setGenerateSection(null);
+            router.refresh();
+          }}
+        />
+      )}
+
+      {/* Batch Generate Dialog */}
+      <BatchGenerateDialog
+        open={showBatchGenerate}
+        onOpenChange={setShowBatchGenerate}
+        packageId={pkg.id}
+        examType={detectedExamType}
+        sections={pkg.sections.map((s) => ({
+          id: s.id,
+          title: s.title,
+          totalQuestions: s.totalQuestions,
+          currentCount: s.questions.length,
+        }))}
+        onComplete={() => {
+          setShowBatchGenerate(false);
+          router.refresh();
+        }}
+      />
     </div>
   );
 }

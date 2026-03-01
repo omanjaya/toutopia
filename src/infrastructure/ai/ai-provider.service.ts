@@ -126,16 +126,19 @@ export const PROVIDER_MODELS: Record<string, { id: string; name: string }[]> = {
     { id: "gpt-4.1", name: "GPT-4.1" },
   ],
   openrouter: [
-    { id: "meta-llama/llama-4-maverick:free", name: "Llama 4 Maverick (Gratis)" },
-    { id: "google/gemini-2.0-flash-exp:free", name: "Gemini 2.0 Flash (Gratis)" },
-    { id: "deepseek/deepseek-chat-v3-0324:free", name: "DeepSeek V3 (Gratis)" },
-    { id: "deepseek/deepseek-r1:free", name: "DeepSeek R1 (Gratis)" },
-    { id: "deepseek/deepseek-chat-v3-0324", name: "DeepSeek V3" },
+    { id: "qwen/qwen3-next-80b-a3b-instruct:free", name: "Qwen3 Next 80B (Gratis)" },
+    { id: "openai/gpt-oss-120b:free", name: "OpenAI OSS 120B (Gratis)" },
+    { id: "stepfun/step-3.5-flash:free", name: "Step 3.5 Flash (Gratis)" },
+    { id: "google/gemma-3-27b-it:free", name: "Gemma 3 27B (Gratis)" },
+    { id: "mistralai/mistral-small-3.1-24b-instruct:free", name: "Mistral Small 3.1 24B (Gratis)" },
+    { id: "z-ai/glm-4.5-air:free", name: "GLM 4.5 Air (Gratis)" },
+    { id: "nousresearch/hermes-3-llama-3.1-405b:free", name: "Hermes 3 405B (Gratis)" },
+    { id: "meta-llama/llama-3.3-70b-instruct:free", name: "Llama 3.3 70B (Gratis)" },
+    { id: "google/gemini-2.5-flash-preview", name: "Gemini 2.5 Flash" },
     { id: "anthropic/claude-haiku-4-5", name: "Claude Haiku 4.5" },
     { id: "anthropic/claude-sonnet-4-5", name: "Claude Sonnet 4.5" },
     { id: "openai/gpt-4.1-nano", name: "GPT-4.1 Nano" },
     { id: "openai/gpt-4.1-mini", name: "GPT-4.1 Mini" },
-    { id: "google/gemini-2.5-flash-preview", name: "Gemini 2.5 Flash" },
   ],
   zhipu: [
     { id: "glm-4.7-flash", name: "GLM-4.7 Flash (Gratis)" },
@@ -250,7 +253,12 @@ async function callAI(
       const errorBody = await response.text();
       throw new Error(`Anthropic API error (${response.status}): ${errorBody.slice(0, 500)}`);
     }
-    const data = (await response.json()) as { content: { type: string; text: string }[] };
+    const rawData = await response.json();
+    // Basic runtime guard before casting — AI responses can deviate from expected shape
+    if (!rawData || typeof rawData !== "object" || !Array.isArray((rawData as Record<string, unknown>).content)) {
+      throw new Error("Anthropic mengembalikan respons dengan format tidak terduga");
+    }
+    const data = rawData as { content: { type: string; text: string }[] };
     const text = data.content?.find((c) => c.type === "text")?.text;
     if (!text) throw new Error("Anthropic tidak mengembalikan respons yang valid");
     return text;
@@ -275,7 +283,12 @@ async function callAI(
     const errorBody = await response.text();
     throw new Error(`AI API error (${response.status}): ${errorBody.slice(0, 500)}`);
   }
-  const data = (await response.json()) as Record<string, unknown>;
+  const rawData = await response.json();
+  // Basic runtime guard before casting — AI responses can deviate from expected shape
+  if (!rawData || typeof rawData !== "object") {
+    throw new Error("AI provider mengembalikan respons dengan format tidak terduga");
+  }
+  const data = rawData as Record<string, unknown>;
   const choices = data.choices as { message?: { content?: string }; text?: string }[] | undefined;
   const text = choices?.[0]?.message?.content ?? choices?.[0]?.text;
   if (!text) throw new Error("AI tidak mengembalikan respons yang valid");

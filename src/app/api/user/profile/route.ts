@@ -1,4 +1,4 @@
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/shared/lib/prisma";
 import { requireAuth } from "@/shared/lib/auth-guard";
@@ -12,7 +12,7 @@ export async function GET() {
     const [userData, profile] = await Promise.all([
       prisma.user.findUnique({
         where: { id: user.id },
-        select: { name: true, phone: true },
+        select: { name: true, phone: true, avatar: true },
       }),
       prisma.userProfile.findUnique({
         where: { userId: user.id },
@@ -30,6 +30,7 @@ export async function GET() {
     return successResponse({
       name: userData?.name ?? "",
       phone: userData?.phone ?? null,
+      avatar: userData?.avatar ?? null,
       theme: profile?.theme ?? "DEFAULT",
       onboardingCompleted: profile?.onboardingCompleted ?? false,
       school: profile?.school ?? null,
@@ -45,6 +46,7 @@ export async function GET() {
 const updateProfileSchema = z.object({
   name: z.string().min(1).max(100).optional(),
   phone: z.string().max(20).nullable().optional(),
+  avatar: z.string().url().nullable().optional(),
   school: z.string().max(200).nullable().optional(),
   city: z.string().max(100).nullable().optional(),
   targetExam: z.string().max(100).nullable().optional(),
@@ -57,17 +59,30 @@ export async function PATCH(request: NextRequest) {
     const body = await request.json();
     const data = updateProfileSchema.parse(body);
 
-    const { name, phone, ...profileData } = data;
+    const { name, phone, avatar, ...profileData } = data;
+
+    const hasUserUpdates = name !== undefined || phone !== undefined || avatar !== undefined;
+    const hasProfileUpdates = Object.keys(profileData).some(
+      (key) => profileData[key as keyof typeof profileData] !== undefined
+    );
+
+    if (!hasUserUpdates && !hasProfileUpdates) {
+      return NextResponse.json(
+        { success: false, error: { code: "NO_CHANGES", message: "Tidak ada data yang diubah" } },
+        { status: 400 }
+      );
+    }
 
     const updates: Promise<unknown>[] = [];
 
-    if (name !== undefined || phone !== undefined) {
+    if (name !== undefined || phone !== undefined || avatar !== undefined) {
       updates.push(
         prisma.user.update({
           where: { id: user.id },
           data: {
             ...(name !== undefined && { name }),
             ...(phone !== undefined && { phone }),
+            ...(avatar !== undefined && { avatar }),
           },
         })
       );

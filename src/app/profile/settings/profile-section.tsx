@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import { useSession } from "next-auth/react";
 import { toast } from "sonner";
-import { Loader2, Save, UserCircle } from "lucide-react";
+import { Loader2, Save, UserCircle, Camera, X } from "lucide-react";
 import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
 import { Textarea } from "@/shared/components/ui/textarea";
@@ -18,6 +19,7 @@ import {
 interface ProfileData {
   name: string;
   phone: string | null;
+  avatar: string | null;
   school: string | null;
   city: string | null;
   targetExam: string | null;
@@ -25,11 +27,15 @@ interface ProfileData {
 }
 
 export function ProfileSection() {
+  const { update: updateSession } = useSession();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const avatarInputRef = useRef<HTMLInputElement>(null);
   const [form, setForm] = useState<ProfileData>({
     name: "",
     phone: null,
+    avatar: null,
     school: null,
     city: null,
     targetExam: null,
@@ -45,18 +51,99 @@ export function ProfileSection() {
           setForm({
             name: result.data.name ?? "",
             phone: result.data.phone ?? null,
+            avatar: result.data.avatar ?? null,
             school: result.data.school ?? null,
             city: result.data.city ?? null,
             targetExam: result.data.targetExam ?? null,
             bio: result.data.bio ?? null,
           });
         }
+      } catch (error) {
+        console.error("Failed to fetch profile:", error);
+        toast.error("Gagal memuat profil. Silakan refresh halaman.");
       } finally {
         setLoading(false);
       }
     }
     fetchProfile();
   }, []);
+
+  async function handleAvatarUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Ukuran file maksimal 5MB");
+      return;
+    }
+
+    setUploadingAvatar(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const uploadRes = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
+      const uploadResult = await uploadRes.json();
+      if (!uploadRes.ok) {
+        toast.error(uploadResult.error?.message ?? "Gagal mengupload foto");
+        return;
+      }
+
+      const avatarUrl = uploadResult.data.url as string;
+
+      const saveRes = await fetch("/api/user/profile", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ avatar: avatarUrl }),
+      });
+      if (!saveRes.ok) {
+        toast.error("Gagal menyimpan foto profil");
+        return;
+      }
+
+      setForm((prev) => ({ ...prev, avatar: avatarUrl }));
+      try {
+        await updateSession({ image: avatarUrl });
+      } catch (error) {
+        console.error("Failed to update session after avatar upload:", error);
+      }
+      toast.success("Foto profil berhasil diperbarui");
+    } catch {
+      toast.error("Gagal mengupload foto");
+    } finally {
+      setUploadingAvatar(false);
+      if (avatarInputRef.current) avatarInputRef.current.value = "";
+    }
+  }
+
+  async function handleRemoveAvatar() {
+    setUploadingAvatar(true);
+    try {
+      const res = await fetch("/api/user/profile", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ avatar: null }),
+      });
+      if (!res.ok) {
+        toast.error("Gagal menghapus foto profil");
+        return;
+      }
+      setForm((prev) => ({ ...prev, avatar: null }));
+      try {
+        await updateSession({ image: null });
+      } catch (error) {
+        console.error("Failed to update session after avatar removal:", error);
+      }
+      toast.success("Foto profil dihapus");
+    } catch {
+      toast.error("Gagal menghapus foto profil");
+    } finally {
+      setUploadingAvatar(false);
+    }
+  }
 
   async function handleSave() {
     if (!form.name.trim()) {
@@ -109,7 +196,62 @@ export function ProfileSection() {
           Informasi profil kamu yang ditampilkan di platform
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-6">
+        {/* Avatar Section */}
+        <div className="flex items-center gap-4">
+          <div className="relative">
+            {form.avatar ? (
+              <img
+                src={form.avatar}
+                alt="Avatar"
+                className="h-20 w-20 rounded-full border-2 border-border object-cover"
+              />
+            ) : (
+              <div className="flex h-20 w-20 items-center justify-center rounded-full border-2 border-dashed border-muted-foreground/30 bg-muted">
+                <UserCircle className="h-10 w-10 text-muted-foreground/50" />
+              </div>
+            )}
+            <input
+              ref={avatarInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              className="hidden"
+              onChange={handleAvatarUpload}
+            />
+            <button
+              type="button"
+              disabled={uploadingAvatar}
+              onClick={() => avatarInputRef.current?.click()}
+              className="absolute -bottom-1 -right-1 flex h-8 w-8 items-center justify-center rounded-full border-2 border-background bg-primary text-primary-foreground shadow-sm transition-transform hover:scale-110 disabled:opacity-50"
+            >
+              {uploadingAvatar ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <Camera className="h-3.5 w-3.5" />
+              )}
+            </button>
+          </div>
+          <div className="space-y-1">
+            <p className="text-sm font-medium">Foto Profil</p>
+            <p className="text-xs text-muted-foreground">
+              JPG, PNG, atau WebP. Maks 5MB.
+            </p>
+            {form.avatar && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="h-7 px-2 text-xs text-destructive hover:text-destructive"
+                onClick={handleRemoveAvatar}
+                disabled={uploadingAvatar}
+              >
+                <X className="mr-1 h-3 w-3" />
+                Hapus Foto
+              </Button>
+            )}
+          </div>
+        </div>
+
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-2">
             <Label htmlFor="name">Nama</Label>

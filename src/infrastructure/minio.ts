@@ -1,5 +1,9 @@
 import { Client } from "minio";
 import { randomUUID } from "crypto";
+import sharp from "sharp";
+
+const WEBP_QUALITY = 80;
+const CONVERTIBLE_TYPES = new Set(["image/jpeg", "image/png"]);
 
 const endpoint = process.env.MINIO_ENDPOINT ?? "localhost";
 const port = parseInt(process.env.MINIO_PORT ?? "9000", 10);
@@ -15,29 +19,30 @@ const minioClient = new Client({
   secretKey: process.env.MINIO_SECRET_KEY ?? "",
 });
 
-let bucketReady = false;
+let bucketInitPromise: Promise<void> | null = null;
 
 async function ensureBucket(): Promise<void> {
-  if (bucketReady) return;
+  if (bucketInitPromise) return bucketInitPromise;
+  bucketInitPromise = (async () => {
+    const exists = await minioClient.bucketExists(bucket);
+    if (!exists) {
+      await minioClient.makeBucket(bucket);
+    }
 
-  const exists = await minioClient.bucketExists(bucket);
-  if (!exists) {
-    await minioClient.makeBucket(bucket);
-  }
-
-  const policy = JSON.stringify({
-    Version: "2012-10-17",
-    Statement: [
-      {
-        Effect: "Allow",
-        Principal: { AWS: ["*"] },
-        Action: ["s3:GetObject"],
-        Resource: [`arn:aws:s3:::${bucket}/*`],
-      },
-    ],
-  });
-  await minioClient.setBucketPolicy(bucket, policy);
-  bucketReady = true;
+    const policy = JSON.stringify({
+      Version: "2012-10-17",
+      Statement: [
+        {
+          Effect: "Allow",
+          Principal: { AWS: ["*"] },
+          Action: ["s3:GetObject"],
+          Resource: [`arn:aws:s3:::${bucket}/*`],
+        },
+      ],
+    });
+    await minioClient.setBucketPolicy(bucket, policy);
+  })();
+  return bucketInitPromise;
 }
 
 const MIME_TO_EXT: Record<string, string> = {
@@ -48,6 +53,12 @@ const MIME_TO_EXT: Record<string, string> = {
   "application/pdf": "pdf",
 };
 
+async function convertToWebp(buffer: Buffer): Promise<Buffer> {
+  return sharp(buffer)
+    .webp({ quality: WEBP_QUALITY })
+    .toBuffer();
+}
+
 export async function uploadFile(
   buffer: Buffer,
   contentType: string,
@@ -55,11 +66,19 @@ export async function uploadFile(
 ): Promise<string> {
   await ensureBucket();
 
-  const ext = MIME_TO_EXT[contentType] ?? "bin";
+  let finalBuffer = buffer;
+  let finalContentType = contentType;
+
+  if (CONVERTIBLE_TYPES.has(contentType)) {
+    finalBuffer = await convertToWebp(buffer);
+    finalContentType = "image/webp";
+  }
+
+  const ext = MIME_TO_EXT[finalContentType] ?? "bin";
   const filename = `${folder}/${randomUUID()}.${ext}`;
 
-  await minioClient.putObject(bucket, filename, buffer, buffer.length, {
-    "Content-Type": contentType,
+  await minioClient.putObject(bucket, filename, finalBuffer, finalBuffer.length, {
+    "Content-Type": finalContentType,
   });
 
   return `${publicUrl}/${bucket}/${filename}`;
