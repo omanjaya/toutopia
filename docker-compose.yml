@@ -27,6 +27,7 @@ services:
       - ./postcss.config.mjs:/app/postcss.config.mjs
       - ./components.json:/app/components.json
       - ./prisma:/app/prisma
+      - ./prisma.config.ts:/app/prisma.config.ts
     depends_on:
       postgres:
         condition: service_healthy

@@ -48,6 +48,11 @@ import { Switch } from "@/shared/components/ui/switch";
 /* ── Constants ── */
 
 const PROVIDER_MODELS: Record<string, { id: string; name: string; free?: boolean }[]> = {
+  anthropic: [
+    { id: "claude-haiku-4-5-20251001", name: "Claude Haiku 4.5 (Tercepat)" },
+    { id: "claude-sonnet-4-5", name: "Claude Sonnet 4.5" },
+    { id: "claude-opus-4-5", name: "Claude Opus 4.5 (Terbaik)" },
+  ],
   gemini: [
     { id: "gemini-2.5-flash-lite", name: "Gemini 2.5 Flash Lite", free: true },
     { id: "gemini-2.5-flash", name: "Gemini 2.5 Flash" },
@@ -73,6 +78,28 @@ const PROVIDER_MODELS: Record<string, { id: string; name: string; free?: boolean
     { id: "gpt-4o-mini", name: "GPT-4o Mini" },
     { id: "gpt-4.1-mini", name: "GPT-4.1 Mini" },
     { id: "gpt-4.1", name: "GPT-4.1" },
+  ],
+  openrouter: [
+    { id: "qwen/qwen3-next-80b-a3b-instruct:free", name: "Qwen3 Next 80B", free: true },
+    { id: "openai/gpt-oss-120b:free", name: "OpenAI OSS 120B", free: true },
+    { id: "stepfun/step-3.5-flash:free", name: "Step 3.5 Flash", free: true },
+    { id: "google/gemma-3-27b-it:free", name: "Gemma 3 27B", free: true },
+    { id: "mistralai/mistral-small-3.1-24b-instruct:free", name: "Mistral Small 3.1 24B", free: true },
+    { id: "meta-llama/llama-3.3-70b-instruct:free", name: "Llama 3.3 70B", free: true },
+    { id: "google/gemini-2.5-flash-preview", name: "Gemini 2.5 Flash" },
+    { id: "anthropic/claude-haiku-4-5", name: "Claude Haiku 4.5" },
+    { id: "anthropic/claude-sonnet-4-5", name: "Claude Sonnet 4.5" },
+    { id: "openai/gpt-4.1-nano", name: "GPT-4.1 Nano" },
+    { id: "openai/gpt-4.1-mini", name: "GPT-4.1 Mini" },
+  ],
+  zhipu: [
+    { id: "glm-4.7-flash", name: "GLM-4.7 Flash", free: true },
+    { id: "glm-4.5-flash", name: "GLM-4.5 Flash", free: true },
+    { id: "glm-4.5-air", name: "GLM-4.5 Air" },
+    { id: "glm-4.5", name: "GLM-4.5" },
+    { id: "glm-4.6", name: "GLM-4.6" },
+    { id: "glm-4.7", name: "GLM-4.7" },
+    { id: "glm-5", name: "GLM-5" },
   ],
 };
 
@@ -305,9 +332,9 @@ function GenerateTab({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ topicId, count, difficulty, type, examType, customInstruction: customInstruction || undefined }),
       });
-      const j = (await r.json()) as { success: boolean; data: { prompt?: string; error?: string } };
-      if (j.success && j.data.prompt) { setPrompt(j.data.prompt); setShowPrompt(true); }
-      else toast.error(j.data.error ?? "Gagal memuat prompt");
+      const j = (await r.json()) as { success: boolean; data?: { prompt?: string }; error?: { code?: string; message?: string } };
+      if (j.success && j.data?.prompt) { setPrompt(j.data.prompt); setShowPrompt(true); }
+      else toast.error(j.error?.message ?? "Gagal memuat prompt");
     } catch { toast.error("Terjadi kesalahan"); }
     finally { setLoadingPrompt(false); }
   }
@@ -322,12 +349,12 @@ function GenerateTab({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ provider, model, topicId, count, difficulty, type, examType, customInstruction: customInstruction || undefined, enableValidation, validatorProvider: enableValidation ? validatorProvider : undefined, validatorModel: enableValidation ? validatorModel : undefined }),
       });
-      const j = (await r.json()) as { success: boolean; data: { questions?: GenQuestion[]; validation?: ValResult[] | null; error?: string; meta?: { generated: number; requested: number; validated: boolean } } };
-      if (!j.success || j.data.error) { toast.error(j.data.error ?? "Gagal generate soal"); return; }
+      const j = (await r.json()) as { success: boolean; data?: { questions?: GenQuestion[]; validation?: ValResult[] | null; meta?: { generated: number; requested: number; validated: boolean } }; error?: { code?: string; message?: string } };
+      if (!j.success || !j.data) { toast.error(j.error?.message ?? "Gagal generate soal"); return; }
       const qs = (j.data.questions ?? []).map((q) => ({ ...q, selected: true }));
       setQuestions(qs); setValidation(j.data.validation ?? null);
       toast.success(`${j.data.meta?.generated ?? qs.length} soal berhasil di-generate${j.data.meta?.validated ? " dan divalidasi" : ""}`);
-    } catch { toast.error("Terjadi kesalahan saat generate soal"); }
+    } catch (err) { toast.error(err instanceof Error ? err.message : "Terjadi kesalahan saat generate soal"); }
     finally { setGenerating(false); }
   }
 
@@ -341,10 +368,10 @@ function GenerateTab({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ topicId, source: `AI Generated (${PROVIDER_NAMES[provider] ?? provider})`, questions: sel.map((q) => ({ content: q.content, explanation: q.explanation, difficulty: q.difficulty, type: q.type, options: q.options })) }),
       });
-      const j = (await r.json()) as { success: boolean; data: { saved?: number; error?: string } };
-      if (j.success && j.data.saved) { toast.success(`${j.data.saved} soal disimpan`); setQuestions([]); setValidation(null); }
-      else toast.error(j.data.error ?? "Gagal menyimpan");
-    } catch { toast.error("Terjadi kesalahan"); }
+      const j = (await r.json()) as { success: boolean; data?: { saved?: number }; error?: { code?: string; message?: string } };
+      if (j.success && j.data?.saved) { toast.success(`${j.data.saved} soal disimpan`); setQuestions([]); setValidation(null); }
+      else toast.error(j.error?.message ?? "Gagal menyimpan");
+    } catch (err) { toast.error(err instanceof Error ? err.message : "Terjadi kesalahan"); }
     finally { setSaving(false); }
   }
 

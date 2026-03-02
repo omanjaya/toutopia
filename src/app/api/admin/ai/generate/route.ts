@@ -79,18 +79,24 @@ export async function POST(request: NextRequest) {
     const apiKey = decrypt(providerConfig.apiKey);
     const model = data.model ?? providerConfig.model;
 
-    const questions = await generateQuestions({
-      provider: data.provider,
-      model,
-      apiKey,
-      subtest: topic.subject.name,
-      topic: topic.name,
-      difficulty: data.difficulty,
-      count: data.count,
-      type: data.type,
-      examType: data.examType,
-      customInstruction: data.customInstruction,
-    });
+    let questions;
+    try {
+      questions = await generateQuestions({
+        provider: data.provider,
+        model,
+        apiKey,
+        subtest: topic.subject.name,
+        topic: topic.name,
+        difficulty: data.difficulty,
+        count: data.count,
+        type: data.type,
+        examType: data.examType,
+        customInstruction: data.customInstruction,
+      });
+    } catch (aiError) {
+      const msg = aiError instanceof Error ? aiError.message : "Gagal generate soal dari AI";
+      return errorResponse("AI_GENERATION_FAILED", msg, 502);
+    }
 
     // Optional validation step
     let validation = null;

@@ -1,8 +1,13 @@
 import path from "node:path";
-import dotenv from "dotenv";
 import { defineConfig } from "prisma/config";
 
-dotenv.config({ path: path.resolve(__dirname, ".env") });
+try {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const dotenv = require("dotenv");
+  dotenv.config({ path: path.resolve(__dirname, ".env") });
+} catch {
+  // dotenv not available in production standalone — env is injected by Docker
+}
 
 export default defineConfig({
   schema: path.join(__dirname, "prisma", "schema.prisma"),
