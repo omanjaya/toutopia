@@ -4,7 +4,7 @@ function sanitizeInstruction(instruction: string | undefined): string {
     .replace(/[\r\n]+/g, " ")           // Remove newlines (used for injection)
     .replace(/[<>{}[\]]/g, "")          // Remove brackets used in prompt formatting
     .replace(/ignore|system|assistant|override/gi, "") // Remove common injection keywords
-    .slice(0, 300)                       // Limit length
+    .slice(0, 1000)                      // Limit length
     .trim();
 }
 

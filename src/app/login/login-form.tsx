@@ -45,7 +45,11 @@ export function LoginForm() {
       });
 
       if (result?.error) {
-        toast.error("Email atau password salah");
+        if (result.code === "EMAIL_NOT_VERIFIED") {
+          toast.error("Email belum diverifikasi. Silakan hubungi admin.");
+        } else {
+          toast.error("Email atau password salah");
+        }
         return;
       }
 

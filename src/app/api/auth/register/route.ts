@@ -48,6 +48,7 @@ export async function POST(request: NextRequest) {
           email,
           name: data.name,
           passwordHash,
+          emailVerified: new Date(),
           role: "STUDENT",
           referredById: referrerId,
           credits: {

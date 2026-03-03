@@ -8,11 +8,9 @@ export interface NavItem {
 }
 
 export const publicNav: NavItem[] = [
-  { title: "Beranda", href: "/" },
   { title: "Paket Try Out", href: "/packages" },
   { title: "Harga", href: "/pricing" },
   { title: "Blog", href: "/blog" },
-  { title: "FAQ", href: "/faq" },
 ];
 
 export const studentNav: NavItem[] = [

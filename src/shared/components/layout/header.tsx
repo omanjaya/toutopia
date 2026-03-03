@@ -5,6 +5,7 @@ import { Button } from "@/shared/components/ui/button";
 import { UserMenu } from "./user-menu";
 import { MobileNav } from "./mobile-nav";
 import { DarkModeToggle } from "./dark-mode-toggle";
+import { CategoryDropdown } from "./category-dropdown";
 import { publicNav } from "@/config/navigation.config";
 
 export async function Header() {
@@ -20,6 +21,7 @@ export async function Header() {
           </Link>
 
           <nav className="hidden items-center gap-6 md:flex">
+            <CategoryDropdown />
             {publicNav.map((item) => (
               <Link
                 key={item.href}
@@ -42,7 +44,7 @@ export async function Header() {
                 <Link href="/login">Masuk</Link>
               </Button>
               <Button size="sm" className="h-9 rounded-full px-5 text-sm" asChild>
-                <Link href="/register">Daftar sekarang</Link>
+                <Link href="/register">Daftar Gratis</Link>
               </Button>
             </div>
           )}

@@ -68,7 +68,7 @@ export function Footer() {
               </ul>
             </div>
             <div>
-              <h3 className="text-sm font-semibold text-foreground">Company</h3>
+              <h3 className="text-sm font-semibold text-foreground">Perusahaan</h3>
               <ul className="mt-4 space-y-3">
                 {footerLinks.perusahaan.map((item) => (
                   <li key={item.title}>

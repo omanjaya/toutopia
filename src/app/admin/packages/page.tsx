@@ -12,6 +12,7 @@ import {
   Layers,
   Search,
   Users,
+  Wand2,
 } from "lucide-react";
 import { PackagesTable } from "./packages-table";
 
@@ -127,6 +128,12 @@ export default async function AdminPackagesPage({
           </div>
         </div>
         <div className="flex gap-2 self-start sm:self-auto">
+          <Button size="sm" variant="outline" asChild>
+            <Link href="/admin/packages/auto-generate">
+              <Wand2 className="mr-1.5 h-3.5 w-3.5" />
+              Auto Generate
+            </Link>
+          </Button>
           <Button size="sm" variant="outline" asChild>
             <Link href="/admin/packages/series/new">
               <Layers className="mr-1.5 h-3.5 w-3.5" />

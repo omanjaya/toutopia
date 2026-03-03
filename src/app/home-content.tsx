@@ -10,10 +10,6 @@ import {
     Users,
     Zap,
     ChevronRight,
-    GraduationCap,
-    Landmark,
-    Building2,
-    FileCheck,
     ArrowRight,
     Sparkles,
     Quote,
@@ -24,47 +20,38 @@ import {
 import { Button } from "@/shared/components/ui/button";
 import { Badge } from "@/shared/components/ui/badge";
 import { useGSAPAnimation } from "@/shared/hooks/use-gsap-animation";
+import { getCategoryTheme } from "@/shared/lib/category-colors";
 
 const examCategories = [
     {
         title: "UTBK-SNBT",
+        slug: "utbk-snbt",
         description: "Simulasi tes masuk PTN dengan standar nasional",
-        icon: GraduationCap,
         href: "/tryout-utbk",
-        color: "text-blue-600",
-        bg: "bg-blue-50/50",
     },
     {
         title: "CPNS",
+        slug: "cpns",
         description: "Latihan CAT lengkap: TWK, TIU, dan TKP",
-        icon: Landmark,
         href: "/tryout-cpns",
-        color: "text-emerald-600",
-        bg: "bg-emerald-50/50",
     },
     {
         title: "BUMN",
+        slug: "bumn",
         description: "Persiapan Rekrutmen Bersama dengan materi terkini",
-        icon: Building2,
         href: "/tryout-bumn",
-        color: "text-amber-600",
-        bg: "bg-amber-50/50",
     },
     {
         title: "Kedinasan",
+        slug: "kedinasan",
         description: "Masuk STAN, STIS, IPDN, dan lainnya",
-        icon: Shield,
         href: "/tryout-kedinasan",
-        color: "text-violet-600",
-        bg: "bg-violet-50/50",
     },
     {
         title: "PPPK",
+        slug: "pppk",
         description: "Kompetensi teknis dan manajerial",
-        icon: FileCheck,
         href: "/tryout-pppk",
-        color: "text-rose-600",
-        bg: "bg-rose-50/50",
     },
 ];
 
@@ -215,16 +202,15 @@ export function HomeContent() {
                         </Badge>
                     </div>
 
-                    <h1 className="hero-item text-5xl font-semibold tracking-tight text-foreground sm:text-7xl">
-                        Ujian Masa Depan.{" "}
+                    <h1 className="hero-item text-4xl font-semibold tracking-tight text-foreground sm:text-6xl lg:text-7xl">
+                        Latihan Ujian{" "}
                         <span className="bg-gradient-to-r from-primary to-violet-600 bg-clip-text text-transparent">
-                            Mulai Hari Ini.
+                            Seperti Aslinya
                         </span>
                     </h1>
 
-                    <p className="hero-item mx-auto mt-8 max-w-2xl text-xl leading-8 text-muted-foreground/90">
-                        Platform try out online dengan standar premium. Simulasi UTBK, CPNS, dan BUMN yang
-                        realistis, akurat, dan mendalam.
+                    <p className="hero-item mx-auto mt-6 max-w-2xl text-lg leading-8 text-muted-foreground/90 sm:text-xl">
+                        Simulasi UTBK, CPNS, BUMN, Kedinasan & PPPK dengan soal berkualitas, timer realistis, dan analitik mendalam untuk bantu kamu lolos.
                     </p>
 
                     <div className="hero-item mt-12 flex items-center justify-center gap-x-6">
@@ -262,27 +248,31 @@ export function HomeContent() {
                     </div>
 
                     <div className="mt-16 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-                        {examCategories.map((category) => (
-                            <div key={category.href} className="group relative">
-                                <div className="absolute -inset-0.5 rounded-2xl bg-gradient-to-br from-primary/20 to-violet-600/20 blur transition duration-500 group-hover:opacity-100" />
-                                <Link
-                                    href={category.href}
-                                    className="category-card relative block h-full"
-                                    onMouseEnter={(e) => animateHoverEnter(e.currentTarget)}
-                                    onMouseLeave={(e) => animateHoverLeave(e.currentTarget)}
-                                >
-                                    <div className="flex h-full flex-col items-start rounded-2xl bg-card/60 p-8 shadow-sm ring-1 ring-black/[0.05] backdrop-blur-xl transition-all hover:shadow-md">
-                                        <div className={`mb-6 inline-flex rounded-2xl p-3 ${category.bg}`}>
-                                            <category.icon className={`h-6 w-6 ${category.color}`} />
+                        {examCategories.map((category) => {
+                            const theme = getCategoryTheme(category.slug);
+                            const Icon = theme.icon;
+                            return (
+                                <div key={category.href} className="group relative">
+                                    <div className="absolute -inset-0.5 rounded-2xl bg-gradient-to-br from-primary/20 to-violet-600/20 blur transition duration-500 group-hover:opacity-100" />
+                                    <Link
+                                        href={category.href}
+                                        className="category-card relative block h-full"
+                                        onMouseEnter={(e) => animateHoverEnter(e.currentTarget)}
+                                        onMouseLeave={(e) => animateHoverLeave(e.currentTarget)}
+                                    >
+                                        <div className="flex h-full flex-col items-start rounded-2xl bg-card/60 p-8 shadow-sm ring-1 ring-black/[0.05] backdrop-blur-xl transition-all hover:shadow-md">
+                                            <div className={`mb-6 inline-flex rounded-2xl p-3 ${theme.bg}`}>
+                                                <Icon className={`h-6 w-6 ${theme.text}`} />
+                                            </div>
+                                            <h3 className="text-xl font-semibold tracking-tight transition-colors group-hover:text-primary">
+                                                {category.title}
+                                            </h3>
+                                            <p className="mt-2 text-muted-foreground">{category.description}</p>
                                         </div>
-                                        <h3 className="text-xl font-semibold tracking-tight transition-colors group-hover:text-primary">
-                                            {category.title}
-                                        </h3>
-                                        <p className="mt-2 text-muted-foreground">{category.description}</p>
-                                    </div>
-                                </Link>
-                            </div>
-                        ))}
+                                    </Link>
+                                </div>
+                            );
+                        })}
 
                         {/* Stats Card */}
                         <div className="category-card flex flex-col justify-between rounded-3xl bg-muted/50 p-8 dark:bg-muted/10">
@@ -298,6 +288,50 @@ export function HomeContent() {
                                 ))}
                             </div>
                         </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* How It Works */}
+            <section className="border-y border-border/40 bg-muted/20 py-20 sm:py-24">
+                <div className="mx-auto max-w-7xl px-6 lg:px-8">
+                    <div className="mx-auto max-w-2xl text-center">
+                        <h2 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
+                            Mulai dalam 3 Langkah
+                        </h2>
+                        <p className="mt-4 text-lg text-muted-foreground">
+                            Tidak perlu ribet. Daftar, pilih paket, langsung latihan.
+                        </p>
+                    </div>
+
+                    <div className="mx-auto mt-14 grid max-w-4xl grid-cols-1 gap-8 sm:grid-cols-3">
+                        {[
+                            {
+                                step: "1",
+                                title: "Daftar Gratis",
+                                description: "Buat akun dalam 30 detik. Langsung dapat akses ke paket gratis.",
+                            },
+                            {
+                                step: "2",
+                                title: "Pilih Kategori",
+                                description: "UTBK, CPNS, BUMN, Kedinasan, atau PPPK — pilih sesuai target kamu.",
+                            },
+                            {
+                                step: "3",
+                                title: "Mulai Latihan",
+                                description: "Kerjakan soal, lihat pembahasan, dan pantau perkembangan skormu.",
+                            },
+                        ].map((item) => (
+                            <div key={item.step} className="feature-item relative text-center">
+                                <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary text-lg font-bold text-primary-foreground">
+                                    {item.step}
+                                </div>
+                                <h3 className="text-lg font-semibold text-foreground">{item.title}</h3>
+                                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                                    {item.description}
+                                </p>
+                            </div>
+                        ))}
                     </div>
                 </div>
             </section>
