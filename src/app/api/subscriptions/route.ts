@@ -41,69 +41,13 @@ export async function GET(): Promise<Response> {
     }
 }
 
-// POST: Subscribe to a bundle
-export async function POST(request: NextRequest): Promise<Response> {
-    try {
-        const user = await requireAuth();
-        const body = await request.json();
-        const { bundleId, plan } = subscribeSchema.parse(body);
-
-        const bundle = await prisma.subscriptionBundle.findUnique({
-            where: { id: bundleId },
-        });
-
-        if (!bundle || !bundle.isActive) {
-            return errorResponse("NOT_FOUND", "Paket bundling tidak ditemukan", 404);
-        }
-
-        // Check existing active subscription
-        const existingSub = await prisma.subscription.findFirst({
-            where: { userId: user.id, bundleId, status: "ACTIVE" },
-        });
-
-        if (existingSub) {
-            return errorResponse("ALREADY_SUBSCRIBED", "Kamu sudah berlangganan paket ini", 400);
-        }
-
-        // Calculate amount and end date
-        let amount: number;
-        let durationMonths: number;
-
-        switch (plan) {
-            case "MONTHLY":
-                amount = bundle.monthlyPrice;
-                durationMonths = 1;
-                break;
-            case "QUARTERLY":
-                amount = bundle.quarterlyPrice ?? bundle.monthlyPrice * 3;
-                durationMonths = 3;
-                break;
-            case "YEARLY":
-                amount = bundle.yearlyPrice ?? bundle.monthlyPrice * 12;
-                durationMonths = 12;
-                break;
-        }
-
-        const startDate = new Date();
-        const endDate = new Date();
-        endDate.setMonth(endDate.getMonth() + durationMonths);
-
-        const subscription = await prisma.subscription.create({
-            data: {
-                userId: user.id,
-                bundleId,
-                plan,
-                amount,
-                startDate,
-                endDate,
-            },
-            include: {
-                bundle: { select: { name: true } },
-            },
-        });
-
-        return successResponse(subscription, undefined, 201);
-    } catch (error) {
-        return handleApiError(error);
-    }
+// POST: Subscribe to a bundle (requires going through payment flow)
+// This endpoint is disabled — subscriptions are created via the payment webhook
+// after successful payment through /api/payment/create with type "SUBSCRIPTION"
+export async function POST(_request: NextRequest): Promise<Response> {
+    return errorResponse(
+        "PAYMENT_REQUIRED",
+        "Silakan berlangganan melalui halaman pembayaran",
+        400
+    );
 }

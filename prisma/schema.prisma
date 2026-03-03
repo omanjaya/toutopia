@@ -663,8 +663,9 @@ model Transaction {
   midtransId    String?           @unique
   midtransUrl   String?
   snapToken     String?
-  paidAt        DateTime?
-  expiredAt     DateTime?
+  paidAt         DateTime?
+  refundedAmount Int?
+  expiredAt      DateTime?
   metadata      Json?
   createdAt     DateTime          @default(now())
   updatedAt     DateTime          @updatedAt

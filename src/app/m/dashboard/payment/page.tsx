@@ -14,13 +14,35 @@ export const metadata: Metadata = {
   title: "Pembayaran",
 };
 
-export default async function MobilePaymentPage() {
+export default async function MobilePaymentPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ packageId?: string; plan?: string }>;
+}) {
   const session = await auth();
   if (!session?.user?.id) redirect("/m/login");
 
-  const credit = await prisma.userCredit.findUnique({
-    where: { userId: session.user.id },
-  });
+  const { packageId } = await searchParams;
+
+  const [credit, targetPackage] = await Promise.all([
+    prisma.userCredit.findUnique({
+      where: { userId: session.user.id },
+    }),
+    packageId
+      ? prisma.examPackage.findUnique({
+          where: { id: packageId, status: "PUBLISHED" },
+          select: {
+            id: true,
+            title: true,
+            price: true,
+            discountPrice: true,
+            isFree: true,
+            totalQuestions: true,
+            durationMinutes: true,
+          },
+        })
+      : null,
+  ]);
 
   const isProduction = process.env.MIDTRANS_IS_PRODUCTION === "true";
   const snapScriptUrl = isProduction
@@ -41,7 +63,20 @@ export default async function MobilePaymentPage() {
           </div>
         }
       >
-        <MobilePaymentCheckout currentBalance={credit?.balance ?? 0} />
+        <MobilePaymentCheckout
+          currentBalance={credit?.balance ?? 0}
+          targetPackage={
+            targetPackage && !targetPackage.isFree
+              ? {
+                  id: targetPackage.id,
+                  title: targetPackage.title,
+                  price: targetPackage.discountPrice ?? targetPackage.price,
+                  totalQuestions: targetPackage.totalQuestions,
+                  durationMinutes: targetPackage.durationMinutes,
+                }
+              : undefined
+          }
+        />
       </Suspense>
     </>
   );

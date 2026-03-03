@@ -11,7 +11,9 @@ import {
   Target,
   FileText,
   ArrowRight,
+  Sparkles,
 } from "lucide-react";
+import { Button } from "@/shared/components/ui/button";
 import { cn } from "@/shared/lib/utils";
 import { format } from "date-fns";
 import { id as idLocale } from "date-fns/locale";
@@ -27,6 +29,7 @@ interface DashboardStats {
   completedAttempts: number;
   creditBalance: number;
   freeCredits: number;
+  isNewUser: boolean;
   recentAttempts: Array<{
     id: string;
     status: string;
@@ -39,7 +42,7 @@ interface DashboardStats {
 async function getMobileDashboardStats(
   userId: string,
 ): Promise<DashboardStats> {
-  const [scoreAgg, recentAttempts, credits] = await Promise.all([
+  const [scoreAgg, recentAttempts, credits, transactionCount] = await Promise.all([
     prisma.examAttempt.aggregate({
       where: { userId, status: "COMPLETED", score: { not: null } },
       _count: true,
@@ -61,13 +64,25 @@ async function getMobileDashboardStats(
       where: { userId },
       select: { balance: true, freeCredits: true },
     }),
+    prisma.transaction.count({
+      where: { userId },
+    }),
   ]);
+
+  const creditBalance = credits?.balance ?? 0;
+  const freeCredits = credits?.freeCredits ?? 0;
+  const isNewUser =
+    transactionCount === 0 &&
+    (creditBalance === 0 || creditBalance === 2) &&
+    freeCredits >= 0 &&
+    freeCredits <= 2;
 
   return {
     avgScore: scoreAgg._avg.score ? Math.round(scoreAgg._avg.score) : null,
     completedAttempts: scoreAgg._count,
-    creditBalance: credits?.balance ?? 0,
-    freeCredits: credits?.freeCredits ?? 0,
+    creditBalance,
+    freeCredits,
+    isNewUser,
     recentAttempts,
   };
 }
@@ -126,6 +141,33 @@ export default async function MobileDashboardPage() {
         </h1>
         <p className="mt-0.5 text-sm text-muted-foreground">{today}</p>
       </div>
+
+      {/* Onboarding Banner — new users only */}
+      {stats.isNewUser && (
+        <div className="mb-6 rounded-xl border border-blue-200 bg-blue-50/60 p-4">
+          <div className="flex items-start gap-3">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-100">
+              <Sparkles className="h-4 w-4 text-blue-600" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-blue-800">
+                Selamat datang di Toutopia!
+              </p>
+              <p className="mt-1 text-xs text-blue-700">
+                Anda mendapatkan 2 kredit gratis untuk mencoba try out. 1 kredit = 1 sesi try out.
+              </p>
+              <div className="mt-2 flex gap-2">
+                <Button asChild size="sm" variant="outline" className="h-7 text-xs">
+                  <Link href="/m/tryout">Mulai Try Out</Link>
+                </Button>
+                <Button asChild size="sm" variant="ghost" className="h-7 text-xs">
+                  <Link href="/m/dashboard/payment">Lihat Harga</Link>
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Stats Row — horizontal scroll */}
       <div className="-mx-4 mb-6 flex gap-3 overflow-x-auto px-4 pb-1 scrollbar-none [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">

@@ -74,43 +74,50 @@ export async function POST(request: NextRequest) {
           (!directAccess.expiresAt || directAccess.expiresAt > new Date());
       }
 
-      // Deduct credit for paid packages (skip if user has direct access)
-      if (!pkg.isFree && !hasDirectAccess) {
-        const credit = await tx.userCredit.findUnique({
-          where: { userId: user.id },
-        });
+      // Track which credit bucket was used (if any) for the history record
+      let creditSource: "FREE" | "BALANCE" | null = null;
 
-        if (!credit || (credit.freeCredits < 1 && credit.balance < 1)) {
-          throw new Error("INSUFFICIENT_CREDITS");
+      // Deduct credit for paid packages (skip if user has direct or subscription access)
+      if (!pkg.isFree && !hasDirectAccess) {
+        // Check if user has active subscription for this package's bundle
+        let hasSubscriptionAccess = false;
+        if (pkg.bundleId) {
+          const activeSub = await tx.subscription.findFirst({
+            where: {
+              userId: user.id,
+              bundleId: pkg.bundleId,
+              status: "ACTIVE",
+              endDate: { gt: new Date() },
+            },
+          });
+          hasSubscriptionAccess = !!activeSub;
         }
 
-        // Use freeCredits first, then balance
-        if (credit.freeCredits >= 1) {
-          const updated = await tx.userCredit.updateMany({
+        if (!hasSubscriptionAccess) {
+          // Atomic credit deduction — no separate findUnique needed.
+          // The updateMany WHERE clause acts as the balance check itself.
+          const freeResult = await tx.userCredit.updateMany({
             where: { userId: user.id, freeCredits: { gte: 1 } },
             data: { freeCredits: { decrement: 1 } },
           });
-          if (updated.count === 0) {
-            throw new Error("INSUFFICIENT_CREDITS");
-          }
-        } else {
-          const updated = await tx.userCredit.updateMany({
-            where: { userId: user.id, balance: { gte: 1 } },
-            data: { balance: { decrement: 1 } },
-          });
-          if (updated.count === 0) {
-            throw new Error("INSUFFICIENT_CREDITS");
+
+          if (freeResult.count > 0) {
+            creditSource = "FREE";
+          } else {
+            const balanceResult = await tx.userCredit.updateMany({
+              where: { userId: user.id, balance: { gte: 1 } },
+              data: { balance: { decrement: 1 } },
+            });
+
+            if (balanceResult.count > 0) {
+              creditSource = "BALANCE";
+            } else {
+              throw Object.assign(new Error("INSUFFICIENT_CREDITS"), {
+                code: "INSUFFICIENT_CREDITS",
+              });
+            }
           }
         }
-
-        await tx.creditHistory.create({
-          data: {
-            userId: user.id,
-            amount: -1,
-            type: "USAGE",
-            description: `Try Out: ${pkg.title}`,
-          },
-        });
       }
 
       // Create attempt
@@ -122,6 +129,19 @@ export async function POST(request: NextRequest) {
           serverDeadline: deadline,
         },
       });
+
+      // Record credit usage after attempt creation so we can reference the attempt ID
+      if (creditSource) {
+        await tx.creditHistory.create({
+          data: {
+            userId: user.id,
+            amount: -1,
+            type: "USAGE",
+            description: `Try Out: ${pkg.title} (${creditSource === "FREE" ? "kredit gratis" : "saldo"})`,
+            referenceId: created.id,
+          },
+        });
+      }
 
       // Pre-create answer slots for all questions
       const answerData = pkg.sections.flatMap((section) =>
@@ -147,8 +167,15 @@ export async function POST(request: NextRequest) {
     if (code === "MAX_ATTEMPTS_REACHED") {
       return errorResponse("MAX_ATTEMPTS_REACHED", "Anda sudah mencapai batas percobaan maksimum", 403);
     }
-    if (error instanceof Error && error.message === "INSUFFICIENT_CREDITS") {
-      return errorResponse("INSUFFICIENT_CREDITS", "Kredit tidak cukup untuk memulai ujian", 402);
+    if (
+      code === "INSUFFICIENT_CREDITS" ||
+      (error instanceof Error && error.message === "INSUFFICIENT_CREDITS")
+    ) {
+      return errorResponse(
+        "INSUFFICIENT_CREDITS",
+        "Kredit tidak cukup untuk memulai ujian. Silakan beli kredit terlebih dahulu.",
+        402,
+      );
     }
     return handleApiError(error);
   }

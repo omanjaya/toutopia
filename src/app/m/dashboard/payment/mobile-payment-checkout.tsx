@@ -20,12 +20,20 @@ import { Input } from "@/shared/components/ui/input";
 import { formatCurrency } from "@/shared/lib/utils";
 import { cn } from "@/shared/lib/utils";
 
+interface TargetPackage {
+  id: string;
+  title: string;
+  price: number;
+  totalQuestions: number;
+  durationMinutes: number;
+}
+
 interface MobilePaymentCheckoutProps {
   currentBalance: number;
+  targetPackage?: TargetPackage;
 }
 
 interface AppliedPromo {
-  promoId: string;
   code: string;
   discount: number;
   finalAmount: number;
@@ -69,10 +77,11 @@ const plans = [
 
 export function MobilePaymentCheckout({
   currentBalance,
+  targetPackage,
 }: MobilePaymentCheckoutProps) {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const preselectedPlan = searchParams.get("plan") ?? "";
+  const preselectedPlan = searchParams.get("plan") ?? (targetPackage ? "single_package" : "");
   const [selectedPlan, setSelectedPlan] = useState(preselectedPlan);
   const [isProcessing, setIsProcessing] = useState(false);
 
@@ -82,15 +91,26 @@ export function MobilePaymentCheckout({
   const [appliedPromo, setAppliedPromo] = useState<AppliedPromo | null>(null);
 
   const currentPlan = plans.find((p) => p.id === selectedPlan);
+  const selectedPrice = selectedPlan === "single_package"
+    ? (targetPackage?.price ?? 0)
+    : (currentPlan?.price ?? 0);
   const displayTotal = appliedPromo
     ? appliedPromo.finalAmount
-    : (currentPlan?.price ?? 0);
+    : selectedPrice;
 
   async function handleApplyPromo(): Promise<void> {
     if (!promoCode.trim()) return;
 
-    const plan = plans.find((p) => p.id === selectedPlan);
-    if (!plan) {
+    if (!selectedPlan) {
+      toast.error("Pilih paket terlebih dahulu");
+      return;
+    }
+
+    const price = selectedPlan === "single_package"
+      ? (targetPackage?.price ?? 0)
+      : (plans.find((p) => p.id === selectedPlan)?.price ?? 0);
+
+    if (price <= 0) {
       toast.error("Pilih paket terlebih dahulu");
       return;
     }
@@ -103,7 +123,7 @@ export function MobilePaymentCheckout({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           code: promoCode.toUpperCase(),
-          amount: plan.price,
+          amount: price,
         }),
       });
 
@@ -115,8 +135,7 @@ export function MobilePaymentCheckout({
       }
 
       setAppliedPromo({
-        promoId: result.data.promoId,
-        code: result.data.code,
+        code: result.data.promoCode ?? promoCode.toUpperCase(),
         discount: result.data.discount,
         finalAmount: result.data.finalAmount,
       });
@@ -142,8 +161,7 @@ export function MobilePaymentCheckout({
   }
 
   async function handlePayment(): Promise<void> {
-    const plan = plans.find((p) => p.id === selectedPlan);
-    if (!plan) {
+    if (!selectedPlan) {
       toast.error("Pilih paket terlebih dahulu");
       return;
     }
@@ -151,22 +169,48 @@ export function MobilePaymentCheckout({
     setIsProcessing(true);
 
     try {
-      const response = await fetch("/api/payment/create", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+      let paymentBody: Record<string, unknown>;
+
+      if (selectedPlan === "single_package" && targetPackage) {
+        paymentBody = {
+          type: "SINGLE_PACKAGE",
+          packageId: targetPackage.id,
+          promoCode: appliedPromo?.code,
+        };
+      } else {
+        const plan = plans.find((p) => p.id === selectedPlan);
+        if (!plan) {
+          toast.error("Pilih paket terlebih dahulu");
+          setIsProcessing(false);
+          return;
+        }
+        paymentBody = {
           type: plan.type,
           bundleSize: "bundleSize" in plan ? plan.bundleSize : undefined,
           subscriptionPlan:
             "subscriptionPlan" in plan ? plan.subscriptionPlan : undefined,
-          promoCodeId: appliedPromo?.promoId,
-        }),
+          promoCode: appliedPromo?.code,
+        };
+      }
+
+      const response = await fetch("/api/payment/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(paymentBody),
       });
 
       const result = await response.json();
 
       if (!response.ok) {
         toast.error(result.error?.message ?? "Gagal membuat pembayaran");
+        return;
+      }
+
+      // Handle zero-amount payment (100% promo) — already paid
+      if (result.data.paid) {
+        toast.success("Pembayaran berhasil! (100% diskon)");
+        router.push("/m/dashboard/payment/history");
+        router.refresh();
         return;
       }
 
@@ -221,9 +265,61 @@ export function MobilePaymentCheckout({
         <p className="text-lg font-bold">{currentBalance} kredit</p>
       </div>
 
+      {/* Direct Package Purchase */}
+      {targetPackage && (
+        <div>
+          <h3 className="mb-2.5 text-sm font-semibold">Beli Paket Langsung</h3>
+          <button
+            onClick={() => handlePlanSelect("single_package")}
+            className="w-full text-left"
+          >
+            <div
+              className={cn(
+                cardCls,
+                "border transition-colors",
+                selectedPlan === "single_package"
+                  ? "border-primary ring-2 ring-primary/20"
+                  : "border-border"
+              )}
+            >
+              <div className="p-4">
+                <div className="flex items-center justify-between">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-semibold">{targetPackage.title}</p>
+                    <p className="mt-0.5 text-xs text-muted-foreground">
+                      {targetPackage.totalQuestions} soal &middot; {targetPackage.durationMinutes} menit
+                    </p>
+                  </div>
+                  <div className="flex shrink-0 items-center gap-3">
+                    <p className="text-base font-bold">{formatCurrency(targetPackage.price)}</p>
+                    {selectedPlan === "single_package" && (
+                      <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary">
+                        <Check className="h-3.5 w-3.5 text-primary-foreground" />
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </button>
+        </div>
+      )}
+
+      {/* Divider */}
+      {targetPackage && (
+        <div className="relative">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t" />
+          </div>
+          <div className="relative flex justify-center">
+            <span className="bg-background px-3 text-xs text-muted-foreground">atau beli kredit</span>
+          </div>
+        </div>
+      )}
+
       {/* Plan Selection — stacked for mobile */}
       <div>
-        <h3 className="mb-2.5 text-sm font-semibold">Pilih Paket</h3>
+        <h3 className="mb-2.5 text-sm font-semibold">Pilih Paket Kredit</h3>
         <div className="space-y-2.5">
           {plans.map((plan) => (
             <button
@@ -348,7 +444,7 @@ export function MobilePaymentCheckout({
               {appliedPromo ? (
                 <div>
                   <p className="text-xs text-muted-foreground line-through">
-                    {formatCurrency(currentPlan?.price ?? 0)}
+                    {formatCurrency(selectedPrice)}
                   </p>
                   <p className="text-base font-bold text-emerald-600">
                     {formatCurrency(displayTotal)}

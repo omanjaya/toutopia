@@ -23,7 +23,7 @@ export async function GET(
       return errorResponse("NOT_FOUND", "Transaksi tidak ditemukan", 404);
     }
 
-    return successResponse({
+    const data: Record<string, unknown> = {
       id: transaction.id,
       status: transaction.status,
       amount: transaction.amount,
@@ -31,7 +31,14 @@ export async function GET(
       packageTitle: transaction.package?.title ?? null,
       paidAt: transaction.paidAt?.toISOString() ?? null,
       createdAt: transaction.createdAt.toISOString(),
-    });
+    };
+
+    if (transaction.status === "PENDING") {
+      data.snapToken = transaction.snapToken ?? null;
+      data.midtransUrl = transaction.midtransUrl ?? null;
+    }
+
+    return successResponse(data);
   } catch (error) {
     return handleApiError(error);
   }

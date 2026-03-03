@@ -17,6 +17,9 @@ import {
   CheckCircle2,
   Bookmark,
   Flame,
+  Wallet,
+  Crown,
+  Sparkles,
 } from "lucide-react";
 import { StreakBadge } from "@/shared/components/dashboard/streak-badge";
 import { ReferralCard } from "@/shared/components/dashboard/referral-card";
@@ -45,7 +48,7 @@ async function getDashboardStats(userId: string) {
   const tomorrowDate = new Date(todayDate);
   tomorrowDate.setDate(tomorrowDate.getDate() + 1);
 
-  const [scoreAgg, recentAttempts, lastTwoScores, todayTasks, streak, dailyChallenge] =
+  const [scoreAgg, recentAttempts, lastTwoScores, todayTasks, streak, dailyChallenge, credit, activeSub, transactionCount] =
     await Promise.all([
       prisma.examAttempt.aggregate({
         where: { userId, status: "COMPLETED", score: { not: null } },
@@ -116,6 +119,21 @@ async function getDashboardStats(userId: string) {
           },
         },
       }),
+      prisma.userCredit.findUnique({
+        where: { userId },
+        select: { balance: true, freeCredits: true },
+      }),
+      prisma.subscription.findFirst({
+        where: { userId, status: "ACTIVE", endDate: { gt: new Date() } },
+        select: {
+          plan: true,
+          endDate: true,
+          bundle: { select: { name: true } },
+        },
+      }),
+      prisma.transaction.count({
+        where: { userId },
+      }),
     ]);
 
   // Determine score trend from last 2 completed attempts
@@ -131,6 +149,14 @@ async function getDashboardStats(userId: string) {
   const dailyChallengeCompleted =
     dailyChallenge !== null && dailyChallenge.attempts.length > 0;
 
+  const creditBalance = credit?.balance ?? 0;
+  const freeCredits = credit?.freeCredits ?? 0;
+  const isNewUser =
+    transactionCount === 0 &&
+    (creditBalance === 0 || creditBalance === 2) &&
+    freeCredits >= 0 &&
+    freeCredits <= 2;
+
   return {
     completedAttempts: scoreAgg._count,
     bestScore: scoreAgg._max.score ? Math.round(scoreAgg._max.score) : null,
@@ -140,12 +166,21 @@ async function getDashboardStats(userId: string) {
     todayTasks,
     currentStreak: streak?.currentStreak ?? 0,
     longestStreak: streak?.longestStreak ?? 0,
+    isNewUser,
     dailyChallenge: dailyChallenge
       ? {
           id: dailyChallenge.id,
           subjectName: dailyChallenge.question.topic.subject.name,
           topicName: dailyChallenge.question.topic.name,
           isCompleted: dailyChallengeCompleted,
+        }
+      : null,
+    creditBalance,
+    activeSub: activeSub
+      ? {
+          plan: activeSub.plan,
+          endDate: activeSub.endDate,
+          bundleName: activeSub.bundle.name,
         }
       : null,
   };
@@ -182,6 +217,74 @@ export default async function DashboardPage() {
           </div>
         )}
       </div>
+
+      {/* Onboarding Banner — shown only to new users */}
+      {stats?.isNewUser && (
+        <div className="rounded-xl border border-blue-200 bg-blue-50/60 p-4">
+          <div className="flex items-start gap-3">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-100">
+              <Sparkles className="h-4 w-4 text-blue-600" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-blue-800">
+                Selamat datang di Toutopia!
+              </p>
+              <p className="mt-1 text-xs text-blue-700">
+                Anda mendapatkan 2 kredit gratis untuk mencoba try out. 1 kredit = 1 sesi try out.
+                Setelah habis, beli kredit atau langganan untuk melanjutkan.
+              </p>
+              <div className="mt-2 flex gap-2">
+                <Button asChild size="sm" variant="outline" className="h-7 text-xs">
+                  <Link href="/dashboard/tryout">Mulai Try Out</Link>
+                </Button>
+                <Button asChild size="sm" variant="ghost" className="h-7 text-xs">
+                  <Link href="/dashboard/payment">Lihat Harga</Link>
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Credit / Subscription Widget */}
+      {stats && (
+        <div className={cardCls}>
+          <div className="flex items-center justify-between px-5 py-3.5">
+            {stats.activeSub ? (
+              <div className="flex items-center gap-3">
+                <div className="rounded-lg bg-amber-100 p-1.5">
+                  <Crown className="h-4 w-4 text-amber-600" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium">
+                    {stats.activeSub.bundleName}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Aktif hingga {format(new Date(stats.activeSub.endDate), "d MMM yyyy", { locale: id })}
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-center gap-3">
+                <div className="rounded-lg bg-primary/10 p-1.5">
+                  <Wallet className="h-4 w-4 text-primary" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium">
+                    {stats.creditBalance} kredit tersisa
+                  </p>
+                </div>
+              </div>
+            )}
+            <Button variant="ghost" size="sm" className="h-8 text-xs" asChild>
+              <Link href="/dashboard/payment">
+                {stats.activeSub ? "Kelola" : "Beli Kredit"}
+                <ArrowRight className="ml-1.5 h-3 w-3" />
+              </Link>
+            </Button>
+          </div>
+        </div>
+      )}
 
       {/* Stat Cards — Bento Grid */}
       <div className="grid gap-4 sm:grid-cols-3">

@@ -11,6 +11,7 @@ import {
   ChevronUp,
   ChevronDown,
   X,
+  Crown,
 } from "lucide-react";
 import { Button } from "@/shared/components/ui/button";
 import { Badge } from "@/shared/components/ui/badge";
@@ -20,57 +21,110 @@ import { Input } from "@/shared/components/ui/input";
 import { formatCurrency } from "@/shared/lib/utils";
 import { cn } from "@/shared/lib/utils";
 
+interface TargetPackage {
+  id: string;
+  title: string;
+  price: number;
+  totalQuestions: number;
+  durationMinutes: number;
+}
+
+interface PricingData {
+  creditBundles: Array<{
+    id: string;
+    name: string;
+    credits: number;
+    price: number;
+    popular?: boolean;
+  }>;
+  subscriptions: Array<{
+    id: string;
+    name: string;
+    price: number;
+    duration: string;
+    plan: "MONTHLY" | "QUARTERLY" | "YEARLY";
+  }>;
+}
+
 interface PaymentCheckoutProps {
   currentBalance: number;
+  targetPackage?: TargetPackage;
+  pricing?: PricingData;
 }
 
 interface AppliedPromo {
-  promoId: string;
   code: string;
   discount: number;
   finalAmount: number;
 }
 
-const plans = [
-  {
-    id: "bundle5",
-    type: "CREDIT_BUNDLE" as const,
-    bundleSize: "5" as const,
-    name: "Bundle 5 Try Out",
-    credits: 5,
-    price: 99_000,
-  },
-  {
-    id: "bundle10",
-    type: "CREDIT_BUNDLE" as const,
-    bundleSize: "10" as const,
-    name: "Bundle 10 Try Out",
-    credits: 10,
-    price: 179_000,
-    popular: true,
-  },
-  {
-    id: "monthly",
-    type: "SUBSCRIPTION" as const,
-    subscriptionPlan: "MONTHLY" as const,
-    name: "Langganan Bulanan",
-    credits: 999,
-    price: 149_000,
-  },
-  {
-    id: "yearly",
-    type: "SUBSCRIPTION" as const,
-    subscriptionPlan: "YEARLY" as const,
-    name: "Langganan Tahunan",
-    credits: 999,
-    price: 999_000,
-  },
+interface CreditPlan {
+  id: string;
+  type: "CREDIT_BUNDLE";
+  bundleSize: "5" | "10";
+  name: string;
+  credits: number;
+  price: number;
+  popular?: boolean;
+}
+
+interface SubscriptionPlan {
+  id: string;
+  type: "SUBSCRIPTION";
+  subscriptionPlan: "MONTHLY" | "QUARTERLY" | "YEARLY";
+  name: string;
+  credits: number;
+  price: number;
+  duration: string;
+  popular?: boolean;
+}
+
+type Plan = CreditPlan | SubscriptionPlan;
+
+const defaultCreditBundles: PricingData["creditBundles"] = [
+  { id: "bundle5", name: "Bundle 5 Try Out", credits: 5, price: 99_000 },
+  { id: "bundle10", name: "Bundle 10 Try Out", credits: 10, price: 179_000, popular: true },
 ];
 
-export function PaymentCheckout({ currentBalance }: PaymentCheckoutProps) {
+const defaultSubscriptions: PricingData["subscriptions"] = [
+  { id: "monthly", name: "Langganan Bulanan", price: 149_000, duration: "30 hari", plan: "MONTHLY" },
+  { id: "quarterly", name: "Langganan Triwulan", price: 449_000, duration: "3 bulan", plan: "QUARTERLY" },
+  { id: "yearly", name: "Langganan Tahunan", price: 999_000, duration: "1 tahun", plan: "YEARLY" },
+];
+
+const bundleSizeMap: Record<string, "5" | "10"> = {
+  bundle5: "5",
+  bundle10: "10",
+};
+
+function buildPlans(pricingData: PricingData): { creditPlans: CreditPlan[]; subscriptionPlans: SubscriptionPlan[]; allPlans: Plan[] } {
+  const creditPlans: CreditPlan[] = pricingData.creditBundles.map((b) => ({
+    id: b.id,
+    type: "CREDIT_BUNDLE" as const,
+    bundleSize: bundleSizeMap[b.id] ?? "5",
+    name: b.name,
+    credits: b.credits,
+    price: b.price,
+    popular: b.popular,
+  }));
+
+  const subscriptionPlans: SubscriptionPlan[] = pricingData.subscriptions.map((s) => ({
+    id: s.id,
+    type: "SUBSCRIPTION" as const,
+    subscriptionPlan: s.plan,
+    name: s.name,
+    credits: 999,
+    price: s.price,
+    duration: s.duration,
+  }));
+
+  return { creditPlans, subscriptionPlans, allPlans: [...creditPlans, ...subscriptionPlans] };
+}
+
+export function PaymentCheckout({ currentBalance, targetPackage, pricing }: PaymentCheckoutProps) {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const preselectedPlan = searchParams.get("plan") ?? "";
+  const preselectedPlan = searchParams.get("plan") ?? (targetPackage ? "single_package" : "");
   const [selectedPlan, setSelectedPlan] = useState(preselectedPlan);
   const [isProcessing, setIsProcessing] = useState(false);
 
@@ -79,16 +133,33 @@ export function PaymentCheckout({ currentBalance }: PaymentCheckoutProps) {
   const [applyingPromo, setApplyingPromo] = useState(false);
   const [appliedPromo, setAppliedPromo] = useState<AppliedPromo | null>(null);
 
-  const currentPlan = plans.find((p) => p.id === selectedPlan);
+  const resolvedPricing: PricingData = pricing ?? {
+    creditBundles: defaultCreditBundles,
+    subscriptions: defaultSubscriptions,
+  };
+  const { creditPlans, subscriptionPlans, allPlans } = buildPlans(resolvedPricing);
+
+  const currentPlan = allPlans.find((p) => p.id === selectedPlan);
+  const selectedPrice = selectedPlan === "single_package"
+    ? (targetPackage?.price ?? 0)
+    : (currentPlan?.price ?? 0);
   const displayTotal = appliedPromo
     ? appliedPromo.finalAmount
-    : (currentPlan?.price ?? 0);
+    : selectedPrice;
 
-  async function handleApplyPromo() {
+  async function handleApplyPromo(): Promise<void> {
     if (!promoCode.trim()) return;
 
-    const plan = plans.find((p) => p.id === selectedPlan);
-    if (!plan) {
+    if (!selectedPlan) {
+      toast.error("Pilih paket terlebih dahulu");
+      return;
+    }
+
+    const price = selectedPlan === "single_package"
+      ? (targetPackage?.price ?? 0)
+      : (allPlans.find((p) => p.id === selectedPlan)?.price ?? 0);
+
+    if (price <= 0) {
       toast.error("Pilih paket terlebih dahulu");
       return;
     }
@@ -101,7 +172,7 @@ export function PaymentCheckout({ currentBalance }: PaymentCheckoutProps) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           code: promoCode.toUpperCase(),
-          amount: plan.price,
+          amount: price,
         }),
       });
 
@@ -113,8 +184,7 @@ export function PaymentCheckout({ currentBalance }: PaymentCheckoutProps) {
       }
 
       setAppliedPromo({
-        promoId: result.data.promoId,
-        code: result.data.code,
+        code: result.data.promoCode ?? promoCode.toUpperCase(),
         discount: result.data.discount,
         finalAmount: result.data.finalAmount,
       });
@@ -126,12 +196,12 @@ export function PaymentCheckout({ currentBalance }: PaymentCheckoutProps) {
     }
   }
 
-  function removePromo() {
+  function removePromo(): void {
     setAppliedPromo(null);
     setPromoCode("");
   }
 
-  function handlePlanSelect(planId: string) {
+  function handlePlanSelect(planId: string): void {
     setSelectedPlan(planId);
     // Reset promo when plan changes since discount amount may differ
     if (appliedPromo) {
@@ -140,9 +210,8 @@ export function PaymentCheckout({ currentBalance }: PaymentCheckoutProps) {
     }
   }
 
-  async function handlePayment() {
-    const plan = plans.find((p) => p.id === selectedPlan);
-    if (!plan) {
+  async function handlePayment(): Promise<void> {
+    if (!selectedPlan) {
       toast.error("Pilih paket terlebih dahulu");
       return;
     }
@@ -150,22 +219,53 @@ export function PaymentCheckout({ currentBalance }: PaymentCheckoutProps) {
     setIsProcessing(true);
 
     try {
-      const response = await fetch("/api/payment/create", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+      let paymentBody: Record<string, unknown>;
+
+      if (selectedPlan === "single_package" && targetPackage) {
+        paymentBody = {
+          type: "SINGLE_PACKAGE",
+          packageId: targetPackage.id,
+          promoCode: appliedPromo?.code,
+        };
+      } else {
+        const plan = allPlans.find((p) => p.id === selectedPlan);
+        if (!plan) {
+          toast.error("Pilih paket terlebih dahulu");
+          setIsProcessing(false);
+          return;
+        }
+        paymentBody = {
           type: plan.type,
           bundleSize: "bundleSize" in plan ? plan.bundleSize : undefined,
           subscriptionPlan:
             "subscriptionPlan" in plan ? plan.subscriptionPlan : undefined,
-          promoCodeId: appliedPromo?.promoId,
-        }),
+          promoCode: appliedPromo?.code,
+        };
+      }
+
+      const response = await fetch("/api/payment/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(paymentBody),
       });
 
       const result = await response.json();
 
       if (!response.ok) {
         toast.error(result.error?.message ?? "Gagal membuat pembayaran");
+        return;
+      }
+
+      const transactionId = result.data.transactionId as string | undefined;
+      const successUrl = transactionId
+        ? `/dashboard/payment/success?transactionId=${transactionId}`
+        : "/dashboard/payment/history";
+
+      // Handle zero-amount payment (100% promo) — already paid
+      if (result.data.paid) {
+        toast.success("Pembayaran berhasil! (100% diskon)");
+        router.push(successUrl);
+        router.refresh();
         return;
       }
 
@@ -177,7 +277,7 @@ export function PaymentCheckout({ currentBalance }: PaymentCheckoutProps) {
         snap.pay(snapToken, {
           onSuccess: () => {
             toast.success("Pembayaran berhasil!");
-            router.push("/dashboard/payment/history");
+            router.push(successUrl);
             router.refresh();
           },
           onPending: () => {
@@ -204,40 +304,38 @@ export function PaymentCheckout({ currentBalance }: PaymentCheckoutProps) {
 
   return (
     <div className="space-y-6">
-      {/* Plan Selection */}
-      <div className="grid gap-4 sm:grid-cols-2">
-        {plans.map((plan) => (
+      {/* Direct Package Purchase */}
+      {targetPackage && (
+        <div>
+          <h3 className="mb-3 text-sm font-medium text-muted-foreground">Beli Paket Langsung</h3>
           <button
-            key={plan.id}
-            onClick={() => handlePlanSelect(plan.id)}
-            className="text-left"
+            onClick={() => handlePlanSelect("single_package")}
+            className="w-full text-left"
           >
             <div
               className={cn(
                 cardCls,
-                "transition-all",
-                selectedPlan === plan.id
-                  ? "ring-primary ring-2"
-                  : "hover:ring-muted-foreground/30"
+                "border transition-all",
+                selectedPlan === "single_package"
+                  ? "border-primary ring-2 ring-primary"
+                  : "border-border hover:ring-muted-foreground/30"
               )}
             >
-              <div className="px-6 pt-6 pb-2">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-base font-semibold tracking-tight">{plan.name}</h3>
-                  {plan.popular && <Badge>Populer</Badge>}
-                </div>
-              </div>
               <div className="p-6">
-                <p className="text-2xl font-bold">
-                  {formatCurrency(plan.price)}
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  {plan.credits === 999
-                    ? "Unlimited try out"
-                    : `${plan.credits} kredit try out`}
-                </p>
-                {selectedPlan === plan.id && (
-                  <div className="mt-2 flex items-center gap-1 text-sm text-primary">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-base font-semibold tracking-tight">{targetPackage.title}</h3>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      {targetPackage.totalQuestions} soal &middot; {targetPackage.durationMinutes} menit
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-2xl font-bold">{formatCurrency(targetPackage.price)}</p>
+                    <p className="text-sm text-muted-foreground">Akses langsung</p>
+                  </div>
+                </div>
+                {selectedPlan === "single_package" && (
+                  <div className="mt-3 flex items-center gap-1 text-sm text-primary">
                     <Check className="h-4 w-4" />
                     Dipilih
                   </div>
@@ -245,7 +343,131 @@ export function PaymentCheckout({ currentBalance }: PaymentCheckoutProps) {
               </div>
             </div>
           </button>
-        ))}
+        </div>
+      )}
+
+      {/* Divider */}
+      {targetPackage && (
+        <div className="relative">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t" />
+          </div>
+          <div className="relative flex justify-center">
+            <span className="bg-background px-3 text-xs text-muted-foreground">atau beli kredit</span>
+          </div>
+        </div>
+      )}
+
+      {/* Paket Kredit (one-time) */}
+      <div>
+        <h3 className="text-base font-semibold tracking-tight">Paket Kredit</h3>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Beli kredit sekali pakai. 1 kredit = 1 try out. Tidak ada batas waktu.
+        </p>
+        <div className="mt-4 grid gap-4 sm:grid-cols-2">
+          {creditPlans.map((plan) => (
+            <button
+              key={plan.id}
+              onClick={() => handlePlanSelect(plan.id)}
+              className="text-left"
+            >
+              <div
+                className={cn(
+                  cardCls,
+                  "transition-all",
+                  selectedPlan === plan.id
+                    ? "ring-primary ring-2"
+                    : "hover:ring-muted-foreground/30"
+                )}
+              >
+                <div className="px-6 pt-6 pb-2">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-base font-semibold tracking-tight">{plan.name}</h3>
+                    {plan.popular && <Badge>Populer</Badge>}
+                  </div>
+                </div>
+                <div className="px-6 pb-6">
+                  <p className="text-2xl font-bold">
+                    {formatCurrency(plan.price)}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {plan.credits} kredit try out
+                  </p>
+                  {selectedPlan === plan.id && (
+                    <div className="mt-2 flex items-center gap-1 text-sm text-primary">
+                      <Check className="h-4 w-4" />
+                      Dipilih
+                    </div>
+                  )}
+                </div>
+              </div>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Divider between sections */}
+      <div className="relative">
+        <div className="absolute inset-0 flex items-center">
+          <div className="w-full border-t" />
+        </div>
+        <div className="relative flex justify-center">
+          <span className="bg-background px-3 text-xs text-muted-foreground">atau langganan</span>
+        </div>
+      </div>
+
+      {/* Langganan (subscription) */}
+      <div>
+        <div className="flex items-center gap-2">
+          <Crown className="h-5 w-5 text-amber-500" />
+          <h3 className="text-base font-semibold tracking-tight">Langganan</h3>
+        </div>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Akses unlimited ke semua paket selama masa aktif langganan.
+        </p>
+        <div className="mt-4 grid gap-4 sm:grid-cols-3">
+          {subscriptionPlans.map((plan) => (
+            <button
+              key={plan.id}
+              onClick={() => handlePlanSelect(plan.id)}
+              className="text-left"
+            >
+              <div
+                className={cn(
+                  cardCls,
+                  "transition-all",
+                  selectedPlan === plan.id
+                    ? "ring-primary ring-2"
+                    : "hover:ring-muted-foreground/30"
+                )}
+              >
+                <div className="px-6 pt-6 pb-2">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-base font-semibold tracking-tight">{plan.name}</h3>
+                    {plan.popular && <Badge>Populer</Badge>}
+                  </div>
+                </div>
+                <div className="px-6 pb-6">
+                  <p className="text-2xl font-bold">
+                    {formatCurrency(plan.price)}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    Unlimited try out
+                  </p>
+                  <p className="mt-0.5 text-xs text-muted-foreground">
+                    Berlaku {plan.duration}
+                  </p>
+                  {selectedPlan === plan.id && (
+                    <div className="mt-2 flex items-center gap-1 text-sm text-primary">
+                      <Check className="h-4 w-4" />
+                      Dipilih
+                    </div>
+                  )}
+                </div>
+              </div>
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Promo Code */}
@@ -325,7 +547,7 @@ export function PaymentCheckout({ currentBalance }: PaymentCheckoutProps) {
                 {appliedPromo ? (
                   <div className="space-y-0.5">
                     <p className="text-sm text-muted-foreground line-through">
-                      {formatCurrency(currentPlan?.price ?? 0)}
+                      {formatCurrency(selectedPrice)}
                     </p>
                     <p className="text-lg font-semibold text-emerald-600">
                       Total: {formatCurrency(displayTotal)}
