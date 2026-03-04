@@ -15,6 +15,8 @@ import {
   Mail,
 } from "lucide-react";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Syarat & Ketentuan — Toutopia",
   description: "Syarat dan ketentuan penggunaan platform try out online Toutopia.",

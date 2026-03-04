@@ -1,14 +1,13 @@
-import "dotenv/config";
-import { Pool } from "pg";
-import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "@prisma/client";
-
-const pool = new Pool({ connectionString: process.env.DATABASE_URL });
-const adapter = new PrismaPg(pool);
-const prisma = new PrismaClient({ adapter });
+import { EBOOKS_UTBK } from "./seed-ebooks-utbk";
+import { EBOOKS_CPNS } from "./seed-ebooks-cpns";
+import { EBOOKS_BUMN } from "./seed-ebooks-bumn";
+import { EBOOKS_KEDINASAN } from "./seed-ebooks-kedinasan";
+import { EBOOKS_PPPK } from "./seed-ebooks-pppk";
+import { EBOOKS_GENERAL } from "./seed-ebooks-general";
 
 // ============================================================
-// SEED EBOOKS — 5 comprehensive HTML ebooks
+// SEED EBOOKS — 5 base + 22 additional comprehensive HTML ebooks
 // ============================================================
 
 interface SeedEbook {
@@ -1138,22 +1137,21 @@ D. Melarang semua kegiatan keagamaan di kantor</p>
 ];
 
 // ============================================================
-// MAIN
+// EXPORTED SEED FUNCTION
 // ============================================================
 
-async function main(): Promise<void> {
-  const admin = await prisma.user.findFirst({
-    where: { role: { in: ["SUPER_ADMIN", "ADMIN"] } },
-  });
+export async function seedEbooks(prisma: PrismaClient, adminId: string): Promise<void> {
+  const ALL_EBOOKS: SeedEbook[] = [
+    ...EBOOKS,
+    ...EBOOKS_UTBK,
+    ...EBOOKS_CPNS,
+    ...EBOOKS_BUMN,
+    ...EBOOKS_KEDINASAN,
+    ...EBOOKS_PPPK,
+    ...EBOOKS_GENERAL,
+  ];
 
-  if (!admin) {
-    console.log("No admin user found. Run main seed first.");
-    return;
-  }
-
-  console.log(`Using author: ${admin.name ?? admin.email}`);
-
-  for (const ebook of EBOOKS) {
+  for (const ebook of ALL_EBOOKS) {
     await prisma.ebook.upsert({
       where: { slug: ebook.slug },
       update: {
@@ -1166,7 +1164,7 @@ async function main(): Promise<void> {
         status: ebook.status,
         publishedAt: ebook.publishedAt,
         pageCount: ebook.pageCount,
-        authorId: admin.id,
+        authorId: adminId,
       },
       create: {
         title: ebook.title,
@@ -1179,15 +1177,11 @@ async function main(): Promise<void> {
         status: ebook.status,
         publishedAt: ebook.publishedAt,
         pageCount: ebook.pageCount,
-        authorId: admin.id,
+        authorId: adminId,
       },
     });
-    console.log(`  ✓ ${ebook.title}`);
+    console.log(`  Ebook: ${ebook.title}`);
   }
 
-  console.log(`\nSeeded ${EBOOKS.length} ebooks`);
+  console.log(`  Ebooks seeded: ${ALL_EBOOKS.length} ebooks`);
 }
-
-main()
-  .catch(console.error)
-  .finally(() => prisma.$disconnect());

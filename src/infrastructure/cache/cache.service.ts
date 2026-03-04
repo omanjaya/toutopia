@@ -7,7 +7,8 @@ export async function cacheGet<T>(key: string): Promise<T | null> {
     const data = await redis.get(key);
     if (!data) return null;
     return JSON.parse(data) as T;
-  } catch {
+  } catch (err) {
+    console.warn("[Cache] GET failed for key:", key, err instanceof Error ? err.message : err);
     return null;
   }
 }
@@ -17,8 +18,8 @@ export async function cacheSet(key: string, value: unknown, ttlSeconds: number):
     const redis = await getRedis();
     if (!redis) return;
     await redis.set(key, JSON.stringify(value), "EX", ttlSeconds);
-  } catch {
-    // Silently fail — cache is not critical
+  } catch (err) {
+    console.warn("[Cache] SET failed for key:", key, err instanceof Error ? err.message : err);
   }
 }
 
@@ -27,8 +28,8 @@ export async function cacheDel(key: string): Promise<void> {
     const redis = await getRedis();
     if (!redis) return;
     await redis.del(key);
-  } catch {
-    // Silently fail
+  } catch (err) {
+    console.warn("[Cache] DEL failed for key:", key, err instanceof Error ? err.message : err);
   }
 }
 
@@ -53,7 +54,7 @@ export async function cacheDelPattern(pattern: string): Promise<void> {
       if (!redis) return;
       await redis.del(...keys);
     }
-  } catch {
-    // Silently fail
+  } catch (err) {
+    console.warn("[Cache] DEL pattern failed:", pattern, err instanceof Error ? err.message : err);
   }
 }

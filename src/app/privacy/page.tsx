@@ -3,6 +3,8 @@ import { Header } from "@/shared/components/layout/header";
 import { Footer } from "@/shared/components/layout/footer";
 import { Shield, Database, Eye, Users, UserCheck, Cookie, RefreshCw, Mail } from "lucide-react";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Kebijakan Privasi — Toutopia",
   description: "Kebijakan privasi dan perlindungan data pengguna Toutopia.",

@@ -11,7 +11,7 @@ const bucket = process.env.MINIO_BUCKET ?? "uploads";
 const publicUrl =
   process.env.NEXT_PUBLIC_MINIO_URL ?? `http://${endpoint}:${port}`;
 
-const minioClient = new Client({
+export const minioClient = new Client({
   endPoint: endpoint,
   port,
   useSSL: process.env.MINIO_USE_SSL === "true",

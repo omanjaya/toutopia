@@ -174,18 +174,7 @@ export default auth((req) => {
     rewriteUrl.search = nextUrl.search;
     const response = NextResponse.rewrite(rewriteUrl);
     response.headers.set("x-device-type", "mobile");
-    // Security headers
-    response.headers.set("X-Frame-Options", "DENY");
-    response.headers.set("X-Content-Type-Options", "nosniff");
-    response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
-    response.headers.set(
-      "Permissions-Policy",
-      "camera=(), microphone=(), geolocation=()"
-    );
-    response.headers.set(
-      "Strict-Transport-Security",
-      "max-age=31536000; includeSubDomains"
-    );
+    setSecurityHeaders(response);
     return response;
   }
 
@@ -195,6 +184,12 @@ export default auth((req) => {
   response.headers.set("x-device-type", isMobilePath || isMobile ? "mobile" : "desktop");
 
   // Security headers
+  setSecurityHeaders(response);
+
+  return response;
+});
+
+function setSecurityHeaders(response: NextResponse): void {
   response.headers.set("X-Frame-Options", "DENY");
   response.headers.set("X-Content-Type-Options", "nosniff");
   response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
@@ -206,9 +201,23 @@ export default auth((req) => {
     "Strict-Transport-Security",
     "max-age=31536000; includeSubDomains"
   );
-
-  return response;
-});
+  response.headers.set(
+    "Content-Security-Policy",
+    [
+      "default-src 'self'",
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://app.sandbox.midtrans.com https://app.midtrans.com",
+      "style-src 'self' 'unsafe-inline'",
+      "img-src 'self' data: blob: https: http://localhost:9000",
+      "font-src 'self' data:",
+      "connect-src 'self' https://app.sandbox.midtrans.com https://app.midtrans.com https://api.sandbox.midtrans.com https://api.midtrans.com",
+      "frame-src 'self' https://app.sandbox.midtrans.com https://app.midtrans.com",
+      "object-src 'none'",
+      "base-uri 'self'",
+      "form-action 'self'",
+      "frame-ancestors 'none'",
+    ].join("; ")
+  );
+}
 
 export const config = {
   matcher: ["/((?!_next/static|_next/image|favicon.ico|manifest.json|robots.txt|sw.js|images|icons).*)"],

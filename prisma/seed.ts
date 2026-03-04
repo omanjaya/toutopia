@@ -2,6 +2,7 @@ import { Pool } from "pg";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient, UserRole } from "@prisma/client";
 import { hash } from "argon2";
+import { seedEbooks } from "./seed-ebooks";
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 const adapter = new PrismaPg(pool);
@@ -614,6 +615,9 @@ async function main() {
     });
   }
   console.log(`  Badges seeded: ${badges.length} badges`);
+
+  // Seed ebooks
+  await seedEbooks(prisma, admin.id);
 
   console.log("\nSeeding complete!");
 }

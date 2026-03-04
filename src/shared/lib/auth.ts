@@ -116,6 +116,11 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   },
   events: {
     async createUser({ user }) {
+      const existing = await prisma.userCredit.findUnique({
+        where: { userId: user.id! },
+      });
+      if (existing) return;
+
       await prisma.userCredit.create({
         data: {
           userId: user.id!,

@@ -10,6 +10,8 @@ import {
   AccordionTrigger,
 } from "@/shared/components/ui/accordion";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "FAQ — Toutopia",
   description:

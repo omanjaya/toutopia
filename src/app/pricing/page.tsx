@@ -3,6 +3,8 @@ import { Header } from "@/shared/components/layout/header";
 import { Footer } from "@/shared/components/layout/footer";
 import { PricingContent } from "./pricing-content";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Harga — Toutopia",
   description:

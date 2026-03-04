@@ -27,6 +27,22 @@ export function LoginForm() {
   const searchParams = useSearchParams();
   const callbackUrl = getSafeCallbackUrl(searchParams.get("callbackUrl"));
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const [shownToast, setShownToast] = useState(false);
+
+  if (!shownToast) {
+    const verified = searchParams.get("verified");
+    const error = searchParams.get("error");
+    if (verified === "true") {
+      toast.success("Email berhasil diverifikasi! Silakan masuk.", { duration: 5000 });
+      setShownToast(true);
+    } else if (error === "token_expired") {
+      toast.error("Link verifikasi sudah kadaluarsa. Silakan daftar ulang.");
+      setShownToast(true);
+    } else if (error === "invalid_token") {
+      toast.error("Link verifikasi tidak valid.");
+      setShownToast(true);
+    }
+  }
 
   const {
     register,
@@ -45,8 +61,8 @@ export function LoginForm() {
       });
 
       if (result?.error) {
-        if (result.code === "EMAIL_NOT_VERIFIED") {
-          toast.error("Email belum diverifikasi. Silakan hubungi admin.");
+        if (result.error === "EMAIL_NOT_VERIFIED" || result.code === "EMAIL_NOT_VERIFIED") {
+          toast.error("Email belum diverifikasi. Cek inbox atau folder spam kamu.");
         } else {
           toast.error("Email atau password salah");
         }

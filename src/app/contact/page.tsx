@@ -5,6 +5,8 @@ import { Footer } from "@/shared/components/layout/footer";
 import { Button } from "@/shared/components/ui/button";
 import { Mail, MessageCircle, Clock, HelpCircle, ArrowRight } from "lucide-react";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Kontak — Toutopia",
   description: "Hubungi tim Toutopia untuk pertanyaan, masukan, atau kerja sama.",

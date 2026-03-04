@@ -46,7 +46,11 @@ export function MobileLoginForm() {
       });
 
       if (result?.error) {
-        toast.error("Email atau password salah");
+        if (result.error === "EMAIL_NOT_VERIFIED" || result.code === "EMAIL_NOT_VERIFIED") {
+          toast.error("Email belum diverifikasi. Cek inbox atau folder spam kamu.");
+        } else {
+          toast.error("Email atau password salah");
+        }
         return;
       }
 

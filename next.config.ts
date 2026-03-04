@@ -4,7 +4,7 @@ const nextConfig: NextConfig = {
   output: "standalone",
   serverExternalPackages: ["argon2", "pg", "midtrans-client", "web-push", "minio", "ioredis", "sharp"],
   experimental: {
-    optimizePackageImports: ["lucide-react", "@radix-ui/react-icons", "recharts"],
+    optimizePackageImports: ["lucide-react", "recharts"],
   },
   images: {
     formats: ["image/avif", "image/webp"],

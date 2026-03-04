@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/shared/lib/prisma";
 import { getRedis } from "@/infrastructure/cache/redis.client";
+import { minioClient } from "@/infrastructure/minio";
 import { auth } from "@/shared/lib/auth";
 
 export const dynamic = "force-dynamic";
@@ -45,14 +46,6 @@ export async function GET() {
 
   // MinIO check
   try {
-    const { Client } = await import("minio");
-    const minioClient = new Client({
-      endPoint: process.env.MINIO_ENDPOINT ?? "localhost",
-      port: parseInt(process.env.MINIO_PORT ?? "9000", 10),
-      useSSL: process.env.MINIO_USE_SSL === "true",
-      accessKey: process.env.MINIO_ACCESS_KEY ?? "",
-      secretKey: process.env.MINIO_SECRET_KEY ?? "",
-    });
     const bucket = process.env.MINIO_BUCKET ?? "uploads";
     await minioClient.bucketExists(bucket);
     checks.minio = "ok";

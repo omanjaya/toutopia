@@ -38,6 +38,10 @@ import {
   Crown,
   MessageCircle,
   Shield,
+  Bell,
+  Coins,
+  CircleDot,
+  Upload,
 } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
 import { ScrollArea } from "@/shared/components/ui/scroll-area";
@@ -77,6 +81,10 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   Crown,
   MessageCircle,
   Shield,
+  Bell,
+  Coins,
+  CircleDot,
+  Upload,
 };
 
 interface SidebarProps {

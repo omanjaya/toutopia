@@ -316,8 +316,8 @@ model TeacherEarning {
   period           String
   createdAt        DateTime @default(now())
 
-  teacherProfile TeacherProfile @relation(fields: [teacherProfileId], references: [id])
-  question       Question       @relation(fields: [questionId], references: [id])
+  teacherProfile TeacherProfile @relation(fields: [teacherProfileId], references: [id], onDelete: Cascade)
+  question       Question       @relation(fields: [questionId], references: [id], onDelete: Cascade)
 
   @@unique([teacherProfileId, questionId, period])
   @@index([teacherProfileId])
@@ -337,7 +337,7 @@ model PayoutRequest {
   rejectionReason  String?
   createdAt        DateTime     @default(now())
 
-  teacherProfile TeacherProfile @relation(fields: [teacherProfileId], references: [id])
+  teacherProfile TeacherProfile @relation(fields: [teacherProfileId], references: [id], onDelete: Cascade)
 
   @@index([status])
   @@map("payout_requests")
@@ -579,8 +579,8 @@ model ExamAttempt {
   sectionTimers   Json?
   metadata        Json?
 
-  user        User                @relation(fields: [userId], references: [id])
-  package     ExamPackage         @relation(fields: [packageId], references: [id])
+  user        User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  package     ExamPackage         @relation(fields: [packageId], references: [id], onDelete: Cascade)
   answers     ExamAnswer[]
   tabEvents   TabViolationEvent[]
   leaderboard LeaderboardEntry?
@@ -610,6 +610,7 @@ model ExamAnswer {
 
   @@unique([attemptId, questionId])
   @@index([attemptId])
+  @@index([questionId])
   @@map("exam_answers")
 }
 
@@ -639,9 +640,9 @@ model LeaderboardEntry {
   rank      Int?
   createdAt DateTime @default(now())
 
-  package ExamPackage @relation(fields: [packageId], references: [id])
-  user    User        @relation(fields: [userId], references: [id])
-  attempt ExamAttempt @relation(fields: [attemptId], references: [id])
+  package ExamPackage @relation(fields: [packageId], references: [id], onDelete: Cascade)
+  user    User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  attempt ExamAttempt @relation(fields: [attemptId], references: [id], onDelete: Cascade)
 
   @@unique([packageId, userId])
   @@index([packageId, score(sort: Desc)])
@@ -670,9 +671,9 @@ model Transaction {
   createdAt     DateTime          @default(now())
   updatedAt     DateTime          @updatedAt
 
-  user          User          @relation(fields: [userId], references: [id])
-  package       ExamPackage?  @relation(fields: [packageId], references: [id])
-  ebook         Ebook?        @relation(fields: [ebookId], references: [id])
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  package       ExamPackage?  @relation(fields: [packageId], references: [id], onDelete: SetNull)
+  ebook         Ebook?        @relation(fields: [ebookId], references: [id], onDelete: SetNull)
   ebookAccesses EbookAccess[]
 
   @@index([userId])
@@ -704,10 +705,10 @@ model CreditHistory {
   referenceId String?
   createdAt   DateTime   @default(now())
 
-  user User @relation(fields: [userId], references: [id])
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
-  @@index([createdAt])
+  @@index([userId, createdAt])
   @@map("credit_history")
 }
 
@@ -809,13 +810,17 @@ model Article {
   tags        String[]
   status      ArticleStatus @default(DRAFT)
   publishedAt DateTime?
+  scheduledAt DateTime?
+  aiGenerated Boolean       @default(false)
   viewCount   Int           @default(0)
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
 
   author User @relation(fields: [authorId], references: [id])
 
+  @@index([authorId])
   @@index([status, publishedAt])
+  @@index([status, scheduledAt])
   @@map("articles")
 }
 
@@ -850,6 +855,7 @@ model Ebook {
   accesses     EbookAccess[]
   transactions Transaction[]
 
+  @@index([authorId])
   @@index([status, publishedAt])
   @@map("ebooks")
 }
@@ -890,7 +896,7 @@ model AuditLog {
   userAgent String?
   createdAt DateTime @default(now())
 
-  user User? @relation(fields: [userId], references: [id])
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   @@index([userId])
   @@index([entity, entityId])
@@ -1033,8 +1039,8 @@ model PromoUsage {
   discount    Int
   usedAt      DateTime @default(now())
 
-  promoCode PromoCode @relation(fields: [promoCodeId], references: [id])
-  user      User      @relation(fields: [userId], references: [id])
+  promoCode PromoCode @relation(fields: [promoCodeId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([promoCodeId, userId])
   @@map("promo_usages")
@@ -1093,7 +1099,7 @@ model DailyChallenge {
   isActive   Boolean  @default(true)
   createdAt  DateTime @default(now())
 
-  question Question               @relation(fields: [questionId], references: [id])
+  question Question               @relation(fields: [questionId], references: [id], onDelete: Cascade)
   attempts DailyChallengeAttempt[]
 
   @@unique([date])
@@ -1111,7 +1117,7 @@ model DailyChallengeAttempt {
   timeSpentSeconds Int      @default(0)
   createdAt        DateTime @default(now())
 
-  dailyChallenge DailyChallenge @relation(fields: [dailyChallengeId], references: [id])
+  dailyChallenge DailyChallenge @relation(fields: [dailyChallengeId], references: [id], onDelete: Cascade)
   user           User           @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([dailyChallengeId, userId])
@@ -1157,7 +1163,7 @@ model Subscription {
   updatedAt   DateTime           @updatedAt
 
   user   User               @relation(fields: [userId], references: [id], onDelete: Cascade)
-  bundle SubscriptionBundle @relation(fields: [bundleId], references: [id])
+  bundle SubscriptionBundle @relation(fields: [bundleId], references: [id], onDelete: Cascade)
 
   @@index([userId, status])
   @@index([endDate])
@@ -1181,7 +1187,7 @@ model LiveEvent {
   createdAt     DateTime        @default(now())
   updatedAt     DateTime        @updatedAt
 
-  package       ExamPackage            @relation(fields: [packageId], references: [id])
+  package       ExamPackage            @relation(fields: [packageId], references: [id], onDelete: Cascade)
   registrations LiveEventRegistration[]
 
   @@index([scheduledAt])

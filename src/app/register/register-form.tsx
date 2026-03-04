@@ -42,21 +42,11 @@ export function RegisterForm() {
         return;
       }
 
-      toast.success("Akun berhasil dibuat! Silakan masuk.");
-
-      const signInResult = await signIn("credentials", {
-        email: data.email,
-        password: data.password,
-        redirect: false,
+      toast.success("Akun berhasil dibuat! Cek email kamu untuk verifikasi.", {
+        duration: 6000,
       });
 
-      if (signInResult?.error) {
-        router.push("/login");
-        return;
-      }
-
-      router.push("/dashboard");
-      router.refresh();
+      router.push("/login");
     } catch {
       toast.error("Terjadi kesalahan jaringan. Silakan coba lagi.");
     }

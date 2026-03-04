@@ -16,7 +16,8 @@ async function initRedis(): Promise<Redis | null> {
     });
     await client.connect();
     return client;
-  } catch {
+  } catch (err) {
+    console.warn("[Redis] Failed to connect:", err instanceof Error ? err.message : err);
     return null;
   }
 }

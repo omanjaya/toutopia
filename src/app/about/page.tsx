@@ -12,6 +12,8 @@ import {
   GraduationCap,
 } from "lucide-react";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Tentang Kami — Toutopia",
   description:

@@ -707,3 +707,50 @@ FORMAT OUTPUT: JSON array SAJA.
 
 PENTING: Output HANYA JSON array valid. Tidak ada teks sebelum atau sesudah JSON.`;
 }
+
+// ---------------------------------------------------------------------------
+// Article generation
+// ---------------------------------------------------------------------------
+
+interface ArticlePromptParams {
+  topic: string;
+  outline?: string;
+  category?: string;
+  tone?: string;
+  targetLength?: number;
+}
+
+interface ArticlePrompt {
+  system: string;
+  user: string;
+}
+
+export function buildArticlePrompt(params: ArticlePromptParams): ArticlePrompt {
+  const { topic, outline, category, tone = "informatif", targetLength = 1000 } = params;
+
+  const system = `Kamu adalah penulis konten edukasi profesional untuk platform belajar online Indonesia. Kamu menulis artikel berkualitas tinggi yang informatif, mudah dipahami, dan relevan untuk pelajar Indonesia yang sedang mempersiapkan ujian UTBK, CPNS, BUMN, atau Kedinasan.
+
+Gaya penulisan: ${tone}
+${category ? `Kategori: ${category}` : ""}
+
+Output WAJIB berupa JSON valid dengan format berikut:
+{
+  "title": "Judul artikel yang menarik dan SEO-friendly",
+  "content": "Konten artikel dalam format Markdown. Gunakan heading (##, ###), bullet points, dan paragraf yang terstruktur.",
+  "excerpt": "Ringkasan artikel 1-2 kalimat untuk preview (maks 160 karakter)",
+  "tags": ["tag1", "tag2", "tag3"]
+}
+
+PENTING:
+- Output HANYA JSON valid. Tidak ada teks sebelum atau sesudah JSON.
+- Konten harus orisinal dan akurat
+- Gunakan bahasa Indonesia yang baik dan benar
+- Panjang konten sekitar ${targetLength} kata`;
+
+  const userParts = [`Tulis artikel tentang: "${topic}"`];
+  if (outline) {
+    userParts.push(`\nOutline yang diinginkan:\n${outline}`);
+  }
+
+  return { system, user: userParts.join("\n") };
+}

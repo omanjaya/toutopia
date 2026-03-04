@@ -13,6 +13,7 @@ interface RateLimitResult {
 
 // Fallback in-memory store for when Redis is unavailable
 const memoryMap = new Map<string, { count: number; resetAt: number }>();
+const MAX_MEMORY_MAP_SIZE = 10_000;
 
 // Periodic cleanup of expired entries to prevent memory leaks
 const CLEANUP_INTERVAL_MS = 60_000;
@@ -20,11 +21,21 @@ let lastCleanup = Date.now();
 
 function cleanupExpiredEntries(): void {
   const now = Date.now();
-  if (now - lastCleanup < CLEANUP_INTERVAL_MS) return;
+  if (now - lastCleanup < CLEANUP_INTERVAL_MS && memoryMap.size < MAX_MEMORY_MAP_SIZE) return;
   lastCleanup = now;
   for (const [key, entry] of memoryMap) {
     if (entry.resetAt < now) {
       memoryMap.delete(key);
+    }
+  }
+  // If still over limit after cleanup, evict oldest entries
+  if (memoryMap.size >= MAX_MEMORY_MAP_SIZE) {
+    const excess = memoryMap.size - MAX_MEMORY_MAP_SIZE + 1000;
+    const iter = memoryMap.keys();
+    for (let i = 0; i < excess; i++) {
+      const next = iter.next();
+      if (next.done) break;
+      memoryMap.delete(next.value);
     }
   }
 }

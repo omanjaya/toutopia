@@ -277,7 +277,7 @@ function validateGeneratedQuestions(questions: unknown[]): GeneratedQuestion[] {
   return validated;
 }
 
-async function callAI(
+export async function callAI(
   provider: string,
   apiKey: string,
   model: string,

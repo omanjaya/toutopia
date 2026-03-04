@@ -1,12 +1,22 @@
 import { NextRequest } from "next/server";
 import { hash } from "argon2";
+import { randomBytes, createHash } from "crypto";
 import { prisma } from "@/shared/lib/prisma";
 import { registerSchema } from "@/shared/lib/validators";
 import { successResponse, errorResponse } from "@/shared/lib/api-response";
 import { handleApiError, RateLimitError } from "@/shared/lib/api-error";
 import { checkRateLimit, rateLimits } from "@/shared/lib/rate-limit";
 import { sendEmailAsync } from "@/infrastructure/email/email.service";
-import { welcomeEmailHtml } from "@/infrastructure/email/templates/welcome";
+import { verifyEmailHtml } from "@/infrastructure/email/templates/verify-email";
+
+function generateReferralCode(): string {
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  let code = "TOU-";
+  for (let i = 0; i < 6; i++) {
+    code += chars[Math.floor(Math.random() * chars.length)];
+  }
+  return code;
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -42,20 +52,29 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    const rawToken = randomBytes(32).toString("hex");
+    const hashedToken = createHash("sha256").update(rawToken).digest("hex");
+
+    const referralCode = generateReferralCode();
+
     const user = await prisma.$transaction(async (tx) => {
       const newUser = await tx.user.create({
         data: {
           email,
           name: data.name,
           passwordHash,
-          emailVerified: new Date(),
+          emailVerified: null,
           role: "STUDENT",
+          referralCode,
           referredById: referrerId,
           credits: {
             create: {
               balance: 0,
               freeCredits: 2,
             },
+          },
+          profile: {
+            create: {},
           },
         },
         select: {
@@ -73,6 +92,14 @@ export async function POST(request: NextRequest) {
           amount: 2,
           type: "FREE_SIGNUP",
           description: "Kredit gratis pendaftaran",
+        },
+      });
+
+      await tx.verificationToken.create({
+        data: {
+          identifier: email,
+          token: hashedToken,
+          expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
         },
       });
 
@@ -98,10 +125,13 @@ export async function POST(request: NextRequest) {
       ]);
     }
 
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://toutopia.id";
+    const verifyUrl = `${appUrl}/api/auth/verify-email?token=${rawToken}`;
+
     sendEmailAsync({
       to: user.email,
-      subject: "Selamat Datang di Toutopia!",
-      html: welcomeEmailHtml(user.name ?? "Pengguna"),
+      subject: "Verifikasi Email — Toutopia",
+      html: verifyEmailHtml(user.name ?? "Pengguna", verifyUrl),
     });
 
     return successResponse(user, undefined, 201);
