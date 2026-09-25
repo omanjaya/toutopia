@@ -3,7 +3,7 @@ import { prisma } from "@/shared/lib/prisma";
 import { auth } from "@/shared/lib/auth";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { CheckCircle, ArrowRight } from "lucide-react";
+import { CheckCircle, ArrowRight, Receipt } from "lucide-react";
 import { Button } from "@/shared/components/ui/button";
 import { formatCurrency } from "@/shared/lib/utils";
 import { format } from "date-fns";
@@ -132,76 +132,84 @@ export default async function PaymentSuccessPage({ searchParams }: PageProps) {
     : "Midtrans";
 
   return (
-    <div className="mx-auto max-w-lg space-y-6">
-      <div className={cardCls}>
-        <div className="flex flex-col items-center px-6 pt-10 pb-8 text-center">
-          <div className="rounded-full bg-emerald-100 p-4">
-            <CheckCircle className="h-10 w-10 text-emerald-600" />
-          </div>
-
-          <h1 className="mt-5 text-2xl font-bold tracking-tight">
-            Pembayaran Berhasil!
-          </h1>
-
-          <p className="mt-2 text-sm text-muted-foreground">
-            {meta.description ?? "Transaksi Anda telah berhasil diproses."}
-          </p>
-        </div>
-
-        {/* Transaction details */}
-        <div className="border-t px-6 py-5">
-          <div className="space-y-3">
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">Total Pembayaran</span>
-              <span className="font-semibold">{formatCurrency(transaction.amount)}</span>
+    <div className="px-4 pb-24 pt-6 md:px-0 md:pb-0 md:pt-0">
+      <div className="mx-auto max-w-lg space-y-6">
+        <div className={cardCls}>
+          <div className="flex flex-col items-center px-5 pt-8 pb-6 text-center md:px-6 md:pt-10 md:pb-8">
+            <div className="rounded-full bg-emerald-100 p-3 md:p-4">
+              <CheckCircle className="h-8 w-8 text-emerald-600 md:h-10 md:w-10" />
             </div>
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">Metode Pembayaran</span>
-              <span className="font-medium capitalize">{paymentMethodLabel}</span>
-            </div>
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">Tanggal</span>
-              <span className="font-medium">
-                {format(paymentDate, "d MMMM yyyy, HH:mm", { locale: idLocale })}
-              </span>
-            </div>
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">ID Transaksi</span>
-              <span className="font-mono text-xs text-muted-foreground">
-                {transaction.id.slice(0, 16)}...
-              </span>
-            </div>
-          </div>
-        </div>
 
-        {/* Benefit received */}
-        <div className="border-t px-6 py-5">
-          <div className="rounded-xl bg-emerald-50 px-4 py-3">
-            <p className="text-sm font-medium text-emerald-800">
-              {benefitText}
+            <h1 className="mt-4 text-xl font-bold tracking-tight md:mt-5 md:text-2xl">
+              Pembayaran Berhasil!
+            </h1>
+
+            <p className="mt-1.5 text-sm text-muted-foreground md:mt-2">
+              {meta.description ?? "Transaksi Anda telah berhasil diproses."}
             </p>
-            {benefitSubText && (
-              <p className="mt-0.5 text-xs text-emerald-600">
-                {benefitSubText}
-              </p>
-            )}
           </div>
-        </div>
 
-        {/* Actions */}
-        <div className="border-t px-6 py-5">
-          <div className="flex flex-col gap-3 sm:flex-row">
-            <Button className="flex-1" asChild>
-              <Link href="/dashboard/tryout">
-                Mulai Try Out
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
-            </Button>
-            <Button variant="outline" className="flex-1" asChild>
-              <Link href="/dashboard/payment/history">
-                Lihat Riwayat
-              </Link>
-            </Button>
+          {/* Transaction details */}
+          <div className="border-t px-5 py-4 md:px-6 md:py-5">
+            <div className="mb-3 flex items-center gap-2">
+              <Receipt className="h-4 w-4 text-muted-foreground" />
+              <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                Detail Transaksi
+              </span>
+            </div>
+            <div className="space-y-2.5">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">Total Pembayaran</span>
+                <span className="font-semibold">{formatCurrency(transaction.amount)}</span>
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">Metode Pembayaran</span>
+                <span className="font-medium capitalize">{paymentMethodLabel}</span>
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">Tanggal</span>
+                <span className="font-medium">
+                  {format(paymentDate, "d MMM yyyy, HH:mm", { locale: idLocale })}
+                </span>
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">ID Transaksi</span>
+                <span className="font-mono text-[10px] text-muted-foreground">
+                  {transaction.id.slice(0, 16)}...
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Benefit received */}
+          <div className="border-t px-5 py-4 md:px-6 md:py-5">
+            <div className="rounded-xl bg-emerald-50 px-4 py-3">
+              <p className="text-sm font-medium text-emerald-800">
+                {benefitText}
+              </p>
+              {benefitSubText && (
+                <p className="mt-0.5 text-xs text-emerald-600">
+                  {benefitSubText}
+                </p>
+              )}
+            </div>
+          </div>
+
+          {/* Actions */}
+          <div className="border-t px-5 py-5 md:px-6">
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <Button className="w-full sm:flex-1" asChild>
+                <Link href="/dashboard/tryout">
+                  Mulai Try Out
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Link>
+              </Button>
+              <Button variant="outline" className="w-full sm:flex-1" asChild>
+                <Link href="/dashboard/subscriptions">
+                  Lihat Paket Saya
+                </Link>
+              </Button>
+            </div>
           </div>
         </div>
       </div>

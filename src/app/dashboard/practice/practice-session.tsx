@@ -219,24 +219,24 @@ export function PracticeSession({
   const selectedOptionId = currentAnswer?.selectedOptionId ?? null;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 pb-20 sm:space-y-6 md:pb-0">
       {/* Progress Header */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
           <Badge variant="outline">
             {currentIdx + 1}/{questions.length}
           </Badge>
-          <span className="text-sm text-muted-foreground">
+          <span className="truncate text-xs text-muted-foreground sm:text-sm">
             {currentQuestion.subjectName} &middot; {currentQuestion.topicName}
           </span>
         </div>
-        <div className="text-sm text-muted-foreground">
-          {totalCorrect} benar dari {totalAnswered} dijawab
+        <div className="shrink-0 text-xs text-muted-foreground sm:text-sm">
+          {totalCorrect}/{totalAnswered} benar
         </div>
       </div>
 
-      {/* Question Navigation Grid */}
-      <div className="flex flex-wrap gap-1.5">
+      {/* Question Navigation — scrollable on mobile */}
+      <div className="-mx-4 flex gap-1.5 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:overflow-x-visible sm:px-0 sm:pb-0">
         {questions.map((q, idx) => {
           const answer = answers[q.id];
           const selected = answer?.selectedOptionId;
@@ -307,12 +307,12 @@ export function PracticeSession({
       </div>
 
       {/* Options */}
-      <div className="space-y-3">
+      <div className="space-y-2.5 sm:space-y-3">
         {currentQuestion.options.map((option) => {
           const isSelected = selectedOptionId === option.id;
           const showResult = isAnswered;
 
-          let optionStyle = "hover:border-muted-foreground/30 hover:bg-muted/50";
+          let optionStyle = "hover:border-muted-foreground/30 hover:bg-muted/50 active:bg-muted/50";
           if (showResult) {
             if (option.isCorrect) {
               optionStyle = "border-emerald-500 bg-emerald-50";
@@ -331,7 +331,7 @@ export function PracticeSession({
               onClick={() => selectOption(option.id)}
               disabled={isAnswered}
               className={cn(
-                "flex w-full items-start gap-3 rounded-lg border p-4 text-left transition-colors",
+                "flex min-h-12 w-full items-start gap-3 rounded-lg border p-3.5 text-left transition-colors sm:p-4",
                 optionStyle
               )}
             >
@@ -386,16 +386,17 @@ export function PracticeSession({
       )}
 
       {/* Navigation */}
-      <div className="flex items-center justify-between pt-2">
+      <div className="flex items-center gap-3 pt-2">
         <Button
           variant="outline"
+          className="flex-1 sm:flex-none"
           onClick={goToPrev}
           disabled={currentIdx === 0}
         >
           <ChevronLeft className="mr-2 h-4 w-4" />
           Sebelumnya
         </Button>
-        <Button onClick={goToNext}>
+        <Button className="flex-1 sm:flex-none" onClick={goToNext}>
           {currentIdx === questions.length - 1 ? (
             "Lihat Hasil"
           ) : (

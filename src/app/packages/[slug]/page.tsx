@@ -174,7 +174,7 @@ export default async function PackageDetailPage({
         dangerouslySetInnerHTML={{ __html: JSON.stringify(courseJsonLd) }}
       />
       <Header />
-      <main className="mx-auto max-w-4xl px-4 py-10 sm:px-6 lg:px-8">
+      <main className="mx-auto max-w-4xl px-4 pb-28 pt-6 sm:px-6 sm:pb-10 sm:pt-10 lg:px-8">
         {/* Breadcrumb */}
         <nav className="mb-6 flex items-center gap-1.5 text-sm text-muted-foreground">
           <Link href="/packages" className="transition-colors hover:text-foreground">
@@ -382,6 +382,39 @@ export default async function PackageDetailPage({
           </Suspense>
         </div>
       </main>
+
+      {/* Mobile sticky CTA */}
+      <div className="fixed bottom-0 left-0 right-0 border-t bg-background/95 px-4 py-3 backdrop-blur-sm sm:hidden">
+        {isLoggedIn ? (
+          <Link
+            href={`/dashboard/tryout/${pkg.id}`}
+            className={cn(
+              "flex w-full items-center justify-center gap-2 rounded-xl py-3 text-sm font-semibold",
+              "bg-primary text-primary-foreground",
+            )}
+          >
+            Mulai Try Out
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+        ) : (
+          <div className="flex gap-3">
+            <Link
+              href="/login"
+              className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-primary py-3 text-sm font-semibold text-primary-foreground"
+            >
+              Masuk
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+            <Link
+              href="/register"
+              className="flex flex-1 items-center justify-center rounded-xl border py-3 text-sm font-semibold"
+            >
+              Daftar Gratis
+            </Link>
+          </div>
+        )}
+      </div>
+
       <Footer />
     </>
   );

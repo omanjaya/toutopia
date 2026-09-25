@@ -408,7 +408,16 @@ export async function POST(request: NextRequest): Promise<Response> {
       );
     }
 
-    const apiKey = decrypt(providerConfig.apiKey);
+    let apiKey: string;
+    try {
+      apiKey = decrypt(providerConfig.apiKey);
+    } catch {
+      return errorResponse(
+        "API_KEY_INVALID",
+        `API key untuk provider "${data.provider}" tidak dapat didekripsi. Silakan perbarui API key di halaman Settings > AI Provider.`,
+        500
+      );
+    }
     const resolvedModel = data.model ?? providerConfig.model;
 
     // Resolve template

@@ -73,12 +73,12 @@ export default async function EbookDetailPage({ params }: Props) {
       {/* Thin reading progress bar — fixed at very top */}
       <ReadingProgress />
 
-      <div className="mx-auto max-w-4xl px-4 py-8">
+      <div className="mx-auto max-w-4xl pb-20 md:pb-0">
         {/* Back */}
         <Button
           variant="ghost"
           size="sm"
-          className="mb-8 -ml-2 gap-1.5 text-muted-foreground hover:text-foreground"
+          className="mb-5 -ml-2 gap-1.5 text-muted-foreground hover:text-foreground lg:mb-8"
           asChild
         >
           <Link href="/dashboard/ebooks">
@@ -88,9 +88,9 @@ export default async function EbookDetailPage({ params }: Props) {
         </Button>
 
         {/* ── Hero ── */}
-        <div className="flex flex-col gap-8 lg:flex-row lg:items-start lg:gap-12">
+        <div className="flex flex-col gap-6 sm:gap-8 lg:flex-row lg:items-start lg:gap-12">
           {/* Book Cover — with 3D effect */}
-          <div className="mx-auto w-44 shrink-0 lg:mx-0 lg:w-52">
+          <div className="mx-auto w-36 shrink-0 sm:w-44 lg:mx-0 lg:w-52">
             <BookCover
               src={ebook.coverImage}
               alt={ebook.title}
@@ -123,7 +123,7 @@ export default async function EbookDetailPage({ params }: Props) {
             </div>
 
             {/* Title */}
-            <h1 className="mt-4 text-2xl font-bold leading-tight tracking-tight lg:text-3xl">
+            <h1 className="mt-3 text-xl font-bold leading-tight tracking-tight sm:mt-4 sm:text-2xl lg:text-3xl">
               {ebook.title}
             </h1>
 
@@ -135,7 +135,7 @@ export default async function EbookDetailPage({ params }: Props) {
             )}
 
             {/* Meta info */}
-            <div className="mt-5 flex flex-wrap gap-x-5 gap-y-2.5 text-sm text-muted-foreground">
+            <div className="mt-4 flex flex-wrap gap-x-4 gap-y-2 text-xs text-muted-foreground sm:mt-5 sm:gap-x-5 sm:gap-y-2.5 sm:text-sm">
               {ebook.author.name && (
                 <div className="flex items-center gap-1.5">
                   <User className="h-3.5 w-3.5 shrink-0" />

@@ -7,6 +7,7 @@ import { redirect } from "next/navigation";
 import { getMidtransClientKey } from "@/shared/lib/midtrans";
 import { PRICING } from "@/shared/lib/validators/payment.validators";
 import { PaymentCheckout } from "./payment-checkout";
+import { Loader2 } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -57,14 +58,20 @@ export default async function PaymentPage({
         strategy="afterInteractive"
       />
       <div className="space-y-6">
-        <div>
+        <div className="hidden md:block">
           <h2 className="text-2xl font-bold tracking-tight">Pembayaran</h2>
           <p className="text-muted-foreground">
             Saldo kredit: <span className="font-semibold">{credit?.balance ?? 0}</span> kredit
           </p>
         </div>
 
-        <Suspense>
+        <Suspense
+          fallback={
+            <div className="flex min-h-[50vh] items-center justify-center">
+              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+            </div>
+          }
+        >
           <PaymentCheckout
             currentBalance={credit?.balance ?? 0}
             targetPackage={

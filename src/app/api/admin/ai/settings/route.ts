@@ -44,8 +44,11 @@ export async function GET() {
         models,
         isActive: config?.isActive ?? false,
         model: config?.model ?? models[0]?.id ?? "",
-        hasApiKey: Boolean(config?.apiKey),
-        maskedApiKey: config?.apiKey ? maskApiKey(decrypt(config.apiKey)) : "",
+        hasApiKey: (() => {
+          if (!config?.apiKey) return false;
+          try { decrypt(config.apiKey); return true; } catch { return false; }
+        })(),
+        maskedApiKey: config?.apiKey ? (() => { try { return maskApiKey(decrypt(config.apiKey)); } catch { return ""; } })() : "",
       };
     });
 
@@ -128,7 +131,14 @@ export async function POST(request: NextRequest) {
           message: "Tidak ada API key tersimpan untuk provider ini. Masukkan dan simpan API key terlebih dahulu.",
         });
       }
-      apiKey = decrypt(config.apiKey).trim();
+      try {
+        apiKey = decrypt(config.apiKey).trim();
+      } catch {
+        return successResponse({
+          success: false,
+          message: "API key tidak dapat didekripsi. Silakan masukkan ulang API key di form ini.",
+        });
+      }
     }
 
     if (!apiKey) {

@@ -22,10 +22,10 @@ export default async function SettingsPage() {
   });
 
   return (
-    <div className="mx-auto max-w-4xl space-y-8">
+    <div className="mx-auto max-w-4xl space-y-6 px-4 pb-20 md:px-0 md:pb-0 md:space-y-8">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Pengaturan</h1>
-        <p className="text-muted-foreground">
+        <h1 className="text-xl font-bold tracking-tight md:text-2xl">Pengaturan</h1>
+        <p className="text-sm text-muted-foreground md:text-base">
           Kelola preferensi akun dan tampilan kamu
         </p>
       </div>

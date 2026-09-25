@@ -55,16 +55,16 @@ function EbookFiltersInner({
     <div className="space-y-3">
       {/* Search */}
       <form onSubmit={handleSearch} className="flex gap-2">
-        <div className="relative flex-1 max-w-sm">
+        <div className="relative flex-1 sm:max-w-sm">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Cari ebook..."
-            className="pl-9 h-9"
+            className="h-11 pl-9 text-base sm:h-9 sm:text-sm"
           />
         </div>
-        <Button type="submit" size="sm" disabled={isPending} className="h-9">
+        <Button type="submit" size="sm" disabled={isPending} className="h-11 sm:h-9">
           Cari
         </Button>
         {hasActiveFilters && (
@@ -72,49 +72,53 @@ function EbookFiltersInner({
             type="button"
             variant="ghost"
             size="sm"
-            className="h-9 gap-1.5 text-muted-foreground"
+            className="h-11 gap-1.5 text-muted-foreground sm:h-9"
             onClick={handleClear}
           >
             <X className="h-3.5 w-3.5" />
-            Reset
+            <span className="hidden sm:inline">Reset</span>
           </Button>
         )}
       </form>
 
-      {/* Category pills */}
+      {/* Category pills — horizontal scroll on mobile, wrap on desktop */}
       {categories.length > 0 && (
-        <div className="flex flex-wrap gap-2">
-          <button
-            type="button"
-            onClick={() => updateFilters({ category: undefined })}
-            className={cn(
-              "h-7 rounded-full px-3.5 text-xs font-medium transition-colors",
-              !currentCategory
-                ? "bg-primary text-primary-foreground shadow-sm"
-                : "border border-border bg-background text-muted-foreground hover:border-primary/40 hover:text-foreground"
-            )}
-          >
-            Semua
-          </button>
-          {categories.map((cat) => (
+        <div className="-mx-4 overflow-x-auto px-4 scrollbar-none [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:mx-0 sm:overflow-visible sm:px-0">
+          <div className="flex gap-2 pb-1 sm:flex-wrap sm:pb-0">
             <button
-              key={cat}
               type="button"
-              onClick={() =>
-                updateFilters({
-                  category: currentCategory === cat ? undefined : cat,
-                })
-              }
+              onClick={() => updateFilters({ category: undefined })}
+              disabled={isPending}
               className={cn(
-                "h-7 rounded-full px-3.5 text-xs font-medium transition-colors",
-                currentCategory === cat
+                "shrink-0 rounded-full px-4 py-2 text-sm font-medium transition-colors min-h-[36px] sm:h-7 sm:min-h-0 sm:px-3.5 sm:py-0 sm:text-xs sm:leading-7",
+                !currentCategory
                   ? "bg-primary text-primary-foreground shadow-sm"
-                  : "border border-border bg-background text-muted-foreground hover:border-primary/40 hover:text-foreground"
+                  : "bg-muted text-muted-foreground sm:border sm:border-border sm:bg-background sm:hover:border-primary/40 sm:hover:text-foreground"
               )}
             >
-              {cat}
+              Semua
             </button>
-          ))}
+            {categories.map((cat) => (
+              <button
+                key={cat}
+                type="button"
+                onClick={() =>
+                  updateFilters({
+                    category: currentCategory === cat ? undefined : cat,
+                  })
+                }
+                disabled={isPending}
+                className={cn(
+                  "shrink-0 rounded-full px-4 py-2 text-sm font-medium transition-colors min-h-[36px] sm:h-7 sm:min-h-0 sm:px-3.5 sm:py-0 sm:text-xs sm:leading-7",
+                  currentCategory === cat
+                    ? "bg-primary text-primary-foreground shadow-sm"
+                    : "bg-muted text-muted-foreground sm:border sm:border-border sm:bg-background sm:hover:border-primary/40 sm:hover:text-foreground"
+                )}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
         </div>
       )}
     </div>

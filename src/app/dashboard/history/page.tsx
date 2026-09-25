@@ -168,7 +168,7 @@ export default async function HistoryPage({
   const currentStatus = statusFilter ?? "all";
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-20 md:pb-0">
       <div className="flex items-start justify-between">
         <div>
           <h2 className="text-2xl font-bold tracking-tight flex items-center gap-2">
@@ -186,12 +186,35 @@ export default async function HistoryPage({
         )}
       </div>
 
-      <SegmentedNav
-        options={statusOptions}
-        value={currentStatus}
-        baseHref="/dashboard/history"
-        paramKey="status"
-      />
+      {/* Scrollable filter pills on mobile, segmented nav on desktop */}
+      <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:hidden sm:px-0">
+        {statusOptions.map((opt) => (
+          <a
+            key={opt.value}
+            href={
+              opt.value === "all"
+                ? "/dashboard/history"
+                : `/dashboard/history?status=${opt.value}`
+            }
+            className={cn(
+              "shrink-0 rounded-full px-4 py-2 text-sm font-medium transition-colors",
+              currentStatus === opt.value
+                ? "bg-primary text-primary-foreground"
+                : "bg-muted text-muted-foreground"
+            )}
+          >
+            {opt.label}
+          </a>
+        ))}
+      </div>
+      <div className="hidden sm:block">
+        <SegmentedNav
+          options={statusOptions}
+          value={currentStatus}
+          baseHref="/dashboard/history"
+          paramKey="status"
+        />
+      </div>
 
       <HistoryFilters
         defaultQ={searchQuery}
@@ -254,7 +277,7 @@ export default async function HistoryPage({
                 }
               >
                 <div className={`${cardCls} group transition-all hover:ring-primary/30 hover:shadow-md hover:-translate-y-px mb-2`}>
-                  <div className="flex items-center gap-4 py-4 px-6">
+                  <div className="flex items-center gap-3 px-4 py-3 sm:gap-4 sm:px-6 sm:py-4">
                     {/* Status icon */}
                     <div
                       className={cn(

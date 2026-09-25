@@ -30,22 +30,24 @@ export default async function BecomeTeacherPage() {
 
   if (existingProfile && !existingProfile.isVerified) {
     return (
-      <div className="mx-auto max-w-2xl space-y-6">
+      <div className="mx-auto max-w-2xl space-y-6 px-4 pb-20 md:px-0 md:pb-0">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight">
+          <h2 className="text-xl font-bold tracking-tight md:text-2xl">
             Pendaftaran Pengajar
           </h2>
         </div>
         <div className={cardCls}>
-          <div className="flex items-center gap-4 p-6">
-            <Clock className="h-8 w-8 text-amber-500" />
-            <div>
+          <div className="flex items-start gap-4 p-4 md:p-6">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-amber-500/10">
+              <Clock className="h-6 w-6 text-amber-500" />
+            </div>
+            <div className="min-w-0 flex-1">
               <p className="font-semibold">Pengajuan Sedang Diproses</p>
-              <p className="text-sm text-muted-foreground">
+              <p className="mt-1 text-sm text-muted-foreground">
                 Tim kami sedang meninjau pengajuan Anda. Anda akan mendapat
                 notifikasi saat disetujui.
               </p>
-              <Badge variant="outline" className="mt-2">
+              <Badge variant="outline" className="mt-3">
                 Menunggu Verifikasi
               </Badge>
             </div>
@@ -56,14 +58,24 @@ export default async function BecomeTeacherPage() {
   }
 
   return (
-    <div className="mx-auto max-w-2xl space-y-6">
+    <div className="mx-auto max-w-2xl space-y-4 px-4 pb-20 md:px-0 md:pb-0 md:space-y-6">
       <div>
-        <h2 className="text-2xl font-bold tracking-tight">
+        <h2 className="text-xl font-bold tracking-tight md:text-2xl">
           Daftar Sebagai Pengajar
         </h2>
-        <p className="text-muted-foreground">
+        <p className="text-sm text-muted-foreground">
           Kontribusi soal dan dapatkan penghasilan Rp 500 per soal per attempt
         </p>
+      </div>
+
+      {/* Mobile info banner */}
+      <div className="rounded-2xl bg-primary/5 p-4 md:hidden">
+        <p className="text-sm font-medium">Keuntungan Menjadi Pengajar</p>
+        <ul className="mt-2 space-y-1 text-xs text-muted-foreground">
+          <li>Rp 500 per soal per attempt siswa</li>
+          <li>Kontribusi ke pendidikan Indonesia</li>
+          <li>Dashboard pengajar khusus</li>
+        </ul>
       </div>
 
       <TeacherApplicationForm />

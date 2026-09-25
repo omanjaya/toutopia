@@ -308,7 +308,7 @@ export function ExamResult({ attemptId }: ExamResultProps) {
   ];
 
   return (
-    <div className="result-content mx-auto max-w-4xl space-y-6 px-4 py-8 sm:px-6">
+    <div className="result-content mx-auto max-w-4xl space-y-6 px-4 pb-24 pt-4 sm:px-6 md:pb-8 md:py-8">
       {/* Top Nav */}
       <div className="flex items-center justify-between">
         <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground" asChild>
@@ -327,23 +327,23 @@ export function ExamResult({ attemptId }: ExamResultProps) {
       </div>
 
       {/* Hero Score Card */}
-      <div className={cn("rounded-3xl bg-gradient-to-br p-8 text-center", scoreBg)}>
-        <div className="mb-4 flex justify-center">
+      <div className={cn("rounded-2xl bg-gradient-to-br p-6 text-center md:rounded-3xl md:p-8", scoreBg)}>
+        <div className="mb-3 flex justify-center md:mb-4">
           <div className={cn(
-            "flex h-20 w-20 items-center justify-center rounded-full",
+            "flex h-16 w-16 items-center justify-center rounded-full md:h-20 md:w-20",
             passed === true ? "bg-emerald-100 dark:bg-emerald-900/30" :
               passed === false ? "bg-red-100 dark:bg-red-900/30" :
                 "bg-primary/10"
           )}>
-            <Trophy className={cn("h-10 w-10", scoreColor)} />
+            <Trophy className={cn("h-8 w-8 md:h-10 md:w-10", scoreColor)} />
           </div>
         </div>
 
-        <p className="text-sm font-medium text-muted-foreground">{data.packageTitle}</p>
-        <p className={cn("mt-2 text-7xl font-bold tracking-tight tabular-nums", scoreColor)}>
+        <p className="truncate text-xs font-medium text-muted-foreground md:text-sm">{data.packageTitle}</p>
+        <p className={cn("mt-1 text-5xl font-bold tracking-tight tabular-nums md:mt-2 md:text-7xl", scoreColor)}>
           {score}
         </p>
-        <p className="mt-1 text-sm text-muted-foreground">dari 1000 poin</p>
+        <p className="mt-0.5 text-xs text-muted-foreground md:mt-1 md:text-sm">dari 1000 poin</p>
 
         {passed !== null && (
           <Badge
@@ -363,33 +363,33 @@ export function ExamResult({ attemptId }: ExamResultProps) {
       </div>
 
       {/* Quick Stats */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+      <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 md:gap-3">
         <div className={cardCls}>
-          <div className="flex flex-col items-center p-4 text-center">
-            <CheckCircle2 className="mb-2 h-5 w-5 text-emerald-500" />
-            <p className="text-2xl font-bold tabular-nums">{data.totalCorrect ?? 0}</p>
-            <p className="text-xs text-muted-foreground">Benar</p>
+          <div className="flex flex-col items-center p-3 text-center md:p-4">
+            <CheckCircle2 className="mb-1 h-4 w-4 text-emerald-500 md:mb-2 md:h-5 md:w-5" />
+            <p className="text-xl font-bold tabular-nums md:text-2xl">{data.totalCorrect ?? 0}</p>
+            <p className="text-[10px] text-muted-foreground md:text-xs">Benar</p>
           </div>
         </div>
         <div className={cardCls}>
-          <div className="flex flex-col items-center p-4 text-center">
-            <XCircle className="mb-2 h-5 w-5 text-destructive" />
-            <p className="text-2xl font-bold tabular-nums">{data.totalIncorrect ?? 0}</p>
-            <p className="text-xs text-muted-foreground">Salah</p>
+          <div className="flex flex-col items-center p-3 text-center md:p-4">
+            <XCircle className="mb-1 h-4 w-4 text-destructive md:mb-2 md:h-5 md:w-5" />
+            <p className="text-xl font-bold tabular-nums md:text-2xl">{data.totalIncorrect ?? 0}</p>
+            <p className="text-[10px] text-muted-foreground md:text-xs">Salah</p>
           </div>
         </div>
         <div className={cardCls}>
-          <div className="flex flex-col items-center p-4 text-center">
-            <MinusCircle className="mb-2 h-5 w-5 text-muted-foreground" />
-            <p className="text-2xl font-bold tabular-nums">{data.totalUnanswered ?? 0}</p>
-            <p className="text-xs text-muted-foreground">Kosong</p>
+          <div className="flex flex-col items-center p-3 text-center md:p-4">
+            <MinusCircle className="mb-1 h-4 w-4 text-muted-foreground md:mb-2 md:h-5 md:w-5" />
+            <p className="text-xl font-bold tabular-nums md:text-2xl">{data.totalUnanswered ?? 0}</p>
+            <p className="text-[10px] text-muted-foreground md:text-xs">Kosong</p>
           </div>
         </div>
-        <div className={cardCls}>
-          <div className="flex flex-col items-center p-4 text-center">
-            <Clock className="mb-2 h-5 w-5 text-muted-foreground" />
-            <p className="text-2xl font-bold tabular-nums">{duration ? `${duration}m` : "—"}</p>
-            <p className="text-xs text-muted-foreground">Durasi</p>
+        <div className={cn(cardCls, "hidden sm:block")}>
+          <div className="flex flex-col items-center p-3 text-center md:p-4">
+            <Clock className="mb-1 h-4 w-4 text-muted-foreground md:mb-2 md:h-5 md:w-5" />
+            <p className="text-xl font-bold tabular-nums md:text-2xl">{duration ? `${duration}m` : "—"}</p>
+            <p className="text-[10px] text-muted-foreground md:text-xs">Durasi</p>
           </div>
         </div>
       </div>

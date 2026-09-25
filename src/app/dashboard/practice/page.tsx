@@ -64,7 +64,7 @@ export default async function PracticePage(): Promise<React.JSX.Element> {
   const categories = await getCategories();
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-20 md:pb-0">
       <div>
         <h2 className="text-2xl font-semibold tracking-tight">Mode Latihan</h2>
         <p className="text-muted-foreground">

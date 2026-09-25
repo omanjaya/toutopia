@@ -65,7 +65,7 @@ export default function BadgesPage(): React.ReactElement {
 
   if (loading) {
     return (
-      <div className="flex justify-center py-12">
+      <div className="flex min-h-[60vh] items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
       </div>
     );
@@ -86,24 +86,24 @@ export default function BadgesPage(): React.ReactElement {
   const xpForNextLevel = 500;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5 pb-20 md:pb-0">
       <div>
-        <h2 className="text-2xl font-semibold tracking-tight">Pencapaian</h2>
-        <p className="text-muted-foreground">
+        <h2 className="text-xl font-semibold tracking-tight md:text-2xl">Pencapaian</h2>
+        <p className="text-sm text-muted-foreground">
           {data.earnedCount} dari {data.totalCount} badge diraih
         </p>
       </div>
 
       {/* XP & Level Card */}
       <div className="rounded-2xl bg-gradient-to-br from-amber-50 to-orange-50 shadow-[0_2px_8px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.05]">
-        <div className="flex items-center gap-6 p-6">
-          <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-amber-500/10">
-            <Trophy className="h-8 w-8 text-amber-500" />
+        <div className="flex items-center gap-4 p-4 md:gap-6 md:p-6">
+          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-amber-500/10 md:h-16 md:w-16">
+            <Trophy className="h-7 w-7 text-amber-500 md:h-8 md:w-8" />
           </div>
-          <div className="flex-1">
+          <div className="flex-1 min-w-0">
             <div className="flex items-baseline gap-2">
-              <span className="text-3xl font-bold text-amber-600">Level {level}</span>
-              <span className="text-sm text-muted-foreground">{data.totalXp} XP</span>
+              <span className="text-2xl font-bold text-amber-600 md:text-3xl">Level {level}</span>
+              <span className="text-xs text-muted-foreground md:text-sm">{data.totalXp} XP</span>
             </div>
             <div className="mt-2 h-2 overflow-hidden rounded-full bg-amber-200/50">
               <div
@@ -118,13 +118,91 @@ export default function BadgesPage(): React.ReactElement {
         </div>
       </div>
 
+      {/* Stats Summary — shown on mobile */}
+      <div className="grid grid-cols-3 gap-2 md:hidden">
+        <div className="rounded-2xl bg-card">
+          <div className="p-3 text-center">
+            <p className="text-lg font-bold text-primary">{data.earnedCount}</p>
+            <p className="text-[10px] text-muted-foreground">Diraih</p>
+          </div>
+        </div>
+        <div className="rounded-2xl bg-card">
+          <div className="p-3 text-center">
+            <p className="text-lg font-bold text-muted-foreground">
+              {data.totalCount - data.earnedCount}
+            </p>
+            <p className="text-[10px] text-muted-foreground">Terkunci</p>
+          </div>
+        </div>
+        <div className="rounded-2xl bg-card">
+          <div className="p-3 text-center">
+            <p className="text-lg font-bold text-amber-600">{data.totalXp}</p>
+            <p className="text-[10px] text-muted-foreground">Total XP</p>
+          </div>
+        </div>
+      </div>
+
       {/* Badge Grid by Category */}
       {Object.entries(grouped).map(([category, badges]) => (
         <div key={category}>
-          <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+          <h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
             {categoryLabels[category] ?? category}
           </h3>
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {/* Mobile: 2-column compact cards; Desktop: wider list cards */}
+          <div className="grid grid-cols-2 gap-2 sm:hidden">
+            {badges.map((badge) => {
+              const Icon = getIcon(badge.icon);
+              return (
+                <div
+                  key={badge.id}
+                  className={cn(
+                    "rounded-2xl bg-card transition-all",
+                    badge.earned ? "bg-card" : "bg-muted/30 opacity-60"
+                  )}
+                >
+                  <div className="p-3">
+                    <div className="mb-2 flex items-start justify-between">
+                      <div
+                        className={cn(
+                          "flex h-10 w-10 items-center justify-center rounded-xl",
+                          badge.earned ? "bg-primary/10" : "bg-muted"
+                        )}
+                      >
+                        {badge.earned ? (
+                          <Icon className="h-5 w-5 text-primary" />
+                        ) : (
+                          <Lock className="h-4 w-4 text-muted-foreground/50" />
+                        )}
+                      </div>
+                      {badge.isNew && (
+                        <Badge className="bg-amber-500 text-[10px] px-1.5 py-0">
+                          Baru!
+                        </Badge>
+                      )}
+                    </div>
+                    <p className="text-sm font-medium leading-tight">{badge.name}</p>
+                    <p className="mt-0.5 text-[11px] leading-tight text-muted-foreground line-clamp-2">
+                      {badge.description}
+                    </p>
+                    <div className="mt-2 flex items-center gap-1.5">
+                      <Badge variant="outline" className="text-[10px] px-1.5">
+                        +{badge.xpReward} XP
+                      </Badge>
+                      {badge.earned && badge.earnedAt && (
+                        <span className="text-[10px] text-muted-foreground">
+                          {new Date(badge.earnedAt).toLocaleDateString("id-ID", {
+                            day: "numeric",
+                            month: "short",
+                          })}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          <div className="hidden sm:grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {badges.map((badge) => {
               const Icon = getIcon(badge.icon);
               return (

@@ -337,7 +337,7 @@ function PricingCard({ plan }: { plan: PricingPlan }): React.ReactElement {
         </ul>
         <Button
           asChild
-          className="w-full"
+          className="w-full min-h-[44px]"
           variant={plan.popular ? "default" : "outline"}
           size="lg"
         >
@@ -366,19 +366,19 @@ function ComparisonCell({
 
 export function PricingContent(): React.ReactElement {
   return (
-    <div>
+    <div className="pb-20 md:pb-0">
       {/* Section 1: Hero */}
-      <section className="relative py-16 sm:py-20">
+      <section className="relative py-10 sm:py-20">
         <div className="absolute inset-0 -z-10 bg-gradient-to-b from-primary/5 to-transparent" />
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 text-center">
-          <Badge className="bg-muted text-foreground mb-4">
+        <div className="mx-auto max-w-7xl px-4 text-center sm:px-6 lg:px-8">
+          <Badge className="mb-3 bg-muted text-foreground sm:mb-4">
             Investasi Masa Depanmu
           </Badge>
-          <h1 className="text-2xl font-bold tracking-tight sm:text-4xl lg:text-5xl">
+          <h1 className="text-xl font-bold tracking-tight sm:text-4xl lg:text-5xl">
             Harga Terjangkau,{" "}
             <span className="text-primary">Kualitas Premium</span>
           </h1>
-          <p className="mx-auto mt-4 max-w-2xl text-base text-muted-foreground sm:text-lg">
+          <p className="mx-auto mt-3 max-w-2xl text-sm text-muted-foreground sm:mt-4 sm:text-lg">
             Persiapan ujian terbaik dengan soal berkualitas, pembahasan lengkap,
             dan analitik pintar. Mulai gratis, upgrade kapan saja.
           </p>
@@ -388,13 +388,13 @@ export function PricingContent(): React.ReactElement {
       {/* Section 2: Pricing Cards with Tabs */}
       <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <Tabs defaultValue="credit" className="items-center">
-          <TabsList className="mx-auto mb-10">
-            <TabsTrigger value="credit">Sekali Beli</TabsTrigger>
-            <TabsTrigger value="subscription">Langganan</TabsTrigger>
+          <TabsList className="mx-auto mb-6 h-11 sm:mb-10">
+            <TabsTrigger value="credit" className="min-h-[44px] px-5">Sekali Beli</TabsTrigger>
+            <TabsTrigger value="subscription" className="min-h-[44px] px-5">Langganan</TabsTrigger>
           </TabsList>
 
           <TabsContent value="credit">
-            <div className="mx-auto grid max-w-5xl gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="mx-auto grid max-w-5xl gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {creditPlans.map((plan) => (
                 <PricingCard key={plan.name} plan={plan} />
               ))}
@@ -402,7 +402,7 @@ export function PricingContent(): React.ReactElement {
           </TabsContent>
 
           <TabsContent value="subscription">
-            <div className="mx-auto grid max-w-3xl gap-6 sm:grid-cols-2">
+            <div className="mx-auto grid max-w-3xl gap-4 sm:gap-6 sm:grid-cols-2">
               {subscriptionPlans.map((plan) => (
                 <PricingCard key={plan.name} plan={plan} />
               ))}

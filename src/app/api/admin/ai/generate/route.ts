@@ -76,7 +76,16 @@ export async function POST(request: NextRequest) {
       return errorResponse("TOPIC_NOT_FOUND", "Topik tidak ditemukan", 404);
     }
 
-    const apiKey = decrypt(providerConfig.apiKey);
+    let apiKey: string;
+    try {
+      apiKey = decrypt(providerConfig.apiKey);
+    } catch {
+      return errorResponse(
+        "API_KEY_INVALID",
+        `API key untuk provider "${data.provider}" tidak dapat didekripsi. Silakan perbarui API key di halaman Settings > AI Provider.`,
+        500
+      );
+    }
     const model = data.model ?? providerConfig.model;
 
     let questions;

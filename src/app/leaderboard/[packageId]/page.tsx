@@ -110,19 +110,21 @@ export default async function PublicPackageLeaderboardPage({
     "bg-orange-500/5 border-l-2 border-l-orange-500",
   ];
 
+  const medalBg = ["bg-amber-500/10", "bg-slate-400/10", "bg-orange-600/10"];
+
   return (
     <>
       <Header />
-      <main className="mx-auto max-w-3xl px-4 py-10 sm:px-6 lg:px-8">
+      <main className="mx-auto max-w-3xl px-4 py-8 sm:py-10 sm:px-6 lg:px-8">
         <Link
           href="/leaderboard"
-          className="mb-8 inline-flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
+          className="mb-6 inline-flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
         >
           <ChevronLeft className="size-4" />
           Semua Leaderboard
         </Link>
 
-        <div className="space-y-8">
+        <div className="space-y-6 sm:space-y-8">
           {/* Header */}
           <div className="text-center">
             <Badge variant="outline" className="mb-3">
@@ -137,114 +139,165 @@ export default async function PublicPackageLeaderboardPage({
           </div>
 
           {/* Stats Summary */}
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-3 gap-2 sm:gap-3">
             <div className={cardCls}>
-              <div className="flex flex-col items-center py-4">
-                <Users className="mb-1.5 h-5 w-5 text-muted-foreground" />
-                <p className="text-2xl font-bold">{stats._count}</p>
-                <p className="text-xs text-muted-foreground">Peserta</p>
+              <div className="flex flex-col items-center py-3 sm:py-4">
+                <Users className="mb-1.5 h-4 w-4 text-muted-foreground sm:h-5 sm:w-5" />
+                <p className="text-xl font-bold sm:text-2xl">{stats._count}</p>
+                <p className="text-[10px] text-muted-foreground sm:text-xs">Peserta</p>
               </div>
             </div>
             <div className={cardCls}>
-              <div className="flex flex-col items-center py-4">
-                <Target className="mb-1.5 h-5 w-5 text-amber-500" />
-                <p className="text-2xl font-bold">
+              <div className="flex flex-col items-center py-3 sm:py-4">
+                <Target className="mb-1.5 h-4 w-4 text-amber-500 sm:h-5 sm:w-5" />
+                <p className="text-xl font-bold sm:text-2xl">
                   {stats._max.score ? Math.round(stats._max.score) : 0}
                 </p>
-                <p className="text-xs text-muted-foreground">Skor Tertinggi</p>
+                <p className="text-[10px] text-muted-foreground sm:text-xs">Tertinggi</p>
               </div>
             </div>
             <div className={cardCls}>
-              <div className="flex flex-col items-center py-4">
-                <TrendingUp className="mb-1.5 h-5 w-5 text-primary" />
-                <p className="text-2xl font-bold">
+              <div className="flex flex-col items-center py-3 sm:py-4">
+                <TrendingUp className="mb-1.5 h-4 w-4 text-primary sm:h-5 sm:w-5" />
+                <p className="text-xl font-bold sm:text-2xl">
                   {stats._avg.score ? Math.round(stats._avg.score) : 0}
                 </p>
-                <p className="text-xs text-muted-foreground">Rata-rata</p>
+                <p className="text-[10px] text-muted-foreground sm:text-xs">Rata-rata</p>
               </div>
             </div>
           </div>
 
           {/* Top 3 Podium */}
           {entries.length >= 3 && (
-            <div className="grid grid-cols-3 items-end gap-3">
-              {/* Order: 2nd, 1st, 3rd */}
-              {[1, 0, 2].map((idx) => {
-                const entry = entries[idx];
-                if (!entry) return null;
-                const rank = idx + 1;
-                const isFirst = rank === 1;
+            <>
+              {/* Mobile podium: initials avatars */}
+              <div className="grid grid-cols-3 gap-2 sm:hidden">
+                {([1, 0, 2] as const).map((idx) => {
+                  const entry = entries[idx];
+                  if (!entry) return null;
+                  const rank = idx + 1;
+                  const isFirst = rank === 1;
 
-                return (
-                  <div
-                    key={entry.id}
-                    className={cn(
-                      `${cardCls} bg-gradient-to-b text-center transition-all`,
-                      podiumGradients[idx],
-                      isFirst && "scale-[1.02]"
-                    )}
-                  >
-                    <div className={cn("pt-6 pb-5", isFirst && "pt-8 pb-6")}>
-                      {isFirst && (
-                        <Crown className="mx-auto mb-1 h-6 w-6 text-amber-500" />
-                      )}
-
-                      <Avatar
-                        size={isFirst ? "lg" : "default"}
-                        className={cn("mx-auto mb-3", podiumAvatarBg[idx])}
-                      >
-                        {entry.user.avatar && (
-                          <AvatarImage src={entry.user.avatar} alt={entry.user.name ?? ""} />
+                  return (
+                    <div
+                      key={entry.id}
+                      className={cn(cardCls, "text-center", podiumGradients[idx])}
+                    >
+                      <div className={cn("px-2 pb-4", isFirst ? "pt-5" : "pt-4")}>
+                        {isFirst && (
+                          <Crown className="mx-auto mb-1.5 h-5 w-5 text-amber-500" />
                         )}
-                        <AvatarFallback className={cn(podiumAvatarBg[idx], isFirst ? "text-sm" : "text-xs")}>
+                        <div
+                          className={cn(
+                            "mx-auto mb-2 flex items-center justify-center rounded-full font-bold",
+                            isFirst ? "h-12 w-12 text-sm" : "h-10 w-10 text-xs",
+                            medalBg[idx] ?? "bg-muted",
+                            medalColors[idx] ?? "text-muted-foreground"
+                          )}
+                        >
                           {getInitials(entry.user.name)}
-                        </AvatarFallback>
-                      </Avatar>
-
-                      <div className={cn(
-                        "mx-auto mb-2 flex h-8 w-8 items-center justify-center rounded-full font-bold",
-                        idx === 0 && "bg-amber-500 text-white",
-                        idx === 1 && "bg-slate-400 text-white",
-                        idx === 2 && "bg-orange-500 text-white",
-                      )}>
-                        {rank}
-                      </div>
-
-                      <p className={cn(
-                        "truncate font-semibold",
-                        isFirst ? "text-sm" : "text-xs"
-                      )}>
-                        {entry.user.name ?? "Anonim"}
-                      </p>
-                      <p className={cn(
-                        "mt-0.5 font-bold text-primary",
-                        isFirst ? "text-2xl" : "text-lg"
-                      )}>
-                        {Math.round(entry.score)}
-                      </p>
-                      {entry.attempt.totalCorrect != null && (
-                        <p className="text-xs text-muted-foreground">
-                          {entry.attempt.totalCorrect} benar
+                        </div>
+                        <div
+                          className={cn(
+                            "mx-auto mb-1.5 flex items-center justify-center rounded-full font-bold text-white",
+                            isFirst ? "h-7 w-7 text-sm" : "h-6 w-6 text-xs",
+                            idx === 0 && "bg-amber-500",
+                            idx === 1 && "bg-slate-400",
+                            idx === 2 && "bg-orange-500"
+                          )}
+                        >
+                          {rank}
+                        </div>
+                        <p className={cn("truncate font-semibold", isFirst ? "text-xs" : "text-[10px]")}>
+                          {entry.user.name ?? "Anonim"}
                         </p>
-                      )}
+                        <p className={cn("mt-0.5 font-bold tabular-nums text-primary", isFirst ? "text-xl" : "text-base")}>
+                          {Math.round(entry.score)}
+                        </p>
+                        {entry.attempt.totalCorrect != null && (
+                          <p className="text-[10px] text-muted-foreground">
+                            {entry.attempt.totalCorrect} benar
+                          </p>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
-            </div>
+                  );
+                })}
+              </div>
+
+              {/* Desktop podium: Avatar component */}
+              <div className="hidden sm:grid grid-cols-3 items-end gap-3">
+                {[1, 0, 2].map((idx) => {
+                  const entry = entries[idx];
+                  if (!entry) return null;
+                  const rank = idx + 1;
+                  const isFirst = rank === 1;
+
+                  return (
+                    <div
+                      key={entry.id}
+                      className={cn(
+                        `${cardCls} bg-gradient-to-b text-center transition-all`,
+                        podiumGradients[idx],
+                        isFirst && "scale-[1.02]"
+                      )}
+                    >
+                      <div className={cn("pt-6 pb-5", isFirst && "pt-8 pb-6")}>
+                        {isFirst && (
+                          <Crown className="mx-auto mb-1 h-6 w-6 text-amber-500" />
+                        )}
+
+                        <Avatar
+                          size={isFirst ? "lg" : "default"}
+                          className={cn("mx-auto mb-3", podiumAvatarBg[idx])}
+                        >
+                          {entry.user.avatar && (
+                            <AvatarImage src={entry.user.avatar} alt={entry.user.name ?? ""} />
+                          )}
+                          <AvatarFallback className={cn(podiumAvatarBg[idx], isFirst ? "text-sm" : "text-xs")}>
+                            {getInitials(entry.user.name)}
+                          </AvatarFallback>
+                        </Avatar>
+
+                        <div className={cn(
+                          "mx-auto mb-2 flex h-8 w-8 items-center justify-center rounded-full font-bold",
+                          idx === 0 && "bg-amber-500 text-white",
+                          idx === 1 && "bg-slate-400 text-white",
+                          idx === 2 && "bg-orange-500 text-white",
+                        )}>
+                          {rank}
+                        </div>
+
+                        <p className={cn("truncate font-semibold", isFirst ? "text-sm" : "text-xs")}>
+                          {entry.user.name ?? "Anonim"}
+                        </p>
+                        <p className={cn("mt-0.5 font-bold text-primary", isFirst ? "text-2xl" : "text-lg")}>
+                          {Math.round(entry.score)}
+                        </p>
+                        {entry.attempt.totalCorrect != null && (
+                          <p className="text-xs text-muted-foreground">
+                            {entry.attempt.totalCorrect} benar
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </>
           )}
 
           {/* Full Ranking */}
           <div className={cardCls}>
-            <div className="px-6 pt-6 pb-2">
-              <h3 className="text-lg font-semibold tracking-tight flex items-center gap-2">
-                <Trophy className="h-5 w-5 text-amber-500" />
+            <div className="px-4 pt-4 pb-2 sm:px-6 sm:pt-6">
+              <h3 className="text-sm font-semibold tracking-tight flex items-center gap-2 sm:text-lg">
+                <Trophy className="h-4 w-4 text-amber-500 sm:h-5 sm:w-5" />
                 Peringkat Lengkap
               </h3>
             </div>
-            <div className="px-6 pb-6">
-              {/* Table header */}
-              <div className="mb-2 flex items-center gap-3 px-3 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+            <div className="px-4 pb-4 sm:px-6 sm:pb-6">
+              {/* Table header — desktop only */}
+              <div className="mb-2 hidden sm:flex items-center gap-3 px-3 text-xs font-medium uppercase tracking-wider text-muted-foreground">
                 <span className="w-8 text-right">#</span>
                 <span className="flex-1">Peserta</span>
                 <span className="w-16 text-right">Benar</span>
@@ -261,50 +314,50 @@ export default async function PublicPackageLeaderboardPage({
                     <div
                       key={entry.id}
                       className={cn(
-                        "relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors",
+                        "relative flex items-center gap-2.5 rounded-xl px-2.5 py-2 text-sm transition-colors sm:gap-3 sm:rounded-lg sm:px-3 sm:py-2.5",
                         isTop3 ? topHighlightBg[idx] : "even:bg-muted/30"
                       )}
                     >
                       {/* Rank */}
-                      <span className="w-8 text-right">
+                      <span className="w-6 shrink-0 text-center sm:w-8 sm:text-right">
                         {isTop3 ? (
                           <Medal
                             className={cn(
-                              "inline h-4 w-4",
+                              "inline h-3.5 w-3.5 sm:h-4 sm:w-4",
                               medalColors[idx]
                             )}
                           />
                         ) : (
-                          <span className="font-mono text-muted-foreground">
+                          <span className="font-mono text-xs text-muted-foreground">
                             {idx + 1}
                           </span>
                         )}
                       </span>
 
-                      {/* User */}
-                      <Avatar size="sm">
-                        {entry.user.avatar && (
-                          <AvatarImage src={entry.user.avatar} alt={entry.user.name ?? ""} />
+                      {/* Avatar initials */}
+                      <div
+                        className={cn(
+                          "flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[10px] font-bold",
+                          isTop3 ? (medalBg[idx] ?? "bg-muted") : "bg-muted",
+                          isTop3 ? (medalColors[idx] ?? "text-muted-foreground") : "text-muted-foreground"
                         )}
-                        <AvatarFallback className="text-[10px]">
-                          {getInitials(entry.user.name)}
-                        </AvatarFallback>
-                      </Avatar>
-                      <span className={cn(
-                        "flex-1 truncate",
-                        isTop3 && "font-medium"
-                      )}>
+                      >
+                        {getInitials(entry.user.name)}
+                      </div>
+
+                      {/* Name */}
+                      <span className={cn("flex-1 truncate", isTop3 && "font-medium")}>
                         {entry.user.name ?? "Anonim"}
                       </span>
 
-                      {/* Correct */}
-                      <span className="w-16 text-right text-muted-foreground">
+                      {/* Correct — hidden on smallest screens */}
+                      <span className="hidden w-16 text-right text-muted-foreground sm:inline">
                         {entry.attempt.totalCorrect ?? "-"}
                       </span>
 
                       {/* Score with bar */}
-                      <span className="flex w-20 items-center justify-end gap-2">
-                        <span className="hidden sm:block h-1.5 w-10 overflow-hidden rounded-full bg-muted">
+                      <span className="flex shrink-0 items-center justify-end gap-2">
+                        <span className="hidden h-1.5 w-10 overflow-hidden rounded-full bg-muted sm:block">
                           <span
                             className={cn(
                               "block h-full rounded-full",
@@ -314,7 +367,7 @@ export default async function PublicPackageLeaderboardPage({
                           />
                         </span>
                         <span className={cn(
-                          "tabular-nums",
+                          "w-10 text-right tabular-nums",
                           isTop3 ? "font-bold" : "font-semibold"
                         )}>
                           {Math.round(entry.score)}
@@ -337,13 +390,13 @@ export default async function PublicPackageLeaderboardPage({
 
           {/* CTA */}
           <div className={`${cardCls} bg-gradient-to-r from-primary/5 to-primary/10 border-primary/20`}>
-            <div className="flex flex-col items-center py-8">
+            <div className="flex flex-col items-center px-4 py-7 sm:py-8 text-center">
               <Trophy className="mb-3 h-8 w-8 text-primary" />
               <p className="mb-1 font-semibold">Ingin masuk leaderboard ini?</p>
               <p className="mb-4 text-sm text-muted-foreground">
                 Kerjakan try out dan raih peringkat terbaikmu!
               </p>
-              <Button asChild>
+              <Button asChild className="rounded-full px-6">
                 <Link href={`/packages/${pkg.slug}`}>
                   Kerjakan Try Out
                   <ArrowRight className="ml-2 size-4" />

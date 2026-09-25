@@ -55,16 +55,16 @@ export default function AboutPage() {
       <Header />
       <main>
         {/* Hero */}
-        <section className="relative py-16 sm:py-24">
+        <section className="relative py-12 sm:py-24">
           <div className="absolute inset-0 -z-10 bg-gradient-to-b from-primary/5 to-transparent" />
           <div className="mx-auto max-w-3xl px-4 text-center sm:px-6">
             <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10">
               <BookOpenCheck className="h-8 w-8 text-primary" />
             </div>
-            <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
+            <h1 className="text-2xl font-bold tracking-tight sm:text-4xl lg:text-5xl">
               Tentang Toutopia
             </h1>
-            <p className="mt-4 text-lg text-muted-foreground">
+            <p className="mt-3 text-base text-muted-foreground sm:mt-4 sm:text-lg">
               Platform try out online yang membantu kamu mempersiapkan ujian
               dengan percaya diri. Dari UTBK hingga CPNS, kami menyediakan
               simulasi ujian yang akurat, lengkap, dan terpercaya.

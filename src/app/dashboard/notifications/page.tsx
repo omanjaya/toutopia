@@ -36,13 +36,13 @@ type NotificationData = {
 function getNotificationIcon(type: NotificationType): React.JSX.Element {
   switch (type) {
     case "SCORE_UPDATE":
-      return <Trophy className="h-5 w-5 text-yellow-500" />;
+      return <Trophy className="h-4 w-4 text-yellow-500 sm:h-5 sm:w-5" />;
     case "PAYMENT_SUCCESS":
-      return <CreditCard className="h-5 w-5 text-green-500" />;
+      return <CreditCard className="h-4 w-4 text-green-500 sm:h-5 sm:w-5" />;
     case "PACKAGE_NEW":
-      return <Award className="h-5 w-5 text-blue-500" />;
+      return <Award className="h-4 w-4 text-blue-500 sm:h-5 sm:w-5" />;
     default:
-      return <Bell className="h-5 w-5 text-muted-foreground" />;
+      return <Bell className="h-4 w-4 text-muted-foreground sm:h-5 sm:w-5" />;
   }
 }
 
@@ -98,27 +98,28 @@ function NotificationRow({
   const content = (
     <div
       className={cn(
-        "flex items-start gap-3 border-b px-4 py-4 transition-colors hover:bg-muted/50",
+        "flex items-start gap-3 px-4 py-3.5 transition-colors hover:bg-muted/50 active:bg-muted/50 sm:border-b sm:py-4",
         !notification.isRead &&
-          "border-l-2 border-l-primary bg-primary/[0.03]"
+          "border-l-2 border-l-primary bg-primary/[0.03] sm:border-l-2"
       )}
     >
-      <div className="mt-0.5 shrink-0">
+      {/* Icon container — rounded on mobile for easier scanning */}
+      <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-muted sm:h-auto sm:w-auto sm:rounded-none sm:bg-transparent">
         {getNotificationIcon(notification.type)}
       </div>
       <div className="min-w-0 flex-1">
         <p
           className={cn(
-            "text-sm",
+            "text-sm leading-snug",
             !notification.isRead ? "font-semibold" : "font-medium"
           )}
         >
           {notification.title}
         </p>
-        <p className="mt-0.5 line-clamp-2 text-sm text-muted-foreground">
+        <p className="mt-0.5 line-clamp-2 text-xs leading-relaxed text-muted-foreground sm:text-sm">
           {notification.message}
         </p>
-        <p className="mt-1 text-xs text-muted-foreground">
+        <p className="mt-1 text-[10px] text-muted-foreground sm:text-xs">
           {formatDistanceToNow(new Date(notification.createdAt), {
             addSuffix: true,
             locale: localeId,
@@ -126,7 +127,7 @@ function NotificationRow({
         </p>
       </div>
       {!notification.isRead && (
-        <div className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-primary" />
+        <div className="mt-2 h-2 w-2 shrink-0 rounded-full bg-primary" />
       )}
     </div>
   );
@@ -173,13 +174,13 @@ export default async function NotificationsPage(): Promise<React.JSX.Element> {
   const groups = groupNotificationsByDate(typedNotifications);
 
   return (
-    <div className="mx-auto max-w-2xl space-y-6 py-6">
+    <div className="mx-auto max-w-2xl pb-24 sm:pb-0 sm:py-6">
       {/* Page Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Bell className="h-6 w-6" />
+      <div className="mb-4 flex items-center justify-between sm:mb-6">
+        <div className="flex items-center gap-2 sm:gap-3">
+          <Bell className="hidden h-6 w-6 sm:block" />
           <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-semibold">Notifikasi</h1>
+            <h1 className="text-xl font-semibold sm:text-2xl">Notifikasi</h1>
             {unreadCount > 0 && (
               <Badge variant="default" className="text-xs">
                 {unreadCount}
@@ -192,31 +193,39 @@ export default async function NotificationsPage(): Promise<React.JSX.Element> {
 
       {/* Empty state */}
       {notifications.length === 0 && (
-        <div className="flex flex-col items-center justify-center gap-3 py-24 text-muted-foreground">
-          <Bell className="h-12 w-12 opacity-30" />
-          <p className="text-sm">Tidak ada notifikasi</p>
+        <div className="flex flex-col items-center justify-center py-16 text-center">
+          <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-muted sm:h-12 sm:w-12 sm:rounded-lg">
+            <Bell className="h-8 w-8 text-muted-foreground/50 sm:h-6 sm:w-6 sm:opacity-30" />
+          </div>
+          <h3 className="text-base font-semibold sm:hidden">Tidak ada notifikasi</h3>
+          <p className="mt-1 max-w-xs text-sm text-muted-foreground sm:hidden">
+            Notifikasi baru akan muncul di sini
+          </p>
+          <p className="hidden text-sm text-muted-foreground sm:block">Tidak ada notifikasi</p>
         </div>
       )}
 
       {/* Grouped notifications */}
       {notifications.length > 0 && (
-        <div className="overflow-hidden rounded-lg border">
+        <div className="overflow-hidden rounded-lg sm:border">
           {Array.from(groups.entries()).map(([label, items]) => {
             if (items.length === 0) return null;
 
             return (
               <div key={label}>
                 <div className="bg-muted/50 px-4 py-2">
-                  <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                  <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground sm:text-xs">
                     {label}
                   </p>
                 </div>
-                {items.map((notification) => (
-                  <NotificationRow
-                    key={notification.id}
-                    notification={notification}
-                  />
-                ))}
+                <div className="divide-y divide-border/50 sm:divide-y-0">
+                  {items.map((notification) => (
+                    <NotificationRow
+                      key={notification.id}
+                      notification={notification}
+                    />
+                  ))}
+                </div>
               </div>
             );
           })}

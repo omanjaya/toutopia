@@ -160,25 +160,25 @@ export function ReportContent() {
     }
 
     return (
-        <div className="mx-auto max-w-3xl space-y-6 px-4 py-8">
+        <div className="mx-auto max-w-3xl space-y-6 pb-20 md:pb-0">
             {/* Header */}
-            <div className="flex items-start justify-between">
+            <div className="flex items-start justify-between gap-3">
                 <div className="flex items-center gap-3">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 to-cyan-600 shadow-lg shadow-blue-500/25">
-                        <FileText className="h-6 w-6 text-white" />
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 to-cyan-600 shadow-lg shadow-blue-500/25 sm:h-12 sm:w-12">
+                        <FileText className="h-5 w-5 text-white sm:h-6 sm:w-6" />
                     </div>
                     <div>
-                        <h1 className="text-2xl font-bold">Rapor Belajar</h1>
+                        <h1 className="text-xl font-bold sm:text-2xl">Rapor Belajar</h1>
                         <p className="text-sm text-muted-foreground">{data.user.name}</p>
                     </div>
                 </div>
-                <Button onClick={handleExportPdf} disabled={exporting} className="gap-2">
+                <Button onClick={handleExportPdf} disabled={exporting} size="sm" className="shrink-0 gap-2 sm:size-auto">
                     {exporting ? (
                         <Loader2 className="h-4 w-4 animate-spin" />
                     ) : (
                         <Download className="h-4 w-4" />
                     )}
-                    Export PDF
+                    <span className="hidden sm:inline">Export </span>PDF
                 </Button>
             </div>
 

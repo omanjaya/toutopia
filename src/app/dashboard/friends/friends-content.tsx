@@ -7,7 +7,6 @@ import {
     UserPlus,
     Loader2,
     Check,
-    X,
     Send,
     Mail,
 } from "lucide-react";
@@ -122,27 +121,27 @@ export function FriendsContent() {
     }
 
     return (
-        <div className="mx-auto max-w-3xl space-y-6 px-4 py-8">
+        <div className="mx-auto max-w-3xl space-y-4 px-4 pb-20 pt-4 md:space-y-6 md:pb-0 md:py-8">
             {/* Header */}
             <div className="flex items-center gap-3">
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-pink-500 to-rose-600 shadow-lg shadow-pink-500/25">
-                    <Users className="h-6 w-6 text-white" />
+                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-pink-500 to-rose-600 shadow-lg shadow-pink-500/25 md:h-12 md:w-12">
+                    <Users className="h-5 w-5 text-white md:h-6 md:w-6" />
                 </div>
                 <div>
-                    <h1 className="text-2xl font-bold">Bandingkan dengan Teman</h1>
-                    <p className="text-sm text-muted-foreground">Lihat siapa yang lebih jago!</p>
+                    <h1 className="text-xl font-bold md:text-2xl">Bandingkan dengan Teman</h1>
+                    <p className="text-xs text-muted-foreground md:text-sm">Lihat siapa yang lebih jago!</p>
                 </div>
             </div>
 
             {/* Invite Friend */}
             <div className={cardCls}>
-                <div className="px-6 pt-6 pb-2">
-                    <h3 className="text-lg font-semibold tracking-tight flex items-center gap-2">
+                <div className="px-5 pt-5 pb-2 md:px-6 md:pt-6">
+                    <h3 className="text-base font-semibold tracking-tight flex items-center gap-2 md:text-lg">
                         <UserPlus className="h-5 w-5 text-primary" />
                         Undang Teman
                     </h3>
                 </div>
-                <div className="p-6">
+                <div className="p-5 pt-3 md:p-6">
                     <div className="flex gap-2">
                         <div className="relative flex-1">
                             <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -151,13 +150,13 @@ export function FriendsContent() {
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 placeholder="Email teman..."
-                                className="w-full rounded-lg border bg-background py-2 pl-10 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
+                                className="w-full rounded-lg border bg-background py-2.5 pl-10 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 min-h-[44px]"
                                 onKeyDown={(e) => {
                                     if (e.key === "Enter") handleInvite();
                                 }}
                             />
                         </div>
-                        <Button onClick={handleInvite} disabled={inviting || !email.trim()} className="gap-1">
+                        <Button onClick={handleInvite} disabled={inviting || !email.trim()} className="gap-1 min-h-[44px]">
                             {inviting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
                             Undang
                         </Button>
@@ -168,23 +167,23 @@ export function FriendsContent() {
             {/* Pending Invites */}
             {data?.pendingInvites && data.pendingInvites.length > 0 && (
                 <div className="rounded-2xl border-2 border-amber-200/60 bg-amber-50/30 dark:border-amber-800/30 dark:bg-amber-950/10">
-                    <div className="px-6 pt-6 pb-2">
-                        <h3 className="text-lg font-semibold tracking-tight">Undangan Masuk</h3>
+                    <div className="px-5 pt-5 pb-2 md:px-6 md:pt-6">
+                        <h3 className="text-base font-semibold tracking-tight md:text-lg">Undangan Masuk</h3>
                     </div>
-                    <div className="p-6 space-y-2">
+                    <div className="p-5 pt-3 space-y-2 md:p-6">
                         {data.pendingInvites.map((invite) => (
-                            <div key={invite.id} className="flex items-center justify-between rounded-lg bg-background p-3">
-                                <div className="flex items-center gap-3">
-                                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-sm font-bold text-primary">
+                            <div key={invite.id} className="flex items-center justify-between gap-2 rounded-lg bg-background p-3">
+                                <div className="flex min-w-0 flex-1 items-center gap-3">
+                                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-bold text-primary">
                                         {invite.user.name.charAt(0)}
                                     </div>
-                                    <span className="text-sm font-medium">{invite.user.name}</span>
+                                    <span className="text-sm font-medium truncate">{invite.user.name}</span>
                                 </div>
                                 <Button
                                     size="sm"
                                     onClick={() => handleAccept(invite.inviteCode)}
                                     disabled={accepting === invite.inviteCode}
-                                    className="gap-1"
+                                    className="gap-1 min-h-[40px] shrink-0"
                                 >
                                     {accepting === invite.inviteCode ? (
                                         <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -208,45 +207,46 @@ export function FriendsContent() {
 
                         return (
                             <div key={comp.friendId} className={cardCls}>
-                                <div className="p-5">
+                                <div className="p-4 md:p-5">
                                     <div className="flex items-center justify-between mb-4">
-                                        <div className="flex items-center gap-3">
-                                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 font-bold text-primary">
+                                        <div className="flex min-w-0 items-center gap-3">
+                                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 font-bold text-primary">
                                                 {comp.friend.name.charAt(0)}
                                             </div>
-                                            <div>
-                                                <p className="font-medium">{comp.friend.name}</p>
+                                            <div className="min-w-0">
+                                                <p className="font-medium truncate">{comp.friend.name}</p>
                                                 <p className="text-xs text-muted-foreground">
                                                     {comp.commonPackages} paket sama · {comp.friendTotalAttempts} percobaan
                                                 </p>
                                             </div>
                                         </div>
-                                        <Badge variant={isWinning ? "default" : isTied ? "secondary" : "destructive"}>
+                                        <Badge
+                                            variant={isWinning ? "default" : isTied ? "secondary" : "destructive"}
+                                            className="shrink-0 ml-2"
+                                        >
                                             {isWinning ? "Kamu Unggul" : isTied ? "Seri" : "Tertinggal"}
                                         </Badge>
                                     </div>
 
                                     {/* Score Comparison Bar */}
-                                    <div className="space-y-3">
-                                        <div className="space-y-1">
-                                            <div className="flex justify-between text-xs">
-                                                <span className="font-medium text-primary">Kamu: {comp.myAvgScore}</span>
-                                                <span className="font-medium text-muted-foreground">{comp.friend.name}: {comp.friendAvgScore}</span>
-                                            </div>
-                                            <div className="flex h-3 gap-1 overflow-hidden rounded-full">
-                                                <div
-                                                    className="rounded-l-full bg-primary transition-all"
-                                                    style={{
-                                                        width: `${(comp.myAvgScore / (comp.myAvgScore + comp.friendAvgScore)) * 100}%`
-                                                    }}
-                                                />
-                                                <div
-                                                    className="rounded-r-full bg-muted-foreground/30 transition-all"
-                                                    style={{
-                                                        width: `${(comp.friendAvgScore / (comp.myAvgScore + comp.friendAvgScore)) * 100}%`
-                                                    }}
-                                                />
-                                            </div>
+                                    <div className="space-y-1">
+                                        <div className="flex justify-between text-xs">
+                                            <span className="font-medium text-primary">Kamu: {comp.myAvgScore}</span>
+                                            <span className="font-medium text-muted-foreground">{comp.friend.name}: {comp.friendAvgScore}</span>
+                                        </div>
+                                        <div className="flex h-3 gap-1 overflow-hidden rounded-full">
+                                            <div
+                                                className="rounded-l-full bg-primary transition-all"
+                                                style={{
+                                                    width: `${(comp.myAvgScore / (comp.myAvgScore + comp.friendAvgScore)) * 100}%`
+                                                }}
+                                            />
+                                            <div
+                                                className="rounded-r-full bg-muted-foreground/30 transition-all"
+                                                style={{
+                                                    width: `${(comp.friendAvgScore / (comp.myAvgScore + comp.friendAvgScore)) * 100}%`
+                                                }}
+                                            />
                                         </div>
                                     </div>
                                 </div>
@@ -255,9 +255,11 @@ export function FriendsContent() {
                     })}
                 </div>
             ) : (
-                <div className="py-12 text-center">
-                    <Users className="mx-auto mb-3 h-12 w-12 text-muted-foreground/50" />
-                    <p className="text-muted-foreground">Undang teman untuk mulai membandingkan</p>
+                <div className="flex flex-col items-center py-16 text-center">
+                    <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-muted">
+                        <Users className="h-8 w-8 text-muted-foreground/50" />
+                    </div>
+                    <p className="text-sm text-muted-foreground">Undang teman untuk mulai membandingkan</p>
                 </div>
             )}
         </div>

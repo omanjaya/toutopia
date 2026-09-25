@@ -19,6 +19,7 @@ import { UserMenu } from "./user-menu";
 import { DarkModeToggle } from "./dark-mode-toggle";
 import { AnnouncementBanner } from "./announcement-banner";
 import { OfflineIndicator } from "@/shared/components/shared/offline-indicator";
+import { BottomNav, desktopTabs } from "./bottom-nav";
 
 const NotificationBell = dynamic(() => import("./notification-bell").then((m) => ({ default: m.NotificationBell })), { ssr: false });
 const SearchCommand = dynamic(() => import("./search-command").then((m) => ({ default: m.SearchCommand })), { ssr: false });
@@ -132,9 +133,12 @@ export function DashboardLayout({
         {/* Announcements + Main content */}
         <div className="flex-1 overflow-y-auto">
           <AnnouncementBanner />
-          <main className="p-6 lg:p-8">{children}</main>
+          <main className="p-4 pb-24 lg:p-8 lg:pb-8">{children}</main>
           <OfflineIndicator />
         </div>
+
+        {/* Bottom nav for small screens */}
+        <BottomNav tabs={desktopTabs} className="lg:hidden" />
       </div>
     </div>
   );

@@ -85,34 +85,34 @@ export default function PrivacyPage() {
     <>
       <Header />
       <main>
-        <section className="relative py-16 sm:py-20">
+        <section className="relative py-12 sm:py-20">
           <div className="absolute inset-0 -z-10 bg-gradient-to-b from-primary/5 to-transparent" />
           <div className="mx-auto max-w-3xl px-4 sm:px-6 text-center">
-            <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10">
-              <Shield className="h-7 w-7 text-primary" />
+            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 sm:mb-5 sm:h-14 sm:w-14">
+              <Shield className="h-6 w-6 text-primary sm:h-7 sm:w-7" />
             </div>
-            <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
+            <h1 className="text-2xl font-bold tracking-tight sm:text-3xl lg:text-4xl">
               Kebijakan Privasi
             </h1>
-            <p className="mt-3 text-muted-foreground">
+            <p className="mt-2 text-sm text-muted-foreground sm:mt-3 sm:text-base">
               Terakhir diperbarui: 18 Februari 2026
             </p>
           </div>
         </section>
 
-        <section className="mx-auto max-w-3xl px-4 pb-20 sm:px-6">
-          <div className="space-y-4">
+        <section className="mx-auto max-w-3xl px-4 pb-16 sm:pb-20 sm:px-6">
+          <div className="space-y-3 sm:space-y-4">
             {sections.map((section) => (
               <div key={section.title} className={cardCls}>
-                <div className="pt-6 px-6 pb-6">
-                  <div className="flex items-start gap-4">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-muted">
-                      <section.icon className="h-5 w-5 text-muted-foreground" />
+                <div className="p-4 sm:p-6">
+                  <div className="flex items-start gap-3 sm:gap-4">
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-muted sm:h-10 sm:w-10 sm:rounded-xl">
+                      <section.icon className="h-4 w-4 text-muted-foreground sm:h-5 sm:w-5" />
                     </div>
-                    <div className="flex-1 space-y-3">
-                      <h2 className="text-base font-semibold">{section.title}</h2>
+                    <div className="flex-1 min-w-0 space-y-2 sm:space-y-3">
+                      <h2 className="text-sm font-semibold leading-snug sm:text-base">{section.title}</h2>
                       {section.isContact ? (
-                        <p className="text-sm leading-relaxed text-muted-foreground">
+                        <p className="text-xs leading-relaxed text-muted-foreground sm:text-sm">
                           Untuk pertanyaan terkait privasi, hubungi kami di{" "}
                           <a
                             href="mailto:support@toutopia.id"
@@ -123,12 +123,12 @@ export default function PrivacyPage() {
                           .
                         </p>
                       ) : (
-                        <p className="text-sm leading-relaxed text-muted-foreground">
+                        <p className="text-xs leading-relaxed text-muted-foreground sm:text-sm">
                           {section.content}
                         </p>
                       )}
                       {section.items && (
-                        <ul className="space-y-1.5 text-sm text-muted-foreground">
+                        <ul className="space-y-1.5 text-xs text-muted-foreground sm:text-sm">
                           {section.items.map((item, i) => (
                             <li key={i} className="flex items-start gap-2">
                               <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary/40" />

@@ -221,7 +221,16 @@ export async function POST(
       );
     }
 
-    const apiKey = decrypt(providerConfig.apiKey);
+    let apiKey: string;
+    try {
+      apiKey = decrypt(providerConfig.apiKey);
+    } catch {
+      return errorResponse(
+        "API_KEY_INVALID",
+        `API key untuk provider "${data.provider}" tidak dapat didekripsi. Silakan perbarui API key di halaman Settings > AI Provider.`,
+        500
+      );
+    }
     const model = data.model ?? providerConfig.model;
 
     const jobId = randomUUID();

@@ -14,14 +14,25 @@ export const metadata: Metadata = {
 
 const cardCls = "rounded-2xl bg-card shadow-[0_2px_8px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.05]";
 
-const contacts = [
+interface ContactItem {
+  icon: React.ElementType;
+  title: string;
+  description: string;
+  value: string;
+  href: string | null;
+  iconColor: string;
+  iconBg: string;
+}
+
+const contacts: ContactItem[] = [
   {
     icon: Mail,
     title: "Email",
     description: "Untuk pertanyaan umum dan dukungan teknis",
     value: "support@toutopia.id",
     href: "mailto:support@toutopia.id",
-    color: "bg-blue-500/10 text-blue-600",
+    iconColor: "text-blue-600",
+    iconBg: "bg-blue-500/10",
   },
   {
     icon: MessageCircle,
@@ -29,7 +40,8 @@ const contacts = [
     description: "Chat langsung dengan tim kami",
     value: "Kirim Pesan",
     href: `https://wa.me/${process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? ""}`,
-    color: "bg-emerald-500/10 text-emerald-600",
+    iconColor: "text-emerald-600",
+    iconBg: "bg-emerald-500/10",
   },
   {
     icon: Clock,
@@ -37,7 +49,8 @@ const contacts = [
     description: "Senin — Jumat",
     value: "09.00 — 17.00 WIB",
     href: null,
-    color: "bg-amber-500/10 text-amber-600",
+    iconColor: "text-amber-600",
+    iconBg: "bg-amber-500/10",
   },
 ];
 
@@ -46,30 +59,64 @@ export default function ContactPage() {
     <>
       <Header />
       <main>
-        <section className="relative py-20 sm:py-28">
+        <section className="relative py-14 sm:py-28">
           <div className="absolute inset-0 -z-10 bg-gradient-to-b from-primary/5 via-primary/3 to-transparent" />
           <div className="absolute -top-24 left-1/2 -z-10 h-96 w-96 -translate-x-1/2 rounded-full bg-primary/10 blur-3xl" />
 
           <div className="mx-auto max-w-3xl px-4 sm:px-6">
             <div className="text-center">
-              <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10">
-                <Mail className="h-8 w-8 text-primary" />
+              <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10">
+                <Mail className="h-7 w-7 text-primary" />
               </div>
-              <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
+              <h1 className="text-2xl font-bold tracking-tight sm:text-4xl lg:text-5xl">
                 Hubungi Kami
               </h1>
-              <p className="mt-4 text-lg text-muted-foreground">
+              <p className="mt-3 text-base text-muted-foreground sm:mt-4 sm:text-lg">
                 Punya pertanyaan, masukan, atau ingin kerja sama? Kami siap
                 membantu.
               </p>
             </div>
 
-            <div className="mt-14 grid gap-4 sm:grid-cols-3">
+            {/* Mobile: horizontal card list */}
+            <div className="mt-8 space-y-3 sm:hidden">
+              {contacts.map((c) => (
+                <div key={c.title} className={cardCls}>
+                  <div className="flex items-center gap-4 p-4">
+                    <div
+                      className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${c.iconBg}`}
+                    >
+                      <c.icon className={`h-5 w-5 ${c.iconColor}`} />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-semibold">{c.title}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {c.description}
+                      </p>
+                    </div>
+                    <div className="shrink-0 text-right">
+                      {c.href ? (
+                        <Link
+                          href={c.href}
+                          className="text-sm font-medium text-primary hover:underline"
+                        >
+                          {c.value}
+                        </Link>
+                      ) : (
+                        <p className="text-sm font-semibold">{c.value}</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Desktop: centered card grid */}
+            <div className="mt-14 hidden gap-4 sm:grid sm:grid-cols-3">
               {contacts.map((c) => (
                 <div key={c.title} className={`${cardCls} group transition-all hover:shadow-md hover:-translate-y-0.5`}>
                   <div className="pt-6 text-center px-6 pb-6">
-                    <div className={`mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl ${c.color}`}>
-                      <c.icon className="h-7 w-7" />
+                    <div className={`mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl ${c.iconBg}`}>
+                      <c.icon className={`h-7 w-7 ${c.iconColor}`} />
                     </div>
                     <h3 className="text-base font-semibold">{c.title}</h3>
                     <p className="mt-1 text-sm text-muted-foreground">
@@ -90,21 +137,21 @@ export default function ContactPage() {
               ))}
             </div>
 
-            <div className={`${cardCls} mt-10 bg-gradient-to-r from-muted/50 to-muted/30 border-dashed`}>
-              <div className="flex flex-col items-center py-8 text-center sm:flex-row sm:gap-6 sm:text-left px-6">
-                <div className="mb-4 flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/10 sm:mb-0">
-                  <HelpCircle className="h-6 w-6 text-primary" />
+            <div className={`${cardCls} mt-6 bg-gradient-to-r from-muted/50 to-muted/30 sm:mt-10 sm:border-dashed`}>
+              <div className="flex flex-col items-start gap-4 p-4 sm:flex-row sm:items-center sm:gap-6 sm:p-6">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10">
+                  <HelpCircle className="h-5 w-5 text-primary" />
                 </div>
                 <div className="flex-1">
                   <p className="font-semibold">Cek FAQ terlebih dahulu</p>
-                  <p className="mt-1 text-sm text-muted-foreground">
+                  <p className="mt-0.5 text-sm text-muted-foreground">
                     Mungkin pertanyaanmu sudah terjawab di halaman FAQ kami.
                   </p>
                 </div>
-                <Button asChild variant="outline" className="mt-4 sm:mt-0">
+                <Button asChild variant="outline" size="sm" className="rounded-full sm:rounded-md sm:size-auto">
                   <Link href="/faq">
                     Lihat FAQ
-                    <ArrowRight className="ml-2 h-4 w-4" />
+                    <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
                   </Link>
                 </Button>
               </div>

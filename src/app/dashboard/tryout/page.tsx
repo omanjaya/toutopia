@@ -130,7 +130,7 @@ export default async function TryOutCatalogPage({ searchParams }: PageProps) {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-20 md:pb-0">
       {/* Header */}
       <div>
         <h2 className="text-2xl font-bold tracking-tight">Katalog Try Out</h2>

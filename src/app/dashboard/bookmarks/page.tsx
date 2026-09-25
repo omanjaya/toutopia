@@ -112,15 +112,15 @@ export default async function BookmarksPage({ searchParams }: PageProps) {
   const grandTotal = allBookmarks.length;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-20 md:pb-0">
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight flex items-center gap-2">
-            <Bookmark className="h-6 w-6" />
+          <h2 className="text-xl font-bold tracking-tight flex items-center gap-2 sm:text-2xl">
+            <Bookmark className="h-5 w-5 sm:h-6 sm:w-6" />
             Bookmark Soal
           </h2>
-          <p className="text-muted-foreground">
+          <p className="text-sm text-muted-foreground sm:text-base">
             Soal-soal yang sudah kamu tandai untuk dipelajari ulang
           </p>
         </div>

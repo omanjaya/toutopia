@@ -13,9 +13,7 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "*.googleusercontent.com" },
       { protocol: "https", hostname: "avatars.githubusercontent.com" },
       { protocol: "http", hostname: "localhost", port: "9000" },
-      ...(process.env.MINIO_ENDPOINT && process.env.MINIO_ENDPOINT !== "localhost"
-        ? [{ protocol: "https" as const, hostname: process.env.MINIO_ENDPOINT }]
-        : []),
+      { protocol: "https", hostname: "storage-toutopia.nouma.id" },
     ],
   },
   async headers() {

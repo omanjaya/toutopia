@@ -1,8 +1,47 @@
 services:
+  # One-off migration runner: docker compose -f docker-compose.prod.yml run --rm migrate
+  migrate:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: migrator
+    container_name: toutopia-migrate
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-toutopia}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-toutopia}
+    command: npx prisma migrate deploy
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - internal
+    profiles:
+      - migrate
+
+  # One-off seed runner: docker compose -f docker-compose.prod.yml run --rm seed
+  seed:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: migrator
+    container_name: toutopia-seed
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-toutopia}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-toutopia}
+    command: npx tsx prisma/seed.ts
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - internal
+    profiles:
+      - seed
+
   app:
     build:
       context: .
       dockerfile: Dockerfile
+      target: runner
     container_name: toutopia-app
     ports:
       - "127.0.0.1:3002:3000"
@@ -20,12 +59,16 @@ services:
     networks:
       - internal
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
   postgres:
     image: postgres:16-alpine
     container_name: toutopia-db
-    ports:
-      - "127.0.0.1:5433:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     environment:
@@ -44,9 +87,7 @@ services:
   redis:
     image: redis:7-alpine
     container_name: toutopia-redis
-    ports:
-      - "127.0.0.1:6380:6379"
-    command: redis-server --requirepass ${REDIS_PASSWORD}
+    command: redis-server --requirepass ${REDIS_PASSWORD} --maxmemory 256mb --maxmemory-policy allkeys-lru
     volumes:
       - redisdata:/data
     healthcheck:

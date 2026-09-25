@@ -303,11 +303,19 @@ export function PaymentCheckout({ currentBalance, targetPackage, pricing }: Paym
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 px-4 pb-32 pt-5 md:space-y-6 md:px-0 md:pb-0 md:pt-0">
+      {/* Current Balance — mobile only */}
+      <div className="rounded-xl bg-muted/50 p-3 text-center md:hidden">
+        <p className="text-xs text-muted-foreground">Saldo saat ini</p>
+        <p className="text-lg font-bold">{currentBalance} kredit</p>
+      </div>
+
       {/* Direct Package Purchase */}
       {targetPackage && (
         <div>
-          <h3 className="mb-3 text-sm font-medium text-muted-foreground">Beli Paket Langsung</h3>
+          <h3 className="mb-2.5 text-sm font-semibold md:mb-3 md:font-medium md:text-muted-foreground">
+            Beli Paket Langsung
+          </h3>
           <button
             onClick={() => handlePlanSelect("single_package")}
             className="w-full text-left"
@@ -317,25 +325,36 @@ export function PaymentCheckout({ currentBalance, targetPackage, pricing }: Paym
                 cardCls,
                 "border transition-all",
                 selectedPlan === "single_package"
-                  ? "border-primary ring-2 ring-primary"
+                  ? "border-primary ring-2 ring-primary/20 md:ring-primary"
                   : "border-border hover:ring-muted-foreground/30"
               )}
             >
-              <div className="p-6">
+              <div className="p-4 md:p-6">
                 <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="text-base font-semibold tracking-tight">{targetPackage.title}</h3>
-                    <p className="mt-1 text-sm text-muted-foreground">
+                  <div className="min-w-0 flex-1">
+                    <h3 className="text-sm font-semibold md:text-base md:tracking-tight">
+                      {targetPackage.title}
+                    </h3>
+                    <p className="mt-0.5 text-xs text-muted-foreground md:mt-1 md:text-sm">
                       {targetPackage.totalQuestions} soal &middot; {targetPackage.durationMinutes} menit
                     </p>
                   </div>
-                  <div className="text-right">
-                    <p className="text-2xl font-bold">{formatCurrency(targetPackage.price)}</p>
-                    <p className="text-sm text-muted-foreground">Akses langsung</p>
+                  <div className="flex shrink-0 items-center gap-3">
+                    <div className="text-right">
+                      <p className="text-base font-bold md:text-2xl">
+                        {formatCurrency(targetPackage.price)}
+                      </p>
+                      <p className="hidden text-sm text-muted-foreground md:block">Akses langsung</p>
+                    </div>
+                    {selectedPlan === "single_package" && (
+                      <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary md:hidden">
+                        <Check className="h-3.5 w-3.5 text-primary-foreground" />
+                      </div>
+                    )}
                   </div>
                 </div>
                 {selectedPlan === "single_package" && (
-                  <div className="mt-3 flex items-center gap-1 text-sm text-primary">
+                  <div className="mt-3 hidden items-center gap-1 text-sm text-primary md:flex">
                     <Check className="h-4 w-4" />
                     Dipilih
                   </div>
@@ -360,45 +379,67 @@ export function PaymentCheckout({ currentBalance, targetPackage, pricing }: Paym
 
       {/* Paket Kredit (one-time) */}
       <div>
-        <h3 className="text-base font-semibold tracking-tight">Paket Kredit</h3>
-        <p className="mt-1 text-sm text-muted-foreground">
+        <h3 className="mb-2.5 text-sm font-semibold md:mb-1 md:text-base md:font-semibold md:tracking-tight">
+          Paket Kredit
+        </h3>
+        <p className="mb-2.5 hidden text-sm text-muted-foreground md:block md:mb-4">
           Beli kredit sekali pakai. 1 kredit = 1 try out. Tidak ada batas waktu.
         </p>
-        <div className="mt-4 grid gap-4 sm:grid-cols-2">
+        {/* Mobile: vertical stack. Desktop: grid */}
+        <div className="space-y-2.5 md:space-y-0 md:grid md:gap-4 md:grid-cols-2">
           {creditPlans.map((plan) => (
             <button
               key={plan.id}
               onClick={() => handlePlanSelect(plan.id)}
-              className="text-left"
+              className="w-full text-left"
             >
               <div
                 className={cn(
                   cardCls,
-                  "transition-all",
+                  "border transition-all",
                   selectedPlan === plan.id
-                    ? "ring-primary ring-2"
-                    : "hover:ring-muted-foreground/30"
+                    ? "border-primary ring-2 ring-primary/20 md:ring-primary"
+                    : "border-border hover:ring-muted-foreground/30"
                 )}
               >
-                <div className="px-6 pt-6 pb-2">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-base font-semibold tracking-tight">{plan.name}</h3>
-                    {plan.popular && <Badge>Populer</Badge>}
+                {/* Mobile layout */}
+                <div className="flex items-center justify-between p-4 md:hidden">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm font-semibold">{plan.name}</p>
+                      {plan.popular && <Badge className="text-[10px]">Populer</Badge>}
+                    </div>
+                    <p className="mt-0.5 text-xs text-muted-foreground">
+                      {plan.credits} kredit try out
+                    </p>
+                  </div>
+                  <div className="flex shrink-0 items-center gap-3">
+                    <p className="text-base font-bold">{formatCurrency(plan.price)}</p>
+                    {selectedPlan === plan.id && (
+                      <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary">
+                        <Check className="h-3.5 w-3.5 text-primary-foreground" />
+                      </div>
+                    )}
                   </div>
                 </div>
-                <div className="px-6 pb-6">
-                  <p className="text-2xl font-bold">
-                    {formatCurrency(plan.price)}
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    {plan.credits} kredit try out
-                  </p>
-                  {selectedPlan === plan.id && (
-                    <div className="mt-2 flex items-center gap-1 text-sm text-primary">
-                      <Check className="h-4 w-4" />
-                      Dipilih
+                {/* Desktop layout */}
+                <div className="hidden md:block">
+                  <div className="px-6 pt-6 pb-2">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-base font-semibold tracking-tight">{plan.name}</h3>
+                      {plan.popular && <Badge>Populer</Badge>}
                     </div>
-                  )}
+                  </div>
+                  <div className="px-6 pb-6">
+                    <p className="text-2xl font-bold">{formatCurrency(plan.price)}</p>
+                    <p className="text-sm text-muted-foreground">{plan.credits} kredit try out</p>
+                    {selectedPlan === plan.id && (
+                      <div className="mt-2 flex items-center gap-1 text-sm text-primary">
+                        <Check className="h-4 w-4" />
+                        Dipilih
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             </button>
@@ -418,51 +459,69 @@ export function PaymentCheckout({ currentBalance, targetPackage, pricing }: Paym
 
       {/* Langganan (subscription) */}
       <div>
-        <div className="flex items-center gap-2">
+        <div className="mb-2.5 flex items-center gap-2 md:mb-1">
           <Crown className="h-5 w-5 text-amber-500" />
-          <h3 className="text-base font-semibold tracking-tight">Langganan</h3>
+          <h3 className="text-sm font-semibold md:text-base md:tracking-tight">Langganan</h3>
         </div>
-        <p className="mt-1 text-sm text-muted-foreground">
+        <p className="mb-2.5 hidden text-sm text-muted-foreground md:block md:mb-4">
           Akses unlimited ke semua paket selama masa aktif langganan.
         </p>
-        <div className="mt-4 grid gap-4 sm:grid-cols-3">
+        {/* Mobile: vertical stack. Desktop: 3-column grid */}
+        <div className="space-y-2.5 md:space-y-0 md:grid md:gap-4 md:grid-cols-3">
           {subscriptionPlans.map((plan) => (
             <button
               key={plan.id}
               onClick={() => handlePlanSelect(plan.id)}
-              className="text-left"
+              className="w-full text-left"
             >
               <div
                 className={cn(
                   cardCls,
-                  "transition-all",
+                  "border transition-all",
                   selectedPlan === plan.id
-                    ? "ring-primary ring-2"
-                    : "hover:ring-muted-foreground/30"
+                    ? "border-primary ring-2 ring-primary/20 md:ring-primary"
+                    : "border-border hover:ring-muted-foreground/30"
                 )}
               >
-                <div className="px-6 pt-6 pb-2">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-base font-semibold tracking-tight">{plan.name}</h3>
-                    {plan.popular && <Badge>Populer</Badge>}
+                {/* Mobile layout */}
+                <div className="flex items-center justify-between p-4 md:hidden">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm font-semibold">{plan.name}</p>
+                      {plan.popular && <Badge className="text-[10px]">Populer</Badge>}
+                    </div>
+                    <p className="mt-0.5 text-xs text-muted-foreground">
+                      Unlimited try out
+                    </p>
+                  </div>
+                  <div className="flex shrink-0 items-center gap-3">
+                    <p className="text-base font-bold">{formatCurrency(plan.price)}</p>
+                    {selectedPlan === plan.id && (
+                      <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary">
+                        <Check className="h-3.5 w-3.5 text-primary-foreground" />
+                      </div>
+                    )}
                   </div>
                 </div>
-                <div className="px-6 pb-6">
-                  <p className="text-2xl font-bold">
-                    {formatCurrency(plan.price)}
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    Unlimited try out
-                  </p>
-                  <p className="mt-0.5 text-xs text-muted-foreground">
-                    Berlaku {plan.duration}
-                  </p>
-                  {selectedPlan === plan.id && (
-                    <div className="mt-2 flex items-center gap-1 text-sm text-primary">
-                      <Check className="h-4 w-4" />
-                      Dipilih
+                {/* Desktop layout */}
+                <div className="hidden md:block">
+                  <div className="px-6 pt-6 pb-2">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-base font-semibold tracking-tight">{plan.name}</h3>
+                      {plan.popular && <Badge>Populer</Badge>}
                     </div>
-                  )}
+                  </div>
+                  <div className="px-6 pb-6">
+                    <p className="text-2xl font-bold">{formatCurrency(plan.price)}</p>
+                    <p className="text-sm text-muted-foreground">Unlimited try out</p>
+                    <p className="mt-0.5 text-xs text-muted-foreground">Berlaku {plan.duration}</p>
+                    {selectedPlan === plan.id && (
+                      <div className="mt-2 flex items-center gap-1 text-sm text-primary">
+                        <Check className="h-4 w-4" />
+                        Dipilih
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             </button>
@@ -495,11 +554,12 @@ export function PaymentCheckout({ currentBalance, targetPackage, pricing }: Paym
                 placeholder="Masukkan kode promo"
                 value={promoCode}
                 onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
-                className="font-mono uppercase"
+                className="h-11 font-mono uppercase"
                 disabled={!!appliedPromo}
               />
               <Button
                 variant="outline"
+                className="h-11 shrink-0"
                 onClick={handleApplyPromo}
                 disabled={!promoCode || applyingPromo || !selectedPlan || !!appliedPromo}
               >
@@ -525,7 +585,7 @@ export function PaymentCheckout({ currentBalance, targetPackage, pricing }: Paym
                 </div>
                 <button
                   onClick={removePromo}
-                  className="text-emerald-600 hover:text-emerald-800"
+                  className="flex h-8 w-8 items-center justify-center rounded-lg text-emerald-600 hover:text-emerald-800 active:bg-emerald-100"
                 >
                   <X className="h-4 w-4" />
                 </button>
@@ -535,8 +595,46 @@ export function PaymentCheckout({ currentBalance, targetPackage, pricing }: Paym
         </div>
       </div>
 
-      {/* Checkout */}
-      <div className={cardCls}>
+      {/* Checkout — sticky on mobile, inline card on desktop */}
+      {/* Mobile sticky bar */}
+      <div className="fixed inset-x-0 bottom-0 z-30 border-t bg-background p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] md:hidden">
+        <div className="mb-3 flex items-center justify-between">
+          <p className="text-xs text-muted-foreground">Total Pembayaran</p>
+          {selectedPlan ? (
+            <div className="text-right">
+              {appliedPromo ? (
+                <div>
+                  <p className="text-xs text-muted-foreground line-through">
+                    {formatCurrency(selectedPrice)}
+                  </p>
+                  <p className="text-base font-bold text-emerald-600">
+                    {formatCurrency(displayTotal)}
+                  </p>
+                </div>
+              ) : (
+                <p className="text-base font-bold">{formatCurrency(displayTotal)}</p>
+              )}
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">Pilih paket</p>
+          )}
+        </div>
+        <Button
+          className="h-12 w-full text-base"
+          onClick={handlePayment}
+          disabled={!selectedPlan || isProcessing}
+        >
+          {isProcessing ? (
+            <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+          ) : (
+            <CreditCard className="mr-2 h-5 w-5" />
+          )}
+          Bayar Sekarang
+        </Button>
+      </div>
+
+      {/* Desktop inline checkout card */}
+      <div className={cn(cardCls, "hidden md:block")}>
         <div className="flex items-center justify-between p-6">
           <div>
             <p className="text-sm text-muted-foreground">

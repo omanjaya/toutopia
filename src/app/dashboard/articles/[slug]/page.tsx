@@ -71,12 +71,12 @@ export default async function ArticleDetailPage({ params }: Props) {
     <>
       <ReadingProgress />
 
-      <div className="mx-auto max-w-3xl px-4 py-8">
+      <div className="mx-auto max-w-3xl pb-20 md:pb-0 lg:px-4 lg:py-8">
         {/* Back */}
         <Button
           variant="ghost"
           size="sm"
-          className="mb-8 -ml-2 gap-1.5 text-muted-foreground hover:text-foreground"
+          className="mb-5 -ml-2 gap-1.5 text-muted-foreground hover:text-foreground lg:mb-8"
           asChild
         >
           <Link href="/dashboard/articles">
@@ -85,62 +85,9 @@ export default async function ArticleDetailPage({ params }: Props) {
           </Link>
         </Button>
 
-        {/* Category + tags */}
-        <div className="flex flex-wrap items-center gap-2">
-          {article.category && (
-            <Badge variant="secondary" className="font-normal">
-              {article.category}
-            </Badge>
-          )}
-        </div>
-
-        {/* Title */}
-        <h1 className="mt-3 text-3xl font-bold leading-tight tracking-tight lg:text-4xl">
-          {article.title}
-        </h1>
-
-        {/* Meta row */}
-        <div className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted-foreground">
-          {article.author.name && (
-            <div className="flex items-center gap-1.5">
-              <User className="h-3.5 w-3.5 shrink-0" />
-              <span>{article.author.name}</span>
-            </div>
-          )}
-          {article.publishedAt && (
-            <div className="flex items-center gap-1.5">
-              <CalendarDays className="h-3.5 w-3.5 shrink-0" />
-              <time>
-                {article.publishedAt.toLocaleDateString("id-ID", {
-                  dateStyle: "long",
-                })}
-              </time>
-            </div>
-          )}
-          {readingTime && (
-            <div className="flex items-center gap-1.5">
-              <Clock className="h-3.5 w-3.5 shrink-0" />
-              <span>{readingTime.label}</span>
-            </div>
-          )}
-          {article.viewCount > 0 && (
-            <div className="flex items-center gap-1.5">
-              <Eye className="h-3.5 w-3.5 shrink-0" />
-              <span>{article.viewCount.toLocaleString("id-ID")} kali dibaca</span>
-            </div>
-          )}
-        </div>
-
-        {/* Excerpt */}
-        {article.excerpt && (
-          <p className="mt-5 text-lg leading-relaxed text-muted-foreground border-l-4 border-primary/30 pl-4">
-            {article.excerpt}
-          </p>
-        )}
-
-        {/* Cover image */}
+        {/* Cover image — full width on mobile, rounded on desktop */}
         {article.coverImage && (
-          <div className="relative mt-8 aspect-video w-full overflow-hidden rounded-xl shadow-md">
+          <div className="relative -mx-4 aspect-[16/9] w-[calc(100%+2rem)] overflow-hidden bg-muted sm:mx-0 sm:mt-0 sm:w-full sm:rounded-xl sm:shadow-md mb-5 sm:mb-6 lg:mb-8">
             <Image
               src={article.coverImage}
               alt={article.title}
@@ -152,19 +99,75 @@ export default async function ArticleDetailPage({ params }: Props) {
           </div>
         )}
 
-        <Separator className="my-8" />
+        {/* Category + tags */}
+        <div className="flex flex-wrap items-center gap-2">
+          {article.category && (
+            <Badge variant="secondary" className="font-normal">
+              {article.category}
+            </Badge>
+          )}
+        </div>
+
+        {/* Title */}
+        <h1 className="mt-3 text-xl font-bold leading-tight tracking-tight sm:text-2xl lg:text-4xl">
+          {article.title}
+        </h1>
+
+        {/* Meta row */}
+        <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs lg:mt-5 lg:gap-x-4 lg:gap-y-2 lg:text-sm text-muted-foreground">
+          {article.author.name && (
+            <div className="flex items-center gap-1">
+              <User className="h-3 w-3 shrink-0 sm:h-3.5 sm:w-3.5" />
+              <span>{article.author.name}</span>
+            </div>
+          )}
+          {article.publishedAt && (
+            <div className="flex items-center gap-1">
+              <CalendarDays className="h-3 w-3 shrink-0 sm:h-3.5 sm:w-3.5" />
+              <time>
+                {article.publishedAt.toLocaleDateString("id-ID", {
+                  dateStyle: "long",
+                })}
+              </time>
+            </div>
+          )}
+          {readingTime && (
+            <div className="flex items-center gap-1">
+              <Clock className="h-3 w-3 shrink-0 sm:h-3.5 sm:w-3.5" />
+              <span>{readingTime.label}</span>
+            </div>
+          )}
+          {article.viewCount > 0 && (
+            <div className="flex items-center gap-1">
+              <Eye className="h-3 w-3 shrink-0 sm:h-3.5 sm:w-3.5" />
+              <span>{article.viewCount.toLocaleString("id-ID")} kali dibaca</span>
+            </div>
+          )}
+        </div>
+
+        {/* Excerpt */}
+        {article.excerpt && (
+          <p className="mt-4 text-sm leading-relaxed text-muted-foreground border-l-4 border-primary/30 pl-3 lg:mt-5 lg:text-lg lg:pl-4">
+            {article.excerpt}
+          </p>
+        )}
+
+        <Separator className="my-5 sm:my-6 lg:my-8" />
 
         {/* Article body */}
         <div
           className="
-            prose prose-neutral max-w-none
+            prose prose-sm prose-neutral max-w-none
+            lg:prose-base
             prose-headings:font-bold prose-headings:tracking-tight
-            prose-h1:text-2xl prose-h2:text-xl prose-h3:text-lg
-            prose-p:leading-[1.85] prose-p:text-[17px]
+            prose-h1:text-xl prose-h2:text-lg prose-h3:text-base
+            lg:prose-h1:text-2xl lg:prose-h2:text-xl lg:prose-h3:text-lg
+            prose-p:leading-[1.8] prose-p:text-[15px]
+            lg:prose-p:leading-[1.85] lg:prose-p:text-[17px]
             prose-a:text-primary prose-a:no-underline hover:prose-a:underline
             prose-img:rounded-xl prose-img:shadow-md prose-img:mx-auto
             prose-pre:rounded-xl prose-pre:border prose-pre:bg-muted
-            prose-code:rounded prose-code:bg-muted prose-code:px-1 prose-code:text-sm
+            prose-code:rounded prose-code:bg-muted prose-code:px-1 prose-code:text-xs lg:prose-code:text-sm
             prose-blockquote:not-italic prose-blockquote:border-l-4 prose-blockquote:border-primary/50
             prose-blockquote:bg-primary/5 prose-blockquote:py-0.5 prose-blockquote:rounded-r-lg
             prose-blockquote:text-muted-foreground

@@ -88,60 +88,60 @@ export default async function TryOutDetailPage({
   const showBuyButton = !pkg.isFree && userAttempts.length === 0;
 
   return (
-    <div className="mx-auto max-w-3xl space-y-6">
+    <div className="mx-auto max-w-3xl space-y-6 pb-20 md:pb-0">
       {/* Title */}
       <div>
         <Badge variant="outline" className="mb-2">
           {pkg.category.name}
         </Badge>
-        <h2 className="text-2xl font-bold tracking-tight">{pkg.title}</h2>
+        <h2 className="text-xl font-bold tracking-tight sm:text-2xl">{pkg.title}</h2>
         {pkg.description && (
-          <p className="mt-1 text-muted-foreground">{pkg.description}</p>
+          <p className="mt-1 text-sm text-muted-foreground sm:text-base">{pkg.description}</p>
         )}
       </div>
 
-      {/* Info Grid — 5 cards */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+      {/* Info Grid — 2-col on mobile, 5-col on desktop */}
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-5">
         <div className={cardCls}>
-          <div className="flex items-center gap-3 p-6">
+          <div className="flex items-center gap-3 p-4 sm:p-6">
             <FileText className="h-5 w-5 shrink-0 text-muted-foreground" />
             <div>
-              <p className="text-2xl font-bold">{pkg.totalQuestions}</p>
+              <p className="text-xl font-bold sm:text-2xl">{pkg.totalQuestions}</p>
               <p className="text-xs text-muted-foreground">Soal</p>
             </div>
           </div>
         </div>
         <div className={cardCls}>
-          <div className="flex items-center gap-3 p-6">
+          <div className="flex items-center gap-3 p-4 sm:p-6">
             <Clock className="h-5 w-5 shrink-0 text-muted-foreground" />
             <div>
-              <p className="text-2xl font-bold">{pkg.durationMinutes}</p>
+              <p className="text-xl font-bold sm:text-2xl">{pkg.durationMinutes}</p>
               <p className="text-xs text-muted-foreground">Menit</p>
             </div>
           </div>
         </div>
         <div className={cardCls}>
-          <div className="flex items-center gap-3 p-6">
+          <div className="flex items-center gap-3 p-4 sm:p-6">
             <RotateCcw className="h-5 w-5 shrink-0 text-muted-foreground" />
             <div>
-              <p className="text-2xl font-bold">{pkg.maxAttempts}x</p>
+              <p className="text-xl font-bold sm:text-2xl">{pkg.maxAttempts}x</p>
               <p className="text-xs text-muted-foreground">Percobaan</p>
             </div>
           </div>
         </div>
         <div className={cardCls}>
-          <div className="flex items-center gap-3 p-6">
+          <div className="flex items-center gap-3 p-4 sm:p-6">
             <Shield className="h-5 w-5 shrink-0 text-muted-foreground" />
             <div>
-              <p className="text-2xl font-bold">
-                {pkg.isAntiCheat ? "Aktif" : "Nonaktif"}
+              <p className="text-xl font-bold sm:text-2xl">
+                {pkg.isAntiCheat ? "Aktif" : "Off"}
               </p>
               <p className="text-xs text-muted-foreground">Anti-Cheat</p>
             </div>
           </div>
         </div>
-        <div className={cardCls}>
-          <div className="flex items-center gap-3 p-6">
+        <div className={cn(cardCls, "col-span-2 lg:col-span-1")}>
+          <div className="flex items-center gap-3 p-4 sm:p-6">
             <ShoppingCart className="h-5 w-5 shrink-0 text-muted-foreground" />
             <div>
               <p className="text-lg font-bold leading-tight">
@@ -184,12 +184,12 @@ export default async function TryOutDetailPage({
               : "border border-dashed"
           )}
         >
-          <div className="flex items-center justify-between p-6">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-amber-500/10">
+          <div className="p-4 sm:p-6">
+            <div className="flex items-start gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-amber-500/10">
                 <Trophy className="h-5 w-5 text-amber-500" />
               </div>
-              <div>
+              <div className="min-w-0 flex-1">
                 <p className="font-semibold">Peringkat Kamu</p>
                 {leaderboardEntry ? (
                   <p className="text-sm text-muted-foreground">
@@ -204,13 +204,13 @@ export default async function TryOutDetailPage({
                   </p>
                 )}
               </div>
+              <Button asChild variant="ghost" size="sm" className="shrink-0">
+                <Link href={`/dashboard/leaderboard/${packageId}`}>
+                  <span className="hidden sm:inline">Lihat Leaderboard</span>
+                  <ArrowRight className="h-4 w-4 sm:ml-1" />
+                </Link>
+              </Button>
             </div>
-            <Button asChild variant="ghost" size="sm">
-              <Link href={`/dashboard/leaderboard/${packageId}`}>
-                Lihat Leaderboard
-                <ArrowRight className="ml-1 h-4 w-4" />
-              </Link>
-            </Button>
           </div>
         </div>
       )}
@@ -218,14 +218,14 @@ export default async function TryOutDetailPage({
       {/* Buy button for paid packages where user hasn't started */}
       {showBuyButton && (
         <div className={`${cardCls} border border-primary/20 bg-primary/5`}>
-          <div className="flex items-center justify-between p-6">
+          <div className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-6">
             <div>
               <p className="font-semibold">Paket Berbayar</p>
               <p className="text-sm text-muted-foreground">
                 Beli paket ini untuk mendapatkan akses penuh
               </p>
             </div>
-            <Button asChild>
+            <Button asChild className="w-full sm:w-auto">
               <Link href={`/dashboard/payment?packageId=${packageId}`}>
                 <ShoppingCart className="mr-2 h-4 w-4" />
                 Beli Sekarang —{" "}

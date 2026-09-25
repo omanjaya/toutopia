@@ -173,12 +173,12 @@ export function PracticeSetup({ categories }: PracticeSetupProps): React.JSX.Ele
 
   return (
     <div className={cardCls}>
-      <div className="space-y-6 p-6">
+      <div className="space-y-5 p-4 sm:space-y-6 sm:p-6">
         {/* Category */}
         <div className="space-y-2">
           <Label>Kategori Ujian</Label>
           <Select value={categoryId} onValueChange={handleCategoryChange}>
-            <SelectTrigger>
+            <SelectTrigger className="h-11 sm:h-10">
               <SelectValue placeholder="Pilih kategori" />
             </SelectTrigger>
             <SelectContent>
@@ -199,7 +199,7 @@ export function PracticeSetup({ categories }: PracticeSetupProps): React.JSX.Ele
               value={subCategoryId}
               onValueChange={handleSubCategoryChange}
             >
-              <SelectTrigger>
+              <SelectTrigger className="h-11 sm:h-10">
                 <SelectValue placeholder="Pilih sub kategori (opsional)" />
               </SelectTrigger>
               <SelectContent>
@@ -218,7 +218,7 @@ export function PracticeSetup({ categories }: PracticeSetupProps): React.JSX.Ele
           <div className="space-y-2">
             <Label>Mata Pelajaran</Label>
             <Select value={subjectId} onValueChange={handleSubjectChange}>
-              <SelectTrigger>
+              <SelectTrigger className="h-11 sm:h-10">
                 <SelectValue placeholder="Pilih mata pelajaran (opsional)" />
               </SelectTrigger>
               <SelectContent>
@@ -237,7 +237,7 @@ export function PracticeSetup({ categories }: PracticeSetupProps): React.JSX.Ele
           <div className="space-y-2">
             <Label>Topik</Label>
             <Select value={topicId} onValueChange={setTopicId}>
-              <SelectTrigger>
+              <SelectTrigger className="h-11 sm:h-10">
                 <SelectValue placeholder="Pilih topik (opsional)" />
               </SelectTrigger>
               <SelectContent>
@@ -255,7 +255,7 @@ export function PracticeSetup({ categories }: PracticeSetupProps): React.JSX.Ele
         <div className="space-y-2">
           <Label>Tingkat Kesulitan</Label>
           <Select value={difficulty} onValueChange={setDifficulty}>
-            <SelectTrigger>
+            <SelectTrigger className="h-11 sm:h-10">
               <SelectValue placeholder="Semua tingkat kesulitan" />
             </SelectTrigger>
             <SelectContent>
@@ -271,16 +271,16 @@ export function PracticeSetup({ categories }: PracticeSetupProps): React.JSX.Ele
         {/* Question Count */}
         <div className="space-y-2">
           <Label>Jumlah Soal</Label>
-          <div className="flex flex-wrap gap-2">
+          <div className="grid grid-cols-4 gap-2 sm:flex sm:flex-wrap">
             {QUESTION_COUNTS.map((count) => (
               <button
                 key={count}
                 onClick={() => setQuestionCount(count)}
                 className={cn(
-                  "rounded-lg border px-4 py-2 text-sm font-medium transition-colors",
+                  "rounded-lg border px-3 py-3 text-sm font-medium transition-colors sm:px-4 sm:py-2",
                   questionCount === count
                     ? "border-primary bg-primary text-primary-foreground"
-                    : "border-border hover:bg-muted"
+                    : "border-border hover:bg-muted active:bg-muted"
                 )}
               >
                 {count}

@@ -11,30 +11,35 @@ import {
 } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
 
-interface NavTab {
+export interface NavTab {
   href: string;
   label: string;
   icon: React.ComponentType<{ className?: string; strokeWidth?: number }>;
 }
 
-const tabs: NavTab[] = [
-  { href: "/m", label: "Beranda", icon: Home },
-  { href: "/m/tryout", label: "Tryout", icon: FileText },
-  { href: "/m/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/m/leaderboard", label: "Leaderboard", icon: Trophy },
-  { href: "/m/profile", label: "Profil", icon: User },
+export const desktopTabs: NavTab[] = [
+  { href: "/", label: "Beranda", icon: Home },
+  { href: "/dashboard/tryout", label: "Tryout", icon: FileText },
+  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/leaderboard", label: "Leaderboard", icon: Trophy },
+  { href: "/dashboard/subscriptions", label: "Akun", icon: User },
 ];
 
 function isTabActive(pathname: string, href: string): boolean {
-  if (href === "/m") return pathname === "/m";
+  if (href === "/") return pathname === href;
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
-export function BottomNav() {
+interface BottomNavProps {
+  tabs?: NavTab[];
+  className?: string;
+}
+
+export function BottomNav({ tabs = desktopTabs, className }: BottomNavProps) {
   const pathname = usePathname();
 
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-border bg-background/80 backdrop-blur-lg pb-[env(safe-area-inset-bottom)]">
+    <nav className={cn("fixed inset-x-0 bottom-0 z-50 border-t border-border bg-background/80 backdrop-blur-lg pb-[env(safe-area-inset-bottom)]", className)}>
       <div className="flex h-16 items-center justify-around">
         {tabs.map((tab) => {
           const active = isTabActive(pathname, tab.href);

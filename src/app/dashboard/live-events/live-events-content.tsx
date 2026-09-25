@@ -14,9 +14,9 @@ import {
 } from "lucide-react";
 import { Button } from "@/shared/components/ui/button";
 import { Badge } from "@/shared/components/ui/badge";
+import { cn } from "@/shared/lib/utils";
 
 const cardCls = "rounded-2xl bg-card shadow-[0_2px_8px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.05]";
-import { cn } from "@/shared/lib/utils";
 
 interface LiveEventPackage {
     id: string;
@@ -88,9 +88,9 @@ export function LiveEventsContent() {
 
     function formatDate(dateStr: string): string {
         return new Date(dateStr).toLocaleDateString("id-ID", {
-            weekday: "long",
+            weekday: "short",
             day: "numeric",
-            month: "long",
+            month: "short",
             year: "numeric",
         });
     }
@@ -108,24 +108,22 @@ export function LiveEventsContent() {
         const diffMs = scheduled.getTime() - now.getTime();
         const diffHours = diffMs / (1000 * 60 * 60);
 
-        if (event.status === "LIVE") return { label: "🔴 LIVE", variant: "destructive" };
+        if (event.status === "LIVE") return { label: "LIVE", variant: "destructive" };
         if (diffHours < 1 && diffHours > 0) return { label: "Segera Dimulai", variant: "default" };
         if (event.status === "ENDED") return { label: "Selesai", variant: "secondary" };
         return { label: "Terjadwal", variant: "outline" };
     }
 
     return (
-        <div className="mx-auto max-w-3xl space-y-6 px-4 py-8">
+        <div className="mx-auto max-w-3xl space-y-4 px-4 pb-20 pt-4 md:space-y-6 md:pb-0 md:py-8">
             {/* Header */}
-            <div className="space-y-2">
-                <div className="flex items-center gap-3">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-red-500 to-rose-600 shadow-lg shadow-red-500/25">
-                        <Radio className="h-6 w-6 text-white" />
-                    </div>
-                    <div>
-                        <h1 className="text-2xl font-bold">Tryout Bersama</h1>
-                        <p className="text-sm text-muted-foreground">Kerjakan tryout secara live, bersaing realtime!</p>
-                    </div>
+            <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-red-500 to-rose-600 shadow-lg shadow-red-500/25 md:h-12 md:w-12">
+                    <Radio className="h-5 w-5 text-white md:h-6 md:w-6" />
+                </div>
+                <div>
+                    <h1 className="text-xl font-bold md:text-2xl">Tryout Bersama</h1>
+                    <p className="text-xs text-muted-foreground md:text-sm">Kerjakan tryout secara live, bersaing realtime!</p>
                 </div>
             </div>
 
@@ -136,7 +134,7 @@ export function LiveEventsContent() {
                         key={tab}
                         onClick={() => setActiveTab(tab)}
                         className={cn(
-                            "flex-1 rounded-lg px-4 py-2 text-sm font-medium transition-all",
+                            "flex-1 rounded-lg px-4 py-2.5 text-sm font-medium transition-all min-h-[44px]",
                             activeTab === tab
                                 ? "bg-background text-foreground shadow-sm"
                                 : "text-muted-foreground hover:text-foreground"
@@ -153,9 +151,11 @@ export function LiveEventsContent() {
                     <Loader2 className="h-8 w-8 animate-spin text-primary" />
                 </div>
             ) : events.length === 0 ? (
-                <div className="py-12 text-center">
-                    <Radio className="mx-auto mb-3 h-12 w-12 text-muted-foreground/50" />
-                    <p className="text-muted-foreground">
+                <div className="flex flex-col items-center py-16 text-center">
+                    <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-muted">
+                        <Radio className="h-8 w-8 text-muted-foreground/50" />
+                    </div>
+                    <p className="text-sm text-muted-foreground">
                         {activeTab === "upcoming" ? "Belum ada event terjadwal" : "Belum ada event yang selesai"}
                     </p>
                 </div>
@@ -168,70 +168,78 @@ export function LiveEventsContent() {
                             : false;
 
                         return (
-                            <div key={event.id} className={`${cardCls} transition-shadow hover:shadow-md`}>
-                                <div className="p-5">
-                                    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-                                        <div className="space-y-2 flex-1">
-                                            <div className="flex items-center gap-2 flex-wrap">
-                                                <Badge variant={statusBadge.variant} className="text-xs">
-                                                    {statusBadge.label}
-                                                </Badge>
-                                                <Badge variant="outline" className="text-xs">
-                                                    {event.package.category.name}
-                                                </Badge>
-                                            </div>
-                                            <h3 className="text-base font-semibold">{event.title}</h3>
-                                            {event.description && (
-                                                <p className="text-sm text-muted-foreground">{event.description}</p>
-                                            )}
-                                            <div className="flex flex-wrap gap-4 text-xs text-muted-foreground">
-                                                <span className="flex items-center gap-1">
-                                                    <Calendar className="h-3.5 w-3.5" />
-                                                    {formatDate(event.scheduledAt)}
-                                                </span>
-                                                <span className="flex items-center gap-1">
-                                                    <Clock className="h-3.5 w-3.5" />
-                                                    {formatTime(event.scheduledAt)}
-                                                </span>
-                                                <span className="flex items-center gap-1">
-                                                    <Users className="h-3.5 w-3.5" />
-                                                    {event._count.registrations}
-                                                    {event.maxParticipants && `/${event.maxParticipants}`} peserta
-                                                </span>
-                                                <span className="flex items-center gap-1">
-                                                    <Zap className="h-3.5 w-3.5" />
-                                                    {event.package.totalQuestions} soal · {event.package.durationMinutes} menit
-                                                </span>
-                                            </div>
-                                        </div>
+                            <div key={event.id} className={cardCls}>
+                                <div className="p-4 space-y-3 md:p-5">
+                                    {/* Badges */}
+                                    <div className="flex items-center gap-2 flex-wrap">
+                                        <Badge variant={statusBadge.variant} className="text-xs">
+                                            {statusBadge.label}
+                                        </Badge>
+                                        <Badge variant="outline" className="text-xs">
+                                            {event.package.category.name}
+                                        </Badge>
+                                    </div>
 
-                                        {activeTab === "upcoming" && (
-                                            <Button
-                                                onClick={() => handleRegister(event.id)}
-                                                disabled={isFull || registering === event.id}
-                                                size="sm"
-                                                className="shrink-0 gap-1"
-                                            >
-                                                {registering === event.id ? (
-                                                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                                                ) : isFull ? (
-                                                    "Penuh"
-                                                ) : (
-                                                    <>
-                                                        Daftar
-                                                        <ChevronRight className="h-3.5 w-3.5" />
-                                                    </>
-                                                )}
-                                            </Button>
-                                        )}
-
-                                        {activeTab === "past" && (
-                                            <Button variant="outline" size="sm" className="shrink-0 gap-1">
-                                                <Trophy className="h-3.5 w-3.5" />
-                                                Leaderboard
-                                            </Button>
+                                    {/* Title & Description */}
+                                    <div>
+                                        <h3 className="text-base font-semibold">{event.title}</h3>
+                                        {event.description && (
+                                            <p className="mt-1 text-sm text-muted-foreground line-clamp-2">
+                                                {event.description}
+                                            </p>
                                         )}
                                     </div>
+
+                                    {/* Meta Info */}
+                                    <div className="flex flex-wrap gap-x-4 gap-y-1.5 text-xs text-muted-foreground">
+                                        <span className="flex items-center gap-1">
+                                            <Calendar className="h-3.5 w-3.5" />
+                                            {formatDate(event.scheduledAt)}
+                                        </span>
+                                        <span className="flex items-center gap-1">
+                                            <Clock className="h-3.5 w-3.5" />
+                                            {formatTime(event.scheduledAt)}
+                                        </span>
+                                        <span className="flex items-center gap-1">
+                                            <Users className="h-3.5 w-3.5" />
+                                            {event._count.registrations}
+                                            {event.maxParticipants && `/${event.maxParticipants}`} peserta
+                                        </span>
+                                        <span className="flex items-center gap-1">
+                                            <Zap className="h-3.5 w-3.5" />
+                                            {event.package.totalQuestions} soal · {event.package.durationMinutes} menit
+                                        </span>
+                                    </div>
+
+                                    {/* Action Button */}
+                                    {activeTab === "upcoming" && (
+                                        <Button
+                                            onClick={() => handleRegister(event.id)}
+                                            disabled={isFull || registering === event.id}
+                                            className="w-full min-h-11 gap-1 md:w-auto"
+                                        >
+                                            {registering === event.id ? (
+                                                <Loader2 className="h-4 w-4 animate-spin" />
+                                            ) : isFull ? (
+                                                "Penuh"
+                                            ) : (
+                                                <>
+                                                    Daftar
+                                                    <ChevronRight className="h-4 w-4" />
+                                                </>
+                                            )}
+                                        </Button>
+                                    )}
+
+                                    {activeTab === "past" && (
+                                        <Button
+                                            variant="outline"
+                                            className="w-full min-h-11 gap-1 md:w-auto"
+                                        >
+                                            <Trophy className="h-4 w-4" />
+                                            Leaderboard
+                                        </Button>
+                                    )}
                                 </div>
                             </div>
                         );

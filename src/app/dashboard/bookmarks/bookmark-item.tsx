@@ -54,7 +54,7 @@ export function BookmarkItem({ bookmark }: BookmarkItemProps) {
 
   return (
     <div className={cn(cardCls, "transition-all", expanded && "ring-primary/20")}>
-      <div className="py-4 px-6">
+      <div className="px-4 py-4 sm:px-6">
         <div className="flex items-start justify-between gap-4">
           <div className="flex-1 space-y-3">
             {/* Subject / topic / difficulty labels */}

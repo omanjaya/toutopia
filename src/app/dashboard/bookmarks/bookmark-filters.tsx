@@ -78,7 +78,7 @@ export function BookmarkFilters({
             name="q"
             defaultValue={currentQ}
             placeholder="Cari isi soal..."
-            className="pl-9 pr-9"
+            className="h-11 pl-9 pr-9 text-base sm:h-10 sm:text-sm"
           />
           {currentQ && (
             <button
@@ -90,41 +90,43 @@ export function BookmarkFilters({
             </button>
           )}
         </div>
-        <Button type="submit" variant="secondary" disabled={isPending}>
+        <Button type="submit" variant="secondary" size="sm" disabled={isPending} className="h-11 sm:h-10">
           Cari
         </Button>
       </form>
 
-      {/* Subject tabs */}
+      {/* Subject tabs — horizontal scroll on mobile, wrap on desktop */}
       {subjects.length > 0 && (
-        <div className="flex flex-wrap gap-2">
-          <button
-            onClick={() => handleSubjectChange("all")}
-            className={cn(
-              "inline-flex items-center rounded-full border px-3 py-1 text-sm font-medium transition-colors",
-              !currentSubject
-                ? "border-primary bg-primary text-primary-foreground"
-                : "border-border bg-background text-muted-foreground hover:border-primary/50 hover:text-foreground"
-            )}
-            disabled={isPending}
-          >
-            Semua
-          </button>
-          {subjects.map((subject) => (
+        <div className="-mx-4 overflow-x-auto px-4 scrollbar-none [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:mx-0 sm:overflow-visible sm:px-0">
+          <div className="flex gap-2 pb-1 sm:flex-wrap sm:pb-0">
             <button
-              key={subject}
-              onClick={() => handleSubjectChange(subject)}
+              onClick={() => handleSubjectChange("all")}
               className={cn(
-                "inline-flex items-center rounded-full border px-3 py-1 text-sm font-medium transition-colors",
-                currentSubject === subject
+                "shrink-0 inline-flex items-center rounded-full border px-4 py-2 text-sm font-medium transition-colors min-h-[36px] sm:min-h-0 sm:px-3 sm:py-1",
+                !currentSubject
                   ? "border-primary bg-primary text-primary-foreground"
                   : "border-border bg-background text-muted-foreground hover:border-primary/50 hover:text-foreground"
               )}
               disabled={isPending}
             >
-              {subject}
+              Semua
             </button>
-          ))}
+            {subjects.map((subject) => (
+              <button
+                key={subject}
+                onClick={() => handleSubjectChange(subject)}
+                className={cn(
+                  "shrink-0 inline-flex items-center rounded-full border px-4 py-2 text-sm font-medium transition-colors min-h-[36px] sm:min-h-0 sm:px-3 sm:py-1",
+                  currentSubject === subject
+                    ? "border-primary bg-primary text-primary-foreground"
+                    : "border-border bg-background text-muted-foreground hover:border-primary/50 hover:text-foreground"
+                )}
+                disabled={isPending}
+              >
+                {subject}
+              </button>
+            ))}
+          </div>
         </div>
       )}
 

@@ -66,20 +66,20 @@ export default function FAQPage() {
     <>
       <Header />
       <main>
-        <section className="relative py-16 sm:py-20">
+        <section className="relative py-12 sm:py-20">
           <div className="absolute inset-0 -z-10 bg-gradient-to-b from-primary/5 to-transparent" />
           <div className="mx-auto max-w-3xl px-4 sm:px-6">
             <div className="text-center">
-              <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
+              <h1 className="text-2xl font-bold tracking-tight sm:text-4xl lg:text-5xl">
                 Pertanyaan Umum
               </h1>
-              <p className="mt-4 text-lg text-muted-foreground">
+              <p className="mt-3 text-base text-muted-foreground sm:mt-4 sm:text-lg">
                 Jawaban untuk pertanyaan yang paling sering ditanyakan tentang
                 Toutopia.
               </p>
             </div>
 
-            <Accordion type="single" collapsible className="mt-12">
+            <Accordion type="single" collapsible className="mt-8 sm:mt-12">
               {faqs.map((faq, idx) => (
                 <AccordionItem key={idx} value={`faq-${idx}`}>
                   <AccordionTrigger className="text-left">
@@ -92,12 +92,12 @@ export default function FAQPage() {
               ))}
             </Accordion>
 
-            <div className="mt-12 rounded-lg border bg-muted/30 p-6 text-center">
+            <div className="mt-8 rounded-2xl border bg-muted/30 p-5 text-center sm:mt-12 sm:rounded-lg sm:p-6">
               <p className="font-medium">Masih punya pertanyaan?</p>
               <p className="mt-1 text-sm text-muted-foreground">
                 Hubungi tim kami dan kami akan dengan senang hati membantu.
               </p>
-              <Button asChild className="mt-4" variant="outline">
+              <Button asChild className="mt-4 w-full rounded-full sm:w-auto sm:rounded-md" variant="outline">
                 <Link href="/contact">Hubungi Kami</Link>
               </Button>
             </div>

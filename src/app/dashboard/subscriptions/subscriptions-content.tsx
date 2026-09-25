@@ -142,15 +142,15 @@ export function SubscriptionsContent() {
     }
 
     return (
-        <div className="mx-auto max-w-4xl space-y-6 px-4 py-8">
+        <div className="mx-auto max-w-4xl space-y-4 px-4 pb-24 pt-6 md:space-y-6 md:px-4 md:pb-8 md:pt-8">
             {/* Header */}
             <div className="text-center space-y-2">
                 <div className="flex justify-center">
-                    <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-400 to-yellow-600 shadow-lg shadow-amber-500/25">
-                        <Crown className="h-8 w-8 text-white" />
+                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-400 to-yellow-600 shadow-lg shadow-amber-500/25 md:h-16 md:w-16">
+                        <Crown className="h-7 w-7 text-white md:h-8 md:w-8" />
                     </div>
                 </div>
-                <h1 className="text-2xl font-bold">Paket Berlangganan</h1>
+                <h1 className="text-xl font-bold md:text-2xl">Paket Berlangganan</h1>
                 <p className="text-sm text-muted-foreground">
                     Akses semua tryout dalam satu paket dengan harga lebih hemat
                 </p>
@@ -159,22 +159,22 @@ export function SubscriptionsContent() {
             {/* Active Subscriptions */}
             {data?.userSubscriptions && data.userSubscriptions.length > 0 && (
                 <div className="rounded-2xl border-2 border-emerald-500/50 bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-950/20 dark:to-teal-950/20">
-                    <div className="px-6 pt-6 pb-2">
+                    <div className="px-5 pt-5 pb-2 md:px-6 md:pt-6">
                         <h3 className="flex items-center gap-2 text-base text-emerald-700 dark:text-emerald-400 font-semibold tracking-tight">
                             <Sparkles className="h-5 w-5" />
                             Langganan Aktif
                         </h3>
                     </div>
-                    <div className="space-y-2 p-6 pt-2">
+                    <div className="space-y-2 p-5 pt-2 md:p-6">
                         {data.userSubscriptions.map((sub) => (
                             <div key={sub.id} className="flex items-center justify-between rounded-lg bg-white/60 p-3 dark:bg-background/30">
-                                <div>
-                                    <p className="text-sm font-medium">{sub.bundle.name}</p>
+                                <div className="min-w-0 flex-1">
+                                    <p className="truncate text-sm font-medium">{sub.bundle.name}</p>
                                     <p className="text-xs text-muted-foreground">
                                         {sub.plan} · Berlaku hingga {new Date(sub.endDate).toLocaleDateString("id-ID")}
                                     </p>
                                 </div>
-                                <Badge variant="default" className="bg-emerald-500">Aktif</Badge>
+                                <Badge variant="default" className="shrink-0 bg-emerald-500">Aktif</Badge>
                             </div>
                         ))}
                     </div>
@@ -182,32 +182,31 @@ export function SubscriptionsContent() {
             )}
 
             {/* Plan Selector */}
-            <div className="flex justify-center">
-                <div className="flex gap-1 rounded-xl bg-muted/60 p-1">
-                    {([
-                        { key: "MONTHLY" as const, label: "Bulanan" },
-                        { key: "QUARTERLY" as const, label: "3 Bulan" },
-                        { key: "YEARLY" as const, label: "Tahunan" },
-                    ]).map(({ key, label }) => (
-                        <button
-                            key={key}
-                            onClick={() => setSelectedPlan(key)}
-                            className={cn(
-                                "relative rounded-lg px-4 py-2 text-sm font-medium transition-all",
-                                selectedPlan === key
-                                    ? "bg-background text-foreground shadow-sm"
-                                    : "text-muted-foreground hover:text-foreground"
-                            )}
-                        >
-                            {label}
-                            {key === "YEARLY" && (
-                                <span className="absolute -top-2 -right-2 rounded-full bg-emerald-500 px-1.5 py-0.5 text-[10px] font-bold text-white">
-                                    Hemat
-                                </span>
-                            )}
-                        </button>
-                    ))}
-                </div>
+            <div className="flex gap-1 rounded-xl bg-muted/60 p-1 md:mx-auto md:w-fit">
+                {([
+                    { key: "MONTHLY" as const, label: "Bulanan" },
+                    { key: "QUARTERLY" as const, label: "3 Bulan" },
+                    { key: "YEARLY" as const, label: "Tahunan" },
+                ]).map(({ key, label }) => (
+                    <button
+                        key={key}
+                        onClick={() => setSelectedPlan(key)}
+                        className={cn(
+                            "relative flex-1 rounded-lg px-3 py-2.5 text-sm font-medium transition-all md:min-h-0 md:flex-none md:px-4 md:py-2",
+                            "min-h-[44px]",
+                            selectedPlan === key
+                                ? "bg-background text-foreground shadow-sm"
+                                : "text-muted-foreground hover:text-foreground"
+                        )}
+                    >
+                        {label}
+                        {key === "YEARLY" && (
+                            <span className="absolute -top-2 -right-1 rounded-full bg-emerald-500 px-1.5 py-0.5 text-[10px] font-bold text-white md:-right-2">
+                                Hemat
+                            </span>
+                        )}
+                    </button>
+                ))}
             </div>
 
             {/* Bundles Grid */}
@@ -229,22 +228,22 @@ export function SubscriptionsContent() {
                                 isSubscribed && "ring-2 ring-emerald-500/50"
                             )}
                         >
-                            <div className="px-6 pt-6 pb-2">
+                            <div className="px-5 pt-5 pb-2 md:px-6 md:pt-6">
                                 <div className="flex items-start justify-between">
-                                    <div>
-                                        <h3 className="text-lg font-semibold tracking-tight">{bundle.name}</h3>
+                                    <div className="min-w-0 flex-1">
+                                        <h3 className="text-base font-bold tracking-tight md:text-lg md:font-semibold">{bundle.name}</h3>
                                         {bundle.description && (
                                             <p className="mt-1 text-sm text-muted-foreground">{bundle.description}</p>
                                         )}
                                     </div>
                                     {saving && (
-                                        <Badge className="bg-emerald-500 text-white">-{saving}%</Badge>
+                                        <Badge className="shrink-0 bg-emerald-500 text-white">-{saving}%</Badge>
                                     )}
                                 </div>
                             </div>
-                            <div className="space-y-4 p-6 pt-2">
+                            <div className="space-y-4 p-5 pt-2 md:p-6">
                                 <div>
-                                    <p className="text-3xl font-bold">
+                                    <p className="text-2xl font-bold md:text-3xl">
                                         {formatPrice(price)}
                                     </p>
                                     {monthlyEq && (
@@ -260,8 +259,8 @@ export function SubscriptionsContent() {
                                     </p>
                                     {bundle.packages.slice(0, 5).map((pkg) => (
                                         <div key={pkg.id} className="flex items-center gap-2 text-sm">
-                                            <Check className="h-4 w-4 text-emerald-500" />
-                                            <span>{pkg.title}</span>
+                                            <Check className="h-4 w-4 shrink-0 text-emerald-500" />
+                                            <span className="truncate">{pkg.title}</span>
                                         </div>
                                     ))}
                                     {bundle.packages.length > 5 && (
@@ -274,7 +273,7 @@ export function SubscriptionsContent() {
                                 <Button
                                     onClick={() => handleSubscribe(bundle.id)}
                                     disabled={isSubscribed || subscribing === bundle.id}
-                                    className="w-full rounded-xl"
+                                    className="w-full min-h-[48px] rounded-xl md:min-h-0"
                                     variant={isSubscribed ? "outline" : "default"}
                                 >
                                     {subscribing === bundle.id ? (
@@ -298,9 +297,11 @@ export function SubscriptionsContent() {
             </div>
 
             {data?.bundles.length === 0 && (
-                <div className="py-12 text-center">
-                    <Package className="mx-auto mb-3 h-12 w-12 text-muted-foreground/50" />
-                    <p className="text-muted-foreground">Belum ada paket langganan tersedia</p>
+                <div className="flex flex-col items-center py-12 text-center md:py-12">
+                    <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-muted">
+                        <Package className="h-8 w-8 text-muted-foreground/50" />
+                    </div>
+                    <p className="text-sm text-muted-foreground">Belum ada paket langganan tersedia</p>
                 </div>
             )}
         </div>

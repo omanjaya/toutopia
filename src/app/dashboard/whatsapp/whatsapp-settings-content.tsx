@@ -124,25 +124,25 @@ export function WhatsappSettingsContent() {
     }
 
     return (
-        <div className="mx-auto max-w-2xl space-y-6 px-4 py-8">
+        <div className="mx-auto max-w-2xl space-y-4 px-4 pb-20 pt-4 md:space-y-6 md:pb-0 md:py-8">
             {/* Header */}
             <div className="flex items-center gap-3">
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-green-500 to-emerald-600 shadow-lg shadow-green-500/25">
-                    <MessageCircle className="h-6 w-6 text-white" />
+                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-green-500 to-emerald-600 shadow-lg shadow-green-500/25 md:h-12 md:w-12">
+                    <MessageCircle className="h-5 w-5 text-white md:h-6 md:w-6" />
                 </div>
                 <div>
-                    <h1 className="text-2xl font-bold">Notifikasi WhatsApp</h1>
-                    <p className="text-sm text-muted-foreground">Terima pengingat langsung di WhatsApp-mu</p>
+                    <h1 className="text-xl font-bold md:text-2xl">Notifikasi WhatsApp</h1>
+                    <p className="text-xs text-muted-foreground md:text-sm">Terima pengingat langsung di WhatsApp-mu</p>
                 </div>
             </div>
 
             {/* Phone Input */}
             {!subscription && (
                 <div className={cardCls}>
-                    <div className="px-6 pt-6 pb-2">
-                        <h3 className="text-lg font-semibold tracking-tight">Aktifkan Notifikasi</h3>
+                    <div className="px-5 pt-5 pb-2 md:px-6 md:pt-6">
+                        <h3 className="text-base font-semibold tracking-tight md:text-lg">Aktifkan Notifikasi</h3>
                     </div>
-                    <div className="space-y-4 p-6 pt-2">
+                    <div className="p-5 pt-2 space-y-4 md:p-6">
                         <div className="relative">
                             <Phone className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                             <input
@@ -150,13 +150,13 @@ export function WhatsappSettingsContent() {
                                 value={phone}
                                 onChange={(e) => setPhone(e.target.value)}
                                 placeholder="08xxxxxxxxxx"
-                                className="w-full rounded-lg border bg-background py-2.5 pl-10 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
+                                className="w-full rounded-lg border bg-background py-3 pl-10 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 min-h-[44px]"
                             />
                         </div>
                         <p className="text-xs text-muted-foreground">
                             Masukkan nomor WhatsApp aktif. Format: 08xxx atau 628xxx
                         </p>
-                        <Button onClick={handleSave} disabled={saving} className="w-full gap-2">
+                        <Button onClick={handleSave} disabled={saving} className="w-full gap-2 min-h-12">
                             {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
                             Aktifkan Notifikasi WhatsApp
                         </Button>
@@ -170,30 +170,40 @@ export function WhatsappSettingsContent() {
                     <div className="rounded-2xl border-2 border-green-200/60 bg-green-50/30 dark:border-green-800/30 dark:bg-green-950/10">
                         <div className="p-4">
                             <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-3">
-                                    <Check className="h-5 w-5 text-green-600" />
-                                    <div>
+                                <div className="flex min-w-0 items-center gap-3">
+                                    <Check className="h-5 w-5 shrink-0 text-green-600" />
+                                    <div className="min-w-0">
                                         <p className="text-sm font-medium text-green-800 dark:text-green-300">Notifikasi Aktif</p>
-                                        <p className="text-xs text-muted-foreground">
+                                        <p className="text-xs text-muted-foreground truncate">
                                             Nomor: {subscription.phoneNumber}
                                         </p>
                                     </div>
                                 </div>
-                                <Button variant="destructive" size="sm" onClick={handleDelete} disabled={deleting}>
-                                    {deleting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
+                                <Button
+                                    variant="destructive"
+                                    size="sm"
+                                    onClick={handleDelete}
+                                    disabled={deleting}
+                                    className="shrink-0 min-h-[40px] min-w-[40px]"
+                                >
+                                    {deleting ? (
+                                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                    ) : (
+                                        <Trash2 className="h-3.5 w-3.5" />
+                                    )}
                                 </Button>
                             </div>
                         </div>
                     </div>
 
                     <div className={cardCls}>
-                        <div className="px-6 pt-6 pb-2">
-                            <h3 className="flex items-center gap-2 text-lg font-semibold tracking-tight">
+                        <div className="px-5 pt-5 pb-2 md:px-6 md:pt-6">
+                            <h3 className="flex items-center gap-2 text-base font-semibold tracking-tight md:text-lg">
                                 <Bell className="h-5 w-5" />
                                 Preferensi Notifikasi
                             </h3>
                         </div>
-                        <div className="space-y-1 p-6 pt-2">
+                        <div className="p-5 pt-2 space-y-1 md:p-6">
                             {[
                                 { key: "remindSchedule" as const, icon: Calendar, label: "Pengingat Jadwal Belajar", desc: "Notifikasi untuk study planner" },
                                 { key: "remindResult" as const, icon: Trophy, label: "Hasil Tryout", desc: "Notifikasi saat hasil ujian keluar" },
@@ -202,21 +212,21 @@ export function WhatsappSettingsContent() {
                                 <button
                                     key={key}
                                     onClick={() => handleToggle(key)}
-                                    className="flex w-full items-center justify-between rounded-lg px-3 py-3 transition-colors hover:bg-muted/30"
+                                    className="flex w-full items-center justify-between rounded-lg px-3 py-4 transition-colors hover:bg-muted/30 min-h-[56px]"
                                 >
                                     <div className="flex items-center gap-3">
-                                        <Icon className="h-4 w-4 text-muted-foreground" />
+                                        <Icon className="h-5 w-5 shrink-0 text-muted-foreground" />
                                         <div className="text-left">
                                             <p className="text-sm font-medium">{label}</p>
                                             <p className="text-xs text-muted-foreground">{desc}</p>
                                         </div>
                                     </div>
                                     <div className={cn(
-                                        "flex h-6 w-11 items-center rounded-full px-0.5 transition-colors",
+                                        "flex h-7 w-12 items-center rounded-full px-0.5 transition-colors shrink-0 ml-3",
                                         subscription[key] ? "bg-green-500" : "bg-muted"
                                     )}>
                                         <div className={cn(
-                                            "h-5 w-5 rounded-full bg-white shadow-sm transition-transform",
+                                            "h-6 w-6 rounded-full bg-white shadow-sm transition-transform",
                                             subscription[key] ? "translate-x-5" : "translate-x-0"
                                         )} />
                                     </div>

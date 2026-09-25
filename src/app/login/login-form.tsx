@@ -88,10 +88,10 @@ export function LoginForm() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5 sm:space-y-6">
       <Button
         variant="outline"
-        className="w-full"
+        className="h-12 w-full sm:h-10"
         onClick={handleGoogleLogin}
         disabled={isGoogleLoading || isSubmitting}
       >
@@ -139,6 +139,7 @@ export function LoginForm() {
             type="email"
             placeholder="nama@email.com"
             autoComplete="email"
+            className="h-12 text-base sm:h-10 sm:text-sm"
             {...register("email")}
           />
           {errors.email && (
@@ -149,7 +150,7 @@ export function LoginForm() {
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <Label htmlFor="password">Password</Label>
-            <Link href="/forgot-password" className="text-xs text-primary hover:underline underline-offset-4">
+            <Link href="/forgot-password" className="text-xs text-primary underline-offset-4 hover:underline">
               Lupa password?
             </Link>
           </div>
@@ -158,6 +159,7 @@ export function LoginForm() {
             type="password"
             placeholder="Masukkan password"
             autoComplete="current-password"
+            className="h-12 text-base sm:h-10 sm:text-sm"
             {...register("password")}
           />
           {errors.password && (
@@ -167,7 +169,7 @@ export function LoginForm() {
           )}
         </div>
 
-        <Button type="submit" className="w-full" disabled={isSubmitting}>
+        <Button type="submit" className="h-12 w-full sm:h-10" disabled={isSubmitting}>
           {isSubmitting ? (
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
           ) : (

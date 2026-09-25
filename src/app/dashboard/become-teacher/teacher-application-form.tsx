@@ -16,6 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/shared/components/ui/select";
+import { cn } from "@/shared/lib/utils";
 import {
   teacherApplicationSchema,
   type TeacherApplicationInput,
@@ -49,7 +50,7 @@ const specializationOptions = [
   "Pengetahuan Kuantitatif",
 ];
 
-export function TeacherApplicationForm() {
+export function TeacherApplicationForm(): React.ReactElement {
   const router = useRouter();
 
   const {
@@ -73,7 +74,7 @@ export function TeacherApplicationForm() {
 
   const selectedSpecs = watch("specialization");
 
-  function toggleSpecialization(spec: string) {
+  function toggleSpecialization(spec: string): void {
     const current = selectedSpecs ?? [];
     if (current.includes(spec)) {
       setValue(
@@ -85,7 +86,7 @@ export function TeacherApplicationForm() {
     }
   }
 
-  async function onSubmit(data: TeacherApplicationInput) {
+  async function onSubmit(data: TeacherApplicationInput): Promise<void> {
     const response = await fetch("/api/teacher/apply", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -104,20 +105,20 @@ export function TeacherApplicationForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 md:space-y-6">
       {/* Personal Info */}
       <div className={cardCls}>
-        <div className="px-6 pt-6 pb-2">
-          <h3 className="text-lg font-semibold tracking-tight">Informasi Pribadi</h3>
+        <div className="p-4 space-y-4 md:px-6 md:pt-6 md:pb-2">
+          <p className="text-sm font-semibold md:text-lg md:font-semibold">Informasi Pribadi</p>
         </div>
-        <div className="p-6 pt-2 space-y-4">
+        <div className="p-4 pt-2 space-y-4 md:p-6 md:pt-2">
           <div className="space-y-2">
             <Label>Pendidikan Terakhir</Label>
             <Select
               value={watch("education")}
               onValueChange={(v) => setValue("education", v)}
             >
-              <SelectTrigger>
+              <SelectTrigger className="min-h-[44px]">
                 <SelectValue placeholder="Pilih pendidikan" />
               </SelectTrigger>
               <SelectContent>
@@ -129,7 +130,7 @@ export function TeacherApplicationForm() {
               </SelectContent>
             </Select>
             {errors.education && (
-              <p className="text-sm text-destructive">
+              <p className="text-xs text-destructive md:text-sm">
                 {errors.education.message}
               </p>
             )}
@@ -139,6 +140,7 @@ export function TeacherApplicationForm() {
             <Label>Institusi (opsional)</Label>
             <Input
               placeholder="Nama universitas atau sekolah"
+              className="min-h-[44px]"
               {...register("institution")}
             />
           </div>
@@ -151,18 +153,19 @@ export function TeacherApplicationForm() {
                   key={spec}
                   type="button"
                   onClick={() => toggleSpecialization(spec)}
-                  className={`rounded-full border px-3 py-1 text-sm transition-colors ${
+                  className={cn(
+                    "min-h-[36px] rounded-full border px-3 py-1.5 text-sm transition-colors",
                     selectedSpecs?.includes(spec)
                       ? "border-primary bg-primary/10 text-primary"
-                      : "border-muted-foreground/30 text-muted-foreground hover:border-primary"
-                  }`}
+                      : "border-muted-foreground/30 text-muted-foreground hover:border-primary active:border-primary"
+                  )}
                 >
                   {spec}
                 </button>
               ))}
             </div>
             {errors.specialization && (
-              <p className="text-sm text-destructive">
+              <p className="text-xs text-destructive md:text-sm">
                 {errors.specialization.message}
               </p>
             )}
@@ -176,7 +179,7 @@ export function TeacherApplicationForm() {
               {...register("bio")}
             />
             {errors.bio && (
-              <p className="text-sm text-destructive">{errors.bio.message}</p>
+              <p className="text-xs text-destructive md:text-sm">{errors.bio.message}</p>
             )}
           </div>
         </div>
@@ -184,37 +187,49 @@ export function TeacherApplicationForm() {
 
       {/* Bank Info */}
       <div className={cardCls}>
-        <div className="px-6 pt-6 pb-2">
-          <h3 className="text-lg font-semibold tracking-tight">Informasi Rekening</h3>
-        </div>
-        <div className="p-6 pt-2 space-y-4">
-          <p className="text-sm text-muted-foreground">
+        <div className="p-4 space-y-4 md:px-6 md:pt-6 md:pb-2">
+          <p className="text-sm font-semibold md:text-lg">Informasi Rekening</p>
+          <p className="text-xs text-muted-foreground md:text-sm">
             Digunakan untuk transfer penghasilan dari kontribusi soal.
           </p>
-          <div className="grid gap-4 sm:grid-cols-3">
+        </div>
+        <div className="p-4 pt-0 space-y-4 md:p-6 md:pt-2">
+          <div className="grid gap-4 md:grid-cols-3">
             <div className="space-y-2">
               <Label>Nama Bank</Label>
-              <Input placeholder="BCA" {...register("bankName")} />
+              <Input
+                placeholder="BCA"
+                className="min-h-[44px]"
+                {...register("bankName")}
+              />
               {errors.bankName && (
-                <p className="text-sm text-destructive">
+                <p className="text-xs text-destructive md:text-sm">
                   {errors.bankName.message}
                 </p>
               )}
             </div>
             <div className="space-y-2">
               <Label>Nomor Rekening</Label>
-              <Input placeholder="1234567890" {...register("bankAccount")} />
+              <Input
+                placeholder="1234567890"
+                className="min-h-[44px]"
+                {...register("bankAccount")}
+              />
               {errors.bankAccount && (
-                <p className="text-sm text-destructive">
+                <p className="text-xs text-destructive md:text-sm">
                   {errors.bankAccount.message}
                 </p>
               )}
             </div>
             <div className="space-y-2">
               <Label>Nama Pemilik Rekening</Label>
-              <Input placeholder="Nama sesuai buku tabungan" {...register("bankHolder")} />
+              <Input
+                placeholder="Nama sesuai buku tabungan"
+                className="min-h-[44px]"
+                {...register("bankHolder")}
+              />
               {errors.bankHolder && (
-                <p className="text-sm text-destructive">
+                <p className="text-xs text-destructive md:text-sm">
                   {errors.bankHolder.message}
                 </p>
               )}
@@ -223,7 +238,11 @@ export function TeacherApplicationForm() {
         </div>
       </div>
 
-      <Button type="submit" className="w-full" disabled={isSubmitting}>
+      <Button
+        type="submit"
+        className="w-full min-h-[48px]"
+        disabled={isSubmitting}
+      >
         {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
         Daftar Sebagai Pengajar
       </Button>

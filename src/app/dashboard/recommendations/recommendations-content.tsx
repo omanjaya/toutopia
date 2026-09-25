@@ -10,7 +10,6 @@ import {
     Loader2,
     BookOpen,
     AlertTriangle,
-    Star,
 } from "lucide-react";
 import { Badge } from "@/shared/components/ui/badge";
 import { cn } from "@/shared/lib/utils";
@@ -42,6 +41,17 @@ interface RecommendationData {
     recommendedQuestions: RecommendedQuestion[];
     totalAnswered: number;
     totalTopicsAnalyzed: number;
+}
+
+function getDifficultyColor(difficulty: string): string {
+    switch (difficulty) {
+        case "VERY_EASY": return "text-emerald-600 bg-emerald-50 dark:bg-emerald-950/20";
+        case "EASY": return "text-green-600 bg-green-50 dark:bg-green-950/20";
+        case "MEDIUM": return "text-amber-600 bg-amber-50 dark:bg-amber-950/20";
+        case "HARD": return "text-orange-600 bg-orange-50 dark:bg-orange-950/20";
+        case "VERY_HARD": return "text-red-600 bg-red-50 dark:bg-red-950/20";
+        default: return "text-muted-foreground bg-muted";
+    }
 }
 
 export function RecommendationsContent() {
@@ -81,29 +91,18 @@ export function RecommendationsContent() {
         );
     }
 
-    function getDifficultyColor(difficulty: string): string {
-        switch (difficulty) {
-            case "VERY_EASY": return "text-emerald-600 bg-emerald-50 dark:bg-emerald-950/20";
-            case "EASY": return "text-green-600 bg-green-50 dark:bg-green-950/20";
-            case "MEDIUM": return "text-amber-600 bg-amber-50 dark:bg-amber-950/20";
-            case "HARD": return "text-orange-600 bg-orange-50 dark:bg-orange-950/20";
-            case "VERY_HARD": return "text-red-600 bg-red-50 dark:bg-red-950/20";
-            default: return "text-muted-foreground bg-muted";
-        }
-    }
-
     const hasEnoughData = data.totalAnswered >= 10;
 
     return (
-        <div className="mx-auto max-w-3xl space-y-6 px-4 py-8">
+        <div className="mx-auto max-w-3xl space-y-4 px-4 pb-20 pt-4 md:space-y-6 md:pb-0 md:py-8">
             {/* Header */}
             <div className="flex items-center gap-3">
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 shadow-lg shadow-indigo-500/25">
-                    <Brain className="h-6 w-6 text-white" />
+                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 shadow-lg shadow-indigo-500/25 md:h-12 md:w-12">
+                    <Brain className="h-5 w-5 text-white md:h-6 md:w-6" />
                 </div>
                 <div>
-                    <h1 className="text-2xl font-bold">Rekomendasi Belajar</h1>
-                    <p className="text-sm text-muted-foreground">
+                    <h1 className="text-xl font-bold md:text-2xl">Rekomendasi Belajar</h1>
+                    <p className="text-xs text-muted-foreground md:text-sm">
                         Analisis dari {data.totalAnswered} jawaban di {data.totalTopicsAnalyzed} topik
                     </p>
                 </div>
@@ -125,13 +124,13 @@ export function RecommendationsContent() {
 
             {/* Weak Topics */}
             <div className={cardCls}>
-                <div className="px-6 pt-6 pb-2">
-                    <h3 className="flex items-center gap-2 text-base font-semibold text-destructive">
+                <div className="px-5 pt-5 pb-2 md:px-6 md:pt-6">
+                    <h3 className="flex items-center gap-2 text-base font-semibold tracking-tight text-destructive">
                         <TrendingDown className="h-5 w-5" />
                         Topik yang Perlu Ditingkatkan
                     </h3>
                 </div>
-                <div className="space-y-2 p-6 pt-2">
+                <div className="p-5 pt-2 space-y-2 md:p-6">
                     {data.weakTopics.length === 0 ? (
                         <p className="text-sm text-muted-foreground">Belum cukup data untuk analisis</p>
                     ) : (
@@ -140,13 +139,13 @@ export function RecommendationsContent() {
                                 key={topic.topicId}
                                 className="flex items-center justify-between rounded-xl border border-destructive/20 bg-destructive/5 p-3"
                             >
-                                <div>
-                                    <p className="text-sm font-medium">{topic.topicName}</p>
-                                    <p className="text-xs text-muted-foreground">
+                                <div className="min-w-0 flex-1 pr-3">
+                                    <p className="text-sm font-medium truncate">{topic.topicName}</p>
+                                    <p className="text-xs text-muted-foreground truncate">
                                         {topic.subjectName} · {topic.categoryName}
                                     </p>
                                 </div>
-                                <div className="text-right">
+                                <div className="shrink-0 text-right">
                                     <p className={cn(
                                         "text-lg font-bold tabular-nums",
                                         topic.accuracy < 40 ? "text-destructive" : "text-amber-600"
@@ -165,13 +164,13 @@ export function RecommendationsContent() {
 
             {/* Strong Topics */}
             <div className={cardCls}>
-                <div className="px-6 pt-6 pb-2">
-                    <h3 className="flex items-center gap-2 text-base font-semibold text-emerald-600">
+                <div className="px-5 pt-5 pb-2 md:px-6 md:pt-6">
+                    <h3 className="flex items-center gap-2 text-base font-semibold tracking-tight text-emerald-600">
                         <TrendingUp className="h-5 w-5" />
                         Topik Terkuatmu
                     </h3>
                 </div>
-                <div className="space-y-2 p-6 pt-2">
+                <div className="p-5 pt-2 space-y-2 md:p-6">
                     {data.strongTopics.length === 0 ? (
                         <p className="text-sm text-muted-foreground">Belum cukup data</p>
                     ) : (
@@ -180,13 +179,13 @@ export function RecommendationsContent() {
                                 key={topic.topicId}
                                 className="flex items-center justify-between rounded-xl border border-emerald-200/60 bg-emerald-50/30 p-3 dark:border-emerald-900/50 dark:bg-emerald-950/10"
                             >
-                                <div>
-                                    <p className="text-sm font-medium">{topic.topicName}</p>
-                                    <p className="text-xs text-muted-foreground">
+                                <div className="min-w-0 flex-1 pr-3">
+                                    <p className="text-sm font-medium truncate">{topic.topicName}</p>
+                                    <p className="text-xs text-muted-foreground truncate">
                                         {topic.subjectName} · {topic.categoryName}
                                     </p>
                                 </div>
-                                <div className="text-right">
+                                <div className="shrink-0 text-right">
                                     <p className="text-lg font-bold tabular-nums text-emerald-600">{topic.accuracy}%</p>
                                     <p className="text-xs text-muted-foreground">
                                         {topic.correct}/{topic.total} benar
@@ -201,25 +200,25 @@ export function RecommendationsContent() {
             {/* Recommended Questions */}
             {data.recommendedQuestions.length > 0 && (
                 <div className={cardCls}>
-                    <div className="px-6 pt-6 pb-2">
-                        <h3 className="flex items-center gap-2 text-base font-semibold">
+                    <div className="px-5 pt-5 pb-2 md:px-6 md:pt-6">
+                        <h3 className="flex items-center gap-2 text-base font-semibold tracking-tight">
                             <Target className="h-5 w-5 text-primary" />
                             Soal yang Direkomendasikan
                         </h3>
-                        <p className="mt-1 text-sm text-muted-foreground">
+                        <p className="mt-0.5 text-sm text-muted-foreground">
                             Berdasarkan topik yang masih lemah
                         </p>
                     </div>
-                    <div className="space-y-2 p-6 pt-2">
+                    <div className="p-5 pt-2 space-y-2 md:p-6">
                         {data.recommendedQuestions.map((q) => (
                             <div
                                 key={q.id}
-                                className="flex items-start gap-3 rounded-xl border p-3 transition-colors hover:bg-muted/30"
+                                className="flex items-start gap-3 rounded-xl border p-3.5 transition-colors hover:bg-muted/30"
                             >
                                 <BookOpen className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-                                <div className="flex-1 min-w-0">
+                                <div className="min-w-0 flex-1">
                                     <p className="text-sm line-clamp-2">{q.content}</p>
-                                    <div className="mt-1.5 flex flex-wrap gap-1.5">
+                                    <div className="mt-2 flex flex-wrap gap-1.5">
                                         <Badge variant="outline" className="text-xs">{q.topic}</Badge>
                                         <Badge variant="outline" className="text-xs">{q.subject}</Badge>
                                         <Badge className={cn("text-xs", getDifficultyColor(q.difficulty))}>

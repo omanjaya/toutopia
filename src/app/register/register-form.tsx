@@ -64,10 +64,10 @@ export function RegisterForm() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5 sm:space-y-6">
       <Button
         variant="outline"
-        className="w-full"
+        className="h-12 w-full sm:h-10"
         onClick={handleGoogleRegister}
         disabled={isGoogleLoading || isSubmitting}
       >
@@ -115,6 +115,7 @@ export function RegisterForm() {
             type="text"
             placeholder="Nama lengkap kamu"
             autoComplete="name"
+            className="h-12 text-base sm:h-10 sm:text-sm"
             {...register("name")}
           />
           {errors.name && (
@@ -129,6 +130,7 @@ export function RegisterForm() {
             type="email"
             placeholder="nama@email.com"
             autoComplete="email"
+            className="h-12 text-base sm:h-10 sm:text-sm"
             {...register("email")}
           />
           {errors.email && (
@@ -143,6 +145,7 @@ export function RegisterForm() {
             type="password"
             placeholder="Minimal 8 karakter"
             autoComplete="new-password"
+            className="h-12 text-base sm:h-10 sm:text-sm"
             {...register("password")}
           />
           {errors.password && (
@@ -167,11 +170,11 @@ export function RegisterForm() {
             placeholder="Contoh: TOU-ABC123"
             value={referralCode}
             onChange={(e) => setReferralCode(e.target.value.toUpperCase())}
-            className="font-mono tracking-wider"
+            className="h-12 font-mono tracking-wider sm:h-10"
           />
         </div>
 
-        <Button type="submit" className="w-full" disabled={isSubmitting}>
+        <Button type="submit" className="h-12 w-full sm:h-10" disabled={isSubmitting}>
           {isSubmitting ? (
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
           ) : (

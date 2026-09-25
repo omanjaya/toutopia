@@ -55,10 +55,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           return null;
         }
 
-        if (!user.emailVerified) {
-          throw new Error("EMAIL_NOT_VERIFIED");
-        }
-
         const isValid = await verify(user.passwordHash, password);
         if (!isValid) {
           return null;

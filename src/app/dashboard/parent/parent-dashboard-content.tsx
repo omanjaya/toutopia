@@ -18,9 +18,9 @@ import {
 } from "lucide-react";
 import { Button } from "@/shared/components/ui/button";
 import { Badge } from "@/shared/components/ui/badge";
+import { cn } from "@/shared/lib/utils";
 
 const cardCls = "rounded-2xl bg-card shadow-[0_2px_8px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.05]";
-import { cn } from "@/shared/lib/utils";
 
 interface ChildProfile {
     id: string;
@@ -136,27 +136,27 @@ export function ParentDashboardContent() {
     const activeChild = data?.children.find((c) => c.child.id === selectedChild);
 
     return (
-        <div className="mx-auto max-w-4xl space-y-6 px-4 py-8">
+        <div className="mx-auto max-w-4xl space-y-4 px-4 pb-20 pt-4 md:space-y-6 md:pb-0 md:py-8">
             {/* Header */}
             <div className="flex items-center gap-3">
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-500 to-purple-600 shadow-lg shadow-violet-500/25">
-                    <Shield className="h-6 w-6 text-white" />
+                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-500 to-purple-600 shadow-lg shadow-violet-500/25 md:h-12 md:w-12">
+                    <Shield className="h-5 w-5 text-white md:h-6 md:w-6" />
                 </div>
                 <div>
-                    <h1 className="text-2xl font-bold">Dashboard Orang Tua</h1>
-                    <p className="text-sm text-muted-foreground">Pantau progress belajar anak</p>
+                    <h1 className="text-xl font-bold md:text-2xl">Dashboard Orang Tua</h1>
+                    <p className="text-xs text-muted-foreground md:text-sm">Pantau progress belajar anak</p>
                 </div>
             </div>
 
             {/* Link Child */}
             <div className={cardCls}>
-                <div className="px-6 pt-6 pb-2">
-                    <h3 className="text-lg font-semibold tracking-tight flex items-center gap-2">
+                <div className="px-5 pt-5 pb-2 md:px-6 md:pt-6">
+                    <h3 className="text-base font-semibold tracking-tight flex items-center gap-2 md:text-lg">
                         <UserPlus className="h-5 w-5 text-primary" />
                         Tambahkan Anak
                     </h3>
                 </div>
-                <div className="p-6">
+                <div className="p-5 pt-3 md:p-6">
                     <div className="flex gap-2">
                         <div className="relative flex-1">
                             <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -165,13 +165,13 @@ export function ParentDashboardContent() {
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 placeholder="Email akun anak..."
-                                className="w-full rounded-lg border bg-background py-2 pl-10 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
+                                className="w-full rounded-lg border bg-background py-2.5 pl-10 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 min-h-[44px]"
                                 onKeyDown={(e) => {
                                     if (e.key === "Enter") handleLink();
                                 }}
                             />
                         </div>
-                        <Button onClick={handleLink} disabled={linking || !email.trim()} className="gap-1">
+                        <Button onClick={handleLink} disabled={linking || !email.trim()} className="gap-1 min-h-[44px]">
                             {linking ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
                             Tautkan
                         </Button>
@@ -181,8 +181,8 @@ export function ParentDashboardContent() {
                             <p className="text-xs font-medium text-muted-foreground">Menunggu persetujuan:</p>
                             {data.pendingInvites.map((inv) => (
                                 <div key={inv.id} className="flex items-center gap-2 text-xs text-amber-600">
-                                    <Clock className="h-3 w-3" />
-                                    {inv.child.name} ({inv.child.email})
+                                    <Clock className="h-3 w-3 shrink-0" />
+                                    <span className="truncate">{inv.child.name} ({inv.child.email})</span>
                                 </div>
                             ))}
                         </div>
@@ -194,13 +194,13 @@ export function ParentDashboardContent() {
             {data?.children && data.children.length > 0 && (
                 <>
                     {data.children.length > 1 && (
-                        <div className="flex gap-2 overflow-x-auto pb-1">
+                        <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 md:mx-0 md:overflow-visible md:px-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                             {data.children.map((child) => (
                                 <button
                                     key={child.child.id}
                                     onClick={() => setSelectedChild(child.child.id)}
                                     className={cn(
-                                        "flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium transition-all whitespace-nowrap",
+                                        "flex shrink-0 items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition-all min-h-[44px]",
                                         selectedChild === child.child.id
                                             ? "bg-primary text-primary-foreground shadow-sm"
                                             : "bg-muted/60 text-muted-foreground hover:bg-muted"
@@ -217,14 +217,14 @@ export function ParentDashboardContent() {
                         <div className="space-y-4">
                             {/* Child Profile Card */}
                             <div className="rounded-2xl bg-gradient-to-br from-violet-50 to-purple-50 dark:from-violet-950/20 dark:to-purple-950/20">
-                                <div className="p-6">
+                                <div className="p-5 md:p-6">
                                     <div className="flex items-center gap-4">
-                                        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-2xl font-bold text-primary">
+                                        <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xl font-bold text-primary md:h-16 md:w-16 md:text-2xl">
                                             {activeChild.child.name.charAt(0)}
                                         </div>
-                                        <div>
-                                            <h2 className="text-xl font-bold">{activeChild.child.name}</h2>
-                                            <p className="text-sm text-muted-foreground">
+                                        <div className="min-w-0">
+                                            <h2 className="text-lg font-bold truncate md:text-xl">{activeChild.child.name}</h2>
+                                            <p className="text-sm text-muted-foreground truncate">
                                                 {activeChild.child.profile?.school ?? "Belum diisi"} ·{" "}
                                                 {activeChild.child.profile?.targetExam ?? "Belum ditentukan"}
                                             </p>
@@ -275,24 +275,24 @@ export function ParentDashboardContent() {
 
                             {/* Recent Attempts */}
                             <div className={cardCls}>
-                                <div className="px-6 pt-6 pb-2">
-                                    <h3 className="text-lg font-semibold tracking-tight flex items-center gap-2">
+                                <div className="px-5 pt-5 pb-2 md:px-6 md:pt-6">
+                                    <h3 className="text-base font-semibold tracking-tight flex items-center gap-2 md:text-lg">
                                         <TrendingUp className="h-5 w-5 text-primary" />
                                         Riwayat Terakhir
                                     </h3>
                                 </div>
-                                <div className="p-6 space-y-2">
+                                <div className="p-5 pt-3 space-y-2 md:p-6">
                                     {activeChild.recentAttempts.length > 0 ? (
                                         activeChild.recentAttempts.map((att, idx) => (
                                             <div key={idx} className="flex items-center justify-between rounded-lg border p-3">
-                                                <div>
-                                                    <p className="text-sm font-medium">{att.packageTitle}</p>
+                                                <div className="min-w-0 flex-1 pr-3">
+                                                    <p className="text-sm font-medium truncate">{att.packageTitle}</p>
                                                     <p className="text-xs text-muted-foreground">
                                                         {att.category} ·{" "}
                                                         {att.finishedAt ? new Date(att.finishedAt).toLocaleDateString("id-ID") : "-"}
                                                     </p>
                                                 </div>
-                                                <div className="text-right">
+                                                <div className="shrink-0 text-right">
                                                     <p className="text-sm font-bold tabular-nums">
                                                         {att.totalCorrect ?? 0}/{att.totalQuestions}
                                                     </p>
@@ -313,13 +313,13 @@ export function ParentDashboardContent() {
                             {/* Badges */}
                             {activeChild.badges.length > 0 && (
                                 <div className={cardCls}>
-                                    <div className="px-6 pt-6 pb-2">
-                                        <h3 className="text-lg font-semibold tracking-tight flex items-center gap-2">
+                                    <div className="px-5 pt-5 pb-2 md:px-6 md:pt-6">
+                                        <h3 className="text-base font-semibold tracking-tight flex items-center gap-2 md:text-lg">
                                             <Award className="h-5 w-5 text-amber-500" />
                                             Badge
                                         </h3>
                                     </div>
-                                    <div className="p-6">
+                                    <div className="p-5 pt-3 md:p-6">
                                         <div className="flex flex-wrap gap-2">
                                             {activeChild.badges.map((badge, idx) => (
                                                 <Badge key={idx} variant="outline" className="gap-1 px-3 py-1.5">
@@ -337,9 +337,11 @@ export function ParentDashboardContent() {
             )}
 
             {(!data?.children || data.children.length === 0) && !data?.pendingInvites?.length && (
-                <div className="py-12 text-center">
-                    <GraduationCap className="mx-auto mb-3 h-12 w-12 text-muted-foreground/50" />
-                    <p className="text-muted-foreground">
+                <div className="flex flex-col items-center py-16 text-center">
+                    <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-muted">
+                        <GraduationCap className="h-8 w-8 text-muted-foreground/50" />
+                    </div>
+                    <p className="text-sm text-muted-foreground">
                         Belum ada anak yang ditautkan. Masukkan email akun anak untuk mulai monitoring.
                     </p>
                 </div>

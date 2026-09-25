@@ -140,164 +140,194 @@ export function OnboardingWizard() {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Progress dots */}
-      <div className="flex items-center justify-center gap-2">
-        {STEPS.map((s, i) => (
-          <div
-            key={s.id}
-            className={cn(
-              "h-2 rounded-full transition-all",
-              i === step ? "w-8 bg-primary" : "w-2 bg-muted-foreground/30"
-            )}
-          />
-        ))}
-      </div>
-
-      {/* Step 1: Welcome / Feature Tour */}
-      {step === 0 && (
-        <div className={cardCls}>
-          <div className="px-6 pt-6 pb-2 text-center">
-            <div className="flex justify-center mb-3">
-              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10">
-                <Sparkles className="h-7 w-7 text-primary" />
-              </div>
-            </div>
-            <h3 className="text-2xl font-semibold tracking-tight">Selamat datang di Toutopia!</h3>
-            <p className="text-muted-foreground mt-1">
-              Platform persiapan ujian terlengkap. Kenali fitur-fitur utama kami:
-            </p>
-          </div>
-          <div className="p-6">
-            <div className="grid gap-4 sm:grid-cols-2 mt-4">
-              {FEATURES.map((feature) => {
-                const Icon = feature.icon;
-                return (
-                  <div
-                    key={feature.title}
-                    className="flex gap-3 rounded-lg border p-3"
-                  >
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-                      <Icon className="h-5 w-5 text-primary" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium">{feature.title}</p>
-                      <p className="text-xs text-muted-foreground mt-0.5">
-                        {feature.description}
-                      </p>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-
-            <div className="flex items-center justify-between mt-6">
-              <Button variant="ghost" size="sm" onClick={skipToEnd} disabled={saving}>
-                Lewati
-              </Button>
-              <Button onClick={nextStep}>
-                Lanjut
-                <ChevronRight className="ml-1 h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Step 2: Target Exam */}
-      {step === 1 && (
-        <div className={cardCls}>
-          <div className="px-6 pt-6 pb-2 text-center">
-            <div className="flex justify-center mb-3">
-              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10">
-                <Target className="h-7 w-7 text-primary" />
-              </div>
-            </div>
-            <h3 className="text-2xl font-semibold tracking-tight">Target Ujian Kamu</h3>
-            <p className="text-muted-foreground mt-1">
-              Pilih ujian yang sedang kamu persiapkan (bisa diubah nanti)
-            </p>
-          </div>
-          <div className="p-6">
-            <div className="mx-auto max-w-sm mt-4">
-              {loadingCategories ? (
-                <div className="flex items-center justify-center gap-2 py-4 text-muted-foreground">
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  Memuat kategori...
-                </div>
-              ) : (
-                <Select value={targetExam} onValueChange={setTargetExam}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Pilih kategori ujian" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {categories.map((cat) => (
-                      <SelectItem key={cat.id} value={cat.name}>
-                        {cat.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+    <div className="flex min-h-screen flex-col bg-background px-4 pb-8 pt-10 sm:px-0 sm:pt-0">
+      {/* Desktop: center the content */}
+      <div className="flex flex-1 flex-col sm:mx-auto sm:w-full sm:max-w-xl sm:justify-center sm:py-12">
+        {/* Progress dots */}
+        <div className="mb-6 flex items-center justify-center gap-2 sm:mb-0">
+          {STEPS.map((s, i) => (
+            <div
+              key={s.id}
+              className={cn(
+                "h-2 rounded-full transition-all",
+                i === step ? "w-10 bg-primary" : "w-2 bg-muted-foreground/30"
               )}
-              <p className="text-xs text-muted-foreground text-center mt-2">
-                Opsional — kamu bisa melewati langkah ini
-              </p>
-            </div>
+            />
+          ))}
+        </div>
 
-            <div className="flex items-center justify-between mt-6">
-              <Button variant="ghost" size="sm" onClick={prevStep}>
-                <ChevronLeft className="mr-1 h-4 w-4" />
-                Kembali
-              </Button>
-              <div className="flex gap-2">
-                <Button variant="ghost" size="sm" onClick={nextStep}>
+        {/* Step content */}
+        <div className="flex flex-1 flex-col sm:mt-6 sm:flex-none">
+          {/* Step 1: Welcome / Feature Tour */}
+          {step === 0 && (
+            <div className="flex flex-1 flex-col sm:flex-none">
+              <div className="mb-6 flex flex-col items-center text-center">
+                <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
+                  <Sparkles className="h-8 w-8 text-primary" />
+                </div>
+                <h1 className="text-2xl font-semibold tracking-tight">
+                  Selamat datang di Toutopia!
+                </h1>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  Platform persiapan ujian terlengkap. Kenali fitur-fitur utama kami:
+                </p>
+              </div>
+
+              <div className="space-y-3 sm:grid sm:grid-cols-2 sm:gap-4 sm:space-y-0">
+                {FEATURES.map((feature) => {
+                  const Icon = feature.icon;
+                  return (
+                    <div
+                      key={feature.title}
+                      className="flex gap-3 rounded-xl border p-4"
+                    >
+                      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/10">
+                        <Icon className="h-5 w-5 text-primary" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium">{feature.title}</p>
+                        <p className="mt-0.5 text-xs text-muted-foreground">
+                          {feature.description}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div className="mt-auto flex items-center justify-between pt-8">
+                <Button
+                  variant="ghost"
+                  onClick={skipToEnd}
+                  disabled={saving}
+                  className="h-12 text-base sm:h-10 sm:text-sm"
+                >
                   Lewati
                 </Button>
-                <Button onClick={nextStep}>
+                <Button
+                  onClick={nextStep}
+                  className="h-12 rounded-xl px-6 text-base sm:h-10 sm:text-sm"
+                >
                   Lanjut
-                  <ChevronRight className="ml-1 h-4 w-4" />
+                  <ChevronRight className="ml-1 h-5 w-5" />
                 </Button>
               </div>
             </div>
-          </div>
-        </div>
-      )}
+          )}
 
-      {/* Step 3: Theme Picker */}
-      {step === 2 && (
-        <div className={cardCls}>
-          <div className="px-6 pt-6 pb-2 text-center">
-            <div className="flex justify-center mb-3">
-              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10">
-                <Palette className="h-7 w-7 text-primary" />
+          {/* Step 2: Target Exam */}
+          {step === 1 && (
+            <div className="flex flex-1 flex-col sm:flex-none">
+              <div className="mb-8 flex flex-col items-center text-center">
+                <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
+                  <Target className="h-8 w-8 text-primary" />
+                </div>
+                <h1 className="text-2xl font-semibold tracking-tight">
+                  Target Ujian Kamu
+                </h1>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  Pilih ujian yang sedang kamu persiapkan (bisa diubah nanti)
+                </p>
+              </div>
+
+              <div className="px-2">
+                {loadingCategories ? (
+                  <div className="flex items-center justify-center gap-2 py-8 text-muted-foreground">
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                    <span className="text-sm">Memuat kategori...</span>
+                  </div>
+                ) : (
+                  <Select value={targetExam} onValueChange={setTargetExam}>
+                    <SelectTrigger className="h-12 rounded-xl text-base sm:h-10 sm:text-sm">
+                      <SelectValue placeholder="Pilih kategori ujian" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {categories.map((cat) => (
+                        <SelectItem key={cat.id} value={cat.name}>
+                          {cat.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+                <p className="mt-3 text-center text-xs text-muted-foreground">
+                  Opsional — kamu bisa melewati langkah ini
+                </p>
+              </div>
+
+              <div className="mt-auto flex items-center justify-between pt-8">
+                <Button
+                  variant="ghost"
+                  onClick={prevStep}
+                  className="h-12 text-base sm:h-10 sm:text-sm"
+                >
+                  <ChevronLeft className="mr-1 h-5 w-5" />
+                  Kembali
+                </Button>
+                <div className="flex gap-2">
+                  <Button
+                    variant="ghost"
+                    onClick={nextStep}
+                    className="h-12 text-base sm:h-10 sm:text-sm"
+                  >
+                    Lewati
+                  </Button>
+                  <Button
+                    onClick={nextStep}
+                    className="h-12 rounded-xl px-6 text-base sm:h-10 sm:text-sm"
+                  >
+                    Lanjut
+                    <ChevronRight className="ml-1 h-5 w-5" />
+                  </Button>
+                </div>
               </div>
             </div>
-            <h3 className="text-2xl font-semibold tracking-tight">Pilih Tema Tampilan</h3>
-            <p className="text-muted-foreground mt-1">
-              Personalisasi tampilan sesuai selera kamu. Bisa diubah kapan saja di pengaturan.
-            </p>
-          </div>
-          <div className="p-6">
-            <div className="mt-4">
-              <ThemePicker
-                previewOnly
-                onSelect={(theme) => setSelectedTheme(theme)}
-              />
-            </div>
+          )}
 
-            <div className="flex items-center justify-between mt-6">
-              <Button variant="ghost" size="sm" onClick={prevStep}>
-                <ChevronLeft className="mr-1 h-4 w-4" />
-                Kembali
-              </Button>
-              <Button onClick={completeOnboarding} disabled={saving}>
-                {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Mulai Belajar
-              </Button>
+          {/* Step 3: Theme Picker */}
+          {step === 2 && (
+            <div className="flex flex-1 flex-col sm:flex-none">
+              <div className="mb-8 flex flex-col items-center text-center">
+                <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
+                  <Palette className="h-8 w-8 text-primary" />
+                </div>
+                <h1 className="text-2xl font-semibold tracking-tight">
+                  Pilih Tema Tampilan
+                </h1>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  Personalisasi tampilan sesuai selera kamu. Bisa diubah kapan saja di pengaturan.
+                </p>
+              </div>
+
+              <div>
+                <ThemePicker
+                  previewOnly
+                  onSelect={(theme) => setSelectedTheme(theme)}
+                />
+              </div>
+
+              <div className="mt-auto flex items-center justify-between pt-8">
+                <Button
+                  variant="ghost"
+                  onClick={prevStep}
+                  className="h-12 text-base sm:h-10 sm:text-sm"
+                >
+                  <ChevronLeft className="mr-1 h-5 w-5" />
+                  Kembali
+                </Button>
+                <Button
+                  onClick={completeOnboarding}
+                  disabled={saving}
+                  className="h-12 rounded-xl px-6 text-base sm:h-10 sm:text-sm"
+                >
+                  {saving && <Loader2 className="mr-2 h-5 w-5 animate-spin" />}
+                  Mulai Belajar
+                </Button>
+              </div>
             </div>
-          </div>
+          )}
         </div>
-      )}
+      </div>
     </div>
   );
 }
